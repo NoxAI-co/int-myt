@@ -8,7 +8,7 @@
         </cac:PartyIdentification>
             {{-- @endif --}}
         <cac:PartyName>
-            <cbc:Name>{{$data['nombre']}}</cbc:Name>
+            <cbc:Name>{{$data['nombre'] . " " . (isset($data['apellido1']) ? $data['apellido1'] : '') . " " . (isset($data['apellido2']) ? $data['apellido2'] : '') }}</cbc:Name>
         </cac:PartyName>
         @isset($Empresa)
         <cac:PhysicalLocation>
