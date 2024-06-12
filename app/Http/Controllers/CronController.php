@@ -113,9 +113,9 @@ class CronController extends Controller
             $horaFin = now()->addMinutes(5)->format('H:i');
 
             $grupos_corte = GrupoCorte::
-            where('hora_creacion_factura','>=', $horaInicio)
-            ->where('hora_creacion_factura','<=', $horaFin)
-            ->where('fecha_factura', $date)
+            // where('hora_creacion_factura','>=', $horaInicio)
+            // ->where('hora_creacion_factura','<=', $horaFin)
+            where('fecha_factura', $date)
             ->where('status', 1)->get();
 
             $fecha = Carbon::now()->format('Y-m-d');
@@ -435,6 +435,11 @@ class CronController extends Controller
                 }// fin foreach contratos.
             }
 
+            if(isset($nro)){
+                $nro->inicio = $nro->inicio+1;
+                $nro->save();
+            }
+
              /* Enviar correo funcional */
              foreach($grupos_corte as $grupo_corte){
                 $fechaInvoice = Carbon::now()->format('Y-m').'-'.substr(str_repeat(0, 2).$grupo_corte->fecha_factura, - 2);
@@ -588,8 +593,12 @@ class CronController extends Controller
         }
 
         $swGrupo = 1; //masivo
-        // $grupos_corte = GrupoCorte::where('fecha_suspension', getdate()['mday'] * 1)->where('hora_suspension','<=', date('H:i'))->where('hora_suspension_limit','>=', date('H:i'))->where('status', 1)->count();
-        $grupos_corte = DB::table('grupos_corte')->where('hora_suspension','<=', date('H:i'))->where('status', 1)->where('fecha_suspension','!=',0)->get();
+        
+        $grupos_corte = DB::table('grupos_corte')
+        // ->where('hora_suspension','<=', date('H:i'))
+        ->where('status', 1)
+        ->where('fecha_suspension','!=',0)
+        ->get();
 
         if($grupos_corte->count() > 0){
 
