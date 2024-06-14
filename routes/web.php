@@ -308,6 +308,9 @@ Route::group(['prefix' => 'master', 'middleware' => ['auth', 'master']], functio
 });
 
 Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
+	Route::resource('instances', 'InstanceController');
+    Route::get('instances/{id}/pair', 'InstanceController@pair')->name('instances.pair');
+	
 	Route::get('/', 'HomeController@index')->name('empresa');
 	Route::group(['prefix' => 'contactos'], function() {
 		Route::get('clientes', 'ContactosController@clientes')->name('contactos.clientes');
@@ -1474,10 +1477,9 @@ Route::get('/GoogleAnalytics', 'GoogleAnalyticsController@index')->name('Google.
 	//CRM
 	    Route::group(['prefix' => 'crm'], function() {
 			Route::get('/cartera', 'CRMController@whatsapp')->name('crm.cartera');
-	        // Route::get('/cartera', 'CRMController@cartera')->name('crm.cartera');
-			Route::get('/cartera', 'CRMController@whatsapp')->name('crm.whatsapp');
-		//	Route::post('/cartera/{action?}', 'CRMController@whatsappActions')->name('crm.whatsapp');
-		    Route::get('/cartera/whatsapp/action', 'CRMController@whatsappActions')->name('crm.whatsapp');
+			//Route::get('/cartera', 'CRMController@whatsapp')->name('crm.whatsapp.post');
+			//Route::post('/cartera/{action?}', 'CRMController@whatsappActions')->name('crm.whatsapp.api');
+            Route::get('/cartera/whatsapp/action', 'CRMController@whatsappActions')->name('crm.whatsapp');
 	        Route::get('{id}/{crm}/contacto', 'CRMController@contacto')->name('crm.contacto');
 	        Route::get('/informe', 'CRMController@informe')->name('crm.informe');
 	        Route::get('exportar', 'CRMController@exportar')->name('crm.exportar');
