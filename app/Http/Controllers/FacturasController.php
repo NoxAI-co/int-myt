@@ -517,7 +517,7 @@ class FacturasController extends Controller{
             ->select('factura.tipo','factura.promesa_pago','factura.id', 'factura.correo', 'factura.mensaje', 'factura.codigo',
              'factura.nro', DB::raw('c.nombre as nombrecliente'), DB::raw('c.apellido1 as ape1cliente'),
              DB::raw('c.apellido2 as ape2cliente'), DB::raw('c.email as emailcliente'),
-             DB::raw('c.celular as celularcliente'), DB::raw('c.nit as nitcliente'),
+             DB::raw('IFNULL(c.celular, c.telefono1) as celularcliente'), DB::raw('c.nit as nitcliente'),
              'factura.cliente', 'factura.fecha', 'factura.vencimiento', 'factura.estatus', 'factura.vendedor','factura.emitida',
              'mk.nombre as servidor','cs.server_configuration_id','cs.opciones_dian',
              DB::raw('v.nombre as nombrevendedor'),
