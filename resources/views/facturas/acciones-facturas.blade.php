@@ -10,7 +10,6 @@
     <a href="{{route('facturas.imprimir',['id' => $id, 'name'=> 'Factura No. '.$codigo.'.pdf'])}}" target="_blank" class="btn btn-outline-primary btn-icons"title="Imprimir"><i class="fas fa-print"></i></a>
     @if($estatus==0)
         <a href="{{route('facturas.tirilla', ['id' => $id, 'name'=> 'Factura No.'.$id.'.pdf'])}}" target="_blank" class="btn btn-outline-warning btn-icons"title="Imprimir tirilla"><i class="fas fa-file-invoice"></i></a>
-        <a href="{{route('facturas.tirilla.whatsapp', ['id' => $id, 'name'=> 'Factura No.'.$id.'.pdf'])}}" target="_blank" class="btn btn-outline-success btn-icons"title="Enivar tirilla por Whatsapp"><i class="fab fa-whatsapp"></i></a>
     @endif
 	@if($estatus==1)
 		<a href="{{route('ingresos.create_id', ['cliente'=>$cliente, 'factura'=>$id])}}" class="btn btn-outline-primary btn-icons" title="Agregar pago"><i class="fas fa-money-bill"></i></a>

@@ -49,6 +49,7 @@ use App\Model\Ingresos\IngresosFactura;
 use App\Banco;
 use App\Movimiento;
 use App\PucMovimiento;
+use App\Services\WapiService;
 use Illuminate\Support\Facades\DB;
 
 class CronController extends Controller
@@ -2646,308 +2647,6 @@ class CronController extends Controller
         //END SOPORTE AGREGAR ITEMS A FACTURAS SIN ITEMS MASIVAMENTE  POR UN GRUPO DE CORTE//
 
     }
-     public function envioFacturaWpp(){
-        
-        if(getdate()['mday'] == 01){
-            $dia = 1;
-       
-        }else $dia = getdate()['mday'];
-
-        $grupos_corte = GrupoCorte::where('status', 1)->where('id',9)->get();
-
-        if($grupos_corte->count() > 0){
-
-            $grupos_corte_array = array();
-
-            foreach($grupos_corte as $grupo){
-                array_push($grupos_corte_array,$grupo->id);
-            }
-
-            $facturas = Factura::
-            join('contracts as c','c.id','=','factura.contrato_id')
-            ->where('factura.observaciones','LIKE','%Facturación Automática -%')->where('factura.fecha','2024-05-12')
-            ->where('factura.whatsapp',0)
-            ->select('factura.*')
-            ->limit(15)->get();
-
-
-        /* $facturas = Factura::
-            join('contracts as c','c.id','=','factura.contrato_id')
-            // ->where('factura.observaciones','LIKE','%Facturación Automática -%')->where('factura.fecha',date('Y-m-d'))
-            // ->where('factura.whatsapp',0)
-            ->whereIn('c.grupo_corte',$grupos_corte_array)
-            ->select('factura.*')
-            ->limit(1)->get();*/
-
-            foreach($facturas as $factura){
-
-                view()->share(['title' => 'Imprimir Factura']);
-                $empresa = Empresa::find($factura->empresa);
-                $items = ItemsFactura::where('factura',$factura->id)->get();
-                $itemscount=ItemsFactura::where('factura',$factura->id)->count();
-                $retenciones = FacturaRetencion::where('factura', $factura->id)->get();
-                $resolucion = NumeracionFactura::where('empresa',$factura->empresa)->latest()->first();
-
-                $tipo = $factura->tipo;
-
-                if($factura->emitida == 1){
-                        $impTotal = 0;
-                        foreach ($factura->totalAPI($empresa->id)->imp as $totalImp){
-                            if(isset($totalImp->total)){
-                                $impTotal = $totalImp->total;
-                            }
-                        }
-
-                        $CUFEvr = $factura->info_cufeAPI($factura->id, $impTotal, $empresa->id);
-                        $infoEmpresa = Empresa::find($empresa->id);
-                        $data['Empresa'] = $infoEmpresa->toArray();
-                        $infoCliente = Contacto::find($factura->cliente);
-                        $data['Cliente'] = $infoCliente->toArray();
-                        /*..............................
-                        Construcción del código qr a la factura
-                        ................................*/
-                        $impuesto = 0;
-                        foreach ($factura->totalAPI($empresa->id)->imp as $key => $imp) {
-                            if(isset($imp->total)){
-                                $impuesto = $imp->total;
-                            }
-                        }
-
-                        $codqr = "NumFac:" . $factura->codigo . "\n" .
-                        "NitFac:"  . $data['Empresa']['nit']   . "\n" .
-                        "DocAdq:" .  $data['Cliente']['nit'] . "\n" .
-                        "FecFac:" . Carbon::parse($factura->created_at)->format('Y-m-d') .  "\n" .
-                        "HoraFactura" . Carbon::parse($factura->created_at)->format('H:i:s').'-05:00' . "\n" .
-                        "ValorFactura:" .  number_format($factura->totalAPI($empresa->id)->subtotal, 2, '.', '') . "\n" .
-                        "ValorIVA:" .  number_format($impuesto, 2, '.', '') . "\n" .
-                        "ValorOtrosImpuestos:" .  0.00 . "\n" .
-                        "ValorTotalFactura:" .  number_format($factura->totalAPI($empresa->id)->subtotal + $factura->impuestos_totalesFe(), 2, '.', '') . "\n" .
-                        "CUFE:" . $CUFEvr;
-                        /*..............................
-                        Construcción del código qr a la factura
-                        ................................*/
-                        $pdf = PDF::loadView('pdf.electronicaAPI', compact('items', 'factura', 'itemscount', 'tipo', 'retenciones','resolucion','codqr','CUFEvr', 'empresa'))->save(public_path() . "/convertidor/" . $factura->codigo . ".pdf")->stream();
-                    }else{
-                        $pdf = PDF::loadView('pdf.electronicaAPI', compact('items', 'factura', 'itemscount', 'tipo', 'retenciones','resolucion', 'empresa'))->save(public_path() . "/convertidor/" . $factura->codigo . ".pdf")->stream();
-                    }
-
-                // envio de mensajes por whatsapp //
-                $plantilla = Plantilla::where('empresa', $empresa->id)->where('clasificacion', 'Facturacion')->where('tipo', 2)->where('status', 1)->get()->last();
-
-                if($plantilla){
-                    $mensaje = str_replace('{{ $company }}', $empresa->nombre, $plantilla->contenido);
-                    $mensaje = str_replace('{{ $name }}', ucfirst($factura->cliente()->nombre), $mensaje);
-                    $mensaje = str_replace('{{ $factura->codigo }}', $factura->codigo, $mensaje);
-                    $mensaje = str_replace('{{ $factura->parsearApi($factura->totalAPI($empresa->id)->total, $empresa) }}', $factura->parsearApi($factura->totalAPI($empresa->id)->total,$empresa), $mensaje);
-                }else{
-                    $mensaje = $empresa->nombre.", le informa que su factura ha sido generada bajo el Nro. ".$factura->codigo.", por un monto de $".$factura->parsearApi($factura->totalAPI($empresa->id)->total,$empresa);
-                }
-
-                $numero = str_replace('+','',$factura->cliente()->celular);
-                $numero = str_replace(' ','',$numero);
-                $numero = (substr($numero, 0, 2) == 57) ? $numero : '57'.$numero;
-
-
-                $fields = [
-                    "action"=>"sendFile",
-                    "id"=>$numero."@c.us",
-                    "file"=> "/convertidor/" . $factura->codigo . ".pdf", // debe existir el archivo en la ubicacion que se indica aqui
-                    "mime"=>"application/pdf",
-                    "namefile"=>$factura->codigo,
-                    "mensaje"=>$mensaje,
-                    "cron"=>"true",
-                    "numero" =>$numero,
-                ];
-        
-                $request = new Request();
-                $request->merge($fields);
-                $controller = new CRMController();
-                $factura->correo_sendinblue = 0;
-                $factura->whatsapp = 1;
-                $factura->correo_sendinblue = 1;
-                $factura->save();
-                $instancia = DB::table("instancia")
-                                        ->first();
-                $response = $controller->whatsappActions($request); //ENVIA EL MENSAJE
-                
-
-                if(!is_null($instancia) && !empty($instancia)){
-                    if($instancia->status == "1"){
-                        $response = $controller->whatsappActions($request); //ENVIA EL MENSAJE
-                        $response = json_decode($response,true);
-
-                        if($response['salida'] == 'success'){
-                            $factura->whatsapp = 1;
-                            $factura->correo_sendinblue = 1;
-                            $factura->save();
-                        }
-
-
-                        $factura->response_sendinblue = $response;
-                        $factura->save();
-                    }else{
-                        $factura->correo_sendinblue = 0;
-                        $factura->response_sendinblue = $response;
-                        $factura->save();
-                    }
-                }else{
-                    $factura->correo_sendinblue = 0;
-                    $factura->whatsapp = 1;
-                    $factura->correo_sendinblue = 1;
-                    $factura->save();
-
-                    $factura->response_sendinblue = $response;
-                    $factura->save();
-                }
-
-                unlink(public_path() . "/convertidor/" . $factura->codigo . ".pdf");
-            }
-        }
-    }
- /*   public function envioFacturaWpp(){
-
-        if(getdate()['mday'] == 01){
-            $dia = 1;
-        }else $dia = getdate()['mday'];
-
-        $grupos_corte = GrupoCorte::where('status', 1)->where('fecha_factura',$dia)->get();
-
-        if($grupos_corte->count() > 0){
-
-            $grupos_corte_array = array();
-
-            foreach($grupos_corte as $grupo){
-                array_push($grupos_corte_array,$grupo->id);
-            }
-
-         $facturas = Factura::
-            join('contracts as c','c.id','=','factura.contrato_id')
-            ->where('factura.observaciones','LIKE','%Facturación Automática -%')->where('factura.fecha',date('Y-m-d'))
-            ->where('factura.whatsapp',0)
-            ->whereIn('c.grupo_corte',$grupos_corte_array)
-            ->select('factura.*')
-            ->limit(45)->get();
-
-            foreach($facturas as $factura){
-
-                view()->share(['title' => 'Imprimir Factura']);
-                $empresa = Empresa::find($factura->empresa);
-                $items = ItemsFactura::where('factura',$factura->id)->get();
-                $itemscount=ItemsFactura::where('factura',$factura->id)->count();
-                $retenciones = FacturaRetencion::where('factura', $factura->id)->get();
-                $resolucion = NumeracionFactura::where('empresa',$factura->empresa)->latest()->first();
-
-                $tipo = $factura->tipo;
-
-                if($factura->emitida == 1){
-                        $impTotal = 0;
-                        foreach ($factura->totalAPI($empresa->id)->imp as $totalImp){
-                            if(isset($totalImp->total)){
-                                $impTotal = $totalImp->total;
-                            }
-                        }
-
-                        $CUFEvr = $factura->info_cufeAPI($factura->id, $impTotal, $empresa->id);
-                        $infoEmpresa = Empresa::find($empresa->id);
-                        $data['Empresa'] = $infoEmpresa->toArray();
-                        $infoCliente = Contacto::find($factura->cliente);
-                        $data['Cliente'] = $infoCliente->toArray();
-                        /*..............................
-                        Construcción del código qr a la factura
-                        ................................*/
-                     /*   $impuesto = 0;
-                        foreach ($factura->totalAPI($empresa->id)->imp as $key => $imp) {
-                            if(isset($imp->total)){
-                                $impuesto = $imp->total;
-                            }
-                        }
-
-                        $codqr = "NumFac:" . $factura->codigo . "\n" .
-                        "NitFac:"  . $data['Empresa']['nit']   . "\n" .
-                        "DocAdq:" .  $data['Cliente']['nit'] . "\n" .
-                        "FecFac:" . Carbon::parse($factura->created_at)->format('Y-m-d') .  "\n" .
-                        "HoraFactura" . Carbon::parse($factura->created_at)->format('H:i:s').'-05:00' . "\n" .
-                        "ValorFactura:" .  number_format($factura->totalAPI($empresa->id)->subtotal, 2, '.', '') . "\n" .
-                        "ValorIVA:" .  number_format($impuesto, 2, '.', '') . "\n" .
-                        "ValorOtrosImpuestos:" .  0.00 . "\n" .
-                        "ValorTotalFactura:" .  number_format($factura->totalAPI($empresa->id)->subtotal + $factura->impuestos_totalesFe(), 2, '.', '') . "\n" .
-                        "CUFE:" . $CUFEvr;
-                        /*..............................
-                        Construcción del código qr a la factura
-                        ................................*/
-                   /*     $pdf = PDF::loadView('pdf.electronicaAPI', compact('items', 'factura', 'itemscount', 'tipo', 'retenciones','resolucion','codqr','CUFEvr', 'empresa'))->save(public_path() . "/convertidor/" . $factura->codigo . ".pdf")->stream();
-                    }else{
-                        $pdf = PDF::loadView('pdf.electronicaAPI', compact('items', 'factura', 'itemscount', 'tipo', 'retenciones','resolucion', 'empresa'))->save(public_path() . "/convertidor/" . $factura->codigo . ".pdf")->stream();
-                    }
-
-                // envio de mensajes por whatsapp //
-                $plantilla = Plantilla::where('empresa', $empresa->id)->where('clasificacion', 'Facturacion')->where('tipo', 2)->where('status', 1)->get()->last();
-
-                if($plantilla){
-                    $mensaje = str_replace('{{ $company }}', $empresa->nombre, $plantilla->contenido);
-                    $mensaje = str_replace('{{ $name }}', ucfirst($factura->cliente()->nombre), $mensaje);
-                    $mensaje = str_replace('{{ $factura->codigo }}', $factura->codigo, $mensaje);
-                    $mensaje = str_replace('{{ $factura->parsearApi($factura->totalAPI($empresa->id)->total, $empresa) }}', $factura->parsearApi($factura->totalAPI($empresa->id)->total,$empresa), $mensaje);
-                }else{
-                    $mensaje = $empresa->nombre.", le informa que su factura ha sido generada bajo el Nro. ".$factura->codigo.", por un monto de $".$factura->parsearApi($factura->totalAPI($empresa->id)->total,$empresa);
-                }
-
-                $numero = str_replace('+','',$factura->cliente()->celular);
-                $numero = str_replace(' ','',$numero);
-                $numero = (substr($numero, 0, 2) == 57) ? $numero : '57'.$numero;
-
-
-                $fields = [
-                    "action"=>"sendFile",
-                    "id"=>$numero."@c.us",
-                    "file"=>public_path() . "/convertidor/" . $factura->codigo . ".pdf", // debe existir el archivo en la ubicacion que se indica aqui
-                    "mime"=>"application/pdf",
-                    "namefile"=>$factura->codigo,
-                    "mensaje"=>$mensaje,
-                    "cron"=>"true"
-                ];
-
-                $request = new Request();
-                $request->merge($fields);
-                $controller = new CRMController();
-
-                $instancia = DB::table("instancia")
-                                        ->first();
-                $response;
-                if(!is_null($instancia) && !empty($instancia)){
-                    if($instancia->status == "1"){
-                        $response = $controller->whatsappActions($request); //ENVIA EL MENSAJE
-                        $response = json_decode($response,true);
-
-                        if($response['salida'] == 'success'){
-                            $factura->whatsapp = 1;
-                            $factura->correo_sendinblue = 1;
-                            $factura->save();
-                        }
-
-
-                        $factura->response_sendinblue = $response;
-                        $factura->save();
-                    }else{
-                        $factura->correo_sendinblue = 0;
-
-
-                        $factura->response_sendinblue = $response;
-                        $factura->save();
-                    }
-                }else{
-                    $factura->correo_sendinblue = 0;
-
-
-                    $factura->response_sendinblue = $response;
-                    $factura->save();
-                }
-
-                unlink(public_path() . "/convertidor/" . $factura->codigo . ".pdf");
-            }
-        }
-    }*/
-
 
     public function aplicateProrrateo(){
 
@@ -3137,5 +2836,99 @@ class CronController extends Controller
         }
 
         return $facturas;
+    }
+
+    public function envioFacturaWpp(WapiService $wapiService){
+
+        if(getdate()['mday'] == 01){
+            $dia = 1;
+        }else $dia = getdate()['mday'];
+
+        $empresa = Empresa::Find(1);
+
+        $grupos_corte = GrupoCorte::where('status', 1)->where('fecha_factura',$dia)->get();
+
+        if($grupos_corte->count() > 0){
+
+            $grupos_corte_array = array();
+
+            foreach($grupos_corte as $grupo){
+                array_push($grupos_corte_array,$grupo->id);
+            }
+
+         $facturas = Factura::
+            join('contracts as c','c.id','=','factura.contrato_id')
+            ->where('factura.observaciones','LIKE','%Facturación Automática -%')->where('factura.fecha',date('Y-m-d'))
+            ->where('factura.whatsapp',0)
+            ->whereIn('c.grupo_corte',$grupos_corte_array)
+            ->select('factura.*')
+            ->limit(45)->get();
+
+
+            foreach($facturas as $factura){
+
+                view()->share(['title' => 'Imprimir Factura']);
+
+                $facturaPDF = $this->getPdfFactura($factura->id);
+                $facturabase64 = base64_encode($facturaPDF);
+                $instance = Instance::where('company_id', $empresa->id)->first();
+
+                if(is_null($instance) || empty($instance)){
+                    Log::error('Instancia no está creada.');
+                    return;
+                }
+
+                if($instance->status !== "PAIRED") {
+                    Log::error('La instancia de whatsapp no está conectada, por favor conectese a whatsapp y vuelva a intentarlo.');
+                    return;
+                }
+
+                $contacto = $factura->cliente();
+
+                // envio de mensajes por whatsapp //
+                $file = [
+                    "mime" => "@file/pdf",
+                    "data" => $facturabase64,
+                ];
+
+                $contact = [
+                    "phone" =>  "57" . $contacto->celular,
+                    "name" => $contacto->nombre . " " . $contacto->apellido1
+                ];
+
+                $nameEmpresa = $empresa->nombre;
+                $total = $factura->total()->total;
+                $message = "$nameEmpresa Le informa que su factura ha sido generada bajo el número $factura->codigo por un monto de $$total pesos.";
+
+                $body = [
+                    "contact" => $contact,
+                    "body" => $message,
+                    "file" => $file
+                ];
+
+                $response = (object) $wapiService->sendMessageMedia($instance->uuid_whatsapp, $instance->api_key, $body);
+                if(isset($response->statusCode)) {
+                    Log::error('No se pudo enviar el mensaje, por favor intente nuevamente.' . $contacto->nit);
+                    // break;
+                }
+
+                if(isset($response->scalar)){
+                $response = json_decode($response->scalar);
+                }
+
+                if(isset($response->status) && $response->status != "success") {
+                    Log::error('No se pudo enviar el mensaje, por favor intente nuevamente. ' . $contacto->nit);
+                    // break;
+                }
+
+                $archivo = public_path() . "/convertidor/" . $factura->codigo . ".pdf";
+                if (file_exists($archivo)) {
+                    unlink($archivo);
+                }
+                $factura->whatsapp = 1;
+                $factura->save();
+            }
+            Log::info("Lote de facturas enviadas por whatsapp correctamente.");
+        }
     }
 }
