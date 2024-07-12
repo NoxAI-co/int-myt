@@ -308,9 +308,6 @@ Route::group(['prefix' => 'master', 'middleware' => ['auth', 'master']], functio
 });
 
 Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
-	Route::resource('instances', 'InstanceController');
-    Route::get('instances/{id}/pair', 'InstanceController@pair')->name('instances.pair');
-	
 	Route::get('/', 'HomeController@index')->name('empresa');
 	Route::group(['prefix' => 'contactos'], function() {
 		Route::get('clientes', 'ContactosController@clientes')->name('contactos.clientes');
@@ -396,8 +393,61 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
 		Route::resource('ajustes', 'AjusteInventarioController');
 
 	});
+	Route::group(['prefix' => 'inventariowifi'], function() {
+		Route::post('/{id}/act_desc', 'InventarioWifiController@act_desc')->name('inventario.act_desc');
+		Route::get('{id}/json', 'InventarioWifiController@json')->name('inventario.json');
+		Route::get('json', 'InventarioWifiController@json')->name('inventario.all');
+		Route::get('importar', 'InventarioWifiController@importar')->name('inventario.importar');
+		Route::post('importar', 'InventarioWifiController@cargando')->name('inventario.importar');
+		Route::get('actualizar', 'InventarioWifiController@actualizar')->name('inventario.actualizar');
+		Route::post('actualizar', 'InventarioWifiController@actualizando')->name('inventario.actualizar');
+		Route::get('exportar', 'InventarioWifiController@exportar')->name('inventario.exportar');
+		Route::get('ejemplo', 'InventarioWifiController@ejemplo')->name('inventario.ejemplo');
+		Route::post('{id}/imagenes', 'InventarioWifiController@imagenes')->name('inventario.imagenes');
+		Route::get('/valor', 'ExtraInventarioController@valorinventario')->name('valorinventario');
+		Route::get('/gestion', 'ExtraInventarioController@gestion')->name('inventario.gestion');
+		Route::get('/precios', 'ExtraInventarioController@lista_precio')->name('inventario.precios');
+		Route::post('/publicar/{id}', 'InventarioWifiController@publicar')->name('inventario.publicar');
+		Route::get('/modems', 'InventarioWifiController@modems')->name('inventario.modems');
+		Route::get('/material-wifi', 'InventarioWifiController@material')->name('inventario.wifi.material');
+        Route::get('/television', 'InventarioWifiController@television')->name('inventario.television');
+        Route::get('/television/create', 'InventarioWifiController@television_create')->name('inventario.television_create');
+
+		Route::post('/diaiva', 'InventarioWifiController@diaIva');
+
+
+
+        //Ruta datatable
+        Route::get('/productos', 'InventarioController@getDataTable');
+
+
+		Route::get('items','InventarioWifiController@repararLinea')->name('inventario.items');
+
+		//Ruta para rellenar las tablas inferiores de informacion del porducto
+        Route::get('/{id}/facturaVenta', 'FacturasController@datatable_producto')->name('rellenarFV');
+        Route::get('/{id}/facturaCompra', 'FacturaspController@datatable_producto')->name('rellenarFC');
+        Route::get('/{id}/notaCredito', 'NotascreditoController@datatable_producto')->name('rellenarNC');
+        Route::get('/{id}/cotizaciones', 'CotizacionesController@datatable_producto')->name('rellenarC');
+        Route::get('/{id}/notaDebito', 'NotasdebitoController@datatable_producto')->name('rellenarND');
+        Route::get('/{id}/remisiones', 'RemisionesController@datatable_producto')->name('rellenarR');
+        Route::get('/{id}/ordenesCompra', 'OrdenesController@datatable_producto')->name('rellenarOD');
+
+		Route::group(['prefix' => 'bodegas'], function() {
+			Route::get('{id}/json', 'BodegasController@json')->name('bodegas.json');
+			Route::post('/{id}/act_desc', 'BodegasController@act_desc')->name('bodegas.act_desc');
+			Route::get('transferencia/{id}/imprimir', 'TransferenciaController@imprimir')->name('transferencia.imprimir');
+			Route::resource('transferencia', 'TransferenciaController');
+		});
+
+		Route::post('/lista_precios/{id}/act_desc', 'ListaPreciosController@act_desc')->name('lista_precios.act_desc');
+		Route::resource('bodegas', 'BodegasController');
+		Route::resource('lista_precios', 'ListaPreciosController');
+		Route::resource('ajustes', 'AjusteInventarioController');
+
+	});
 
 	Route::resource('inventario', 'InventarioController');
+	Route::resource('inventariowifi', 'InventarioWifiController');
 
 	//Ruta especial para crear producto en la ventana modal de fasturasp
 	Route::post('inventario/modalStore', 'InventarioController@storeBack')->name('inventario.storeback');
@@ -1476,10 +1526,10 @@ Route::get('/GoogleAnalytics', 'GoogleAnalyticsController@index')->name('Google.
 
 	//CRM
 	    Route::group(['prefix' => 'crm'], function() {
-			Route::get('/cartera', 'CRMController@whatsapp')->name('crm.cartera');
-			//Route::get('/cartera', 'CRMController@whatsapp')->name('crm.whatsapp.post');
-			//Route::post('/cartera/{action?}', 'CRMController@whatsappActions')->name('crm.whatsapp.api');
-            Route::get('/cartera/whatsapp/action', 'CRMController@whatsappActions')->name('crm.whatsapp');
+	        Route::get('/cartera', 'CRMController@cartera')->name('crm.cartera');
+			Route::get('/cartera', 'CRMController@whatsapp')->name('crm.whatsapp');
+		//	Route::post('/cartera/{action?}', 'CRMController@whatsappActions')->name('crm.whatsapp');
+		    Route::get('/cartera/whatsapp/action', 'CRMController@whatsappActions')->name('crm.whatsapp');
 	        Route::get('{id}/{crm}/contacto', 'CRMController@contacto')->name('crm.contacto');
 	        Route::get('/informe', 'CRMController@informe')->name('crm.informe');
 	        Route::get('exportar', 'CRMController@exportar')->name('crm.exportar');
