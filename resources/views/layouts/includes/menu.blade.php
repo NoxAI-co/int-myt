@@ -93,6 +93,9 @@
                         <li class="nav-item" id="material">
                             <a class="nav-link" href="{{route('inventario.material')}}">Productos</a>
                         </li>
+                        <li class="nav-item" id="material">
+                            <a class="nav-link" href="{{route('inventario.wifi.material')}}">Productos Wifi</a>
+                        </li>
                         <li class="nav-item" id="planes_tv">
                             <a class="nav-link" href="{{route('inventario.television')}}">Planes de Televisión</a>
                         </li>
@@ -301,7 +304,7 @@
                     @endif
                     @if(isset($_SESSION['permisos']['744']))
                         <li class="nav-item" id="crm_whatsapp">
-                            <a class="nav-link" href="{{route('crm.cartera')}}">Clientes Whatsapp</a>
+                            <a class="nav-link" href="{{route('crm.whatsapp')}}">Clientes Whatsapp</a>
                         </li>
                     @endif
                 </ul>

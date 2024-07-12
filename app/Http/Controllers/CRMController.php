@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
-use Mail;
+use Mail; 
 use Validator;
-use Illuminate\Validation\Rule;
-use Auth;
+use Illuminate\Validation\Rule;   
+use Auth; 
 use DB;
 use Session;
 use App\Etiqueta;
@@ -17,9 +17,9 @@ use App\Etiqueta;
 use Barryvdh\DomPDF\Facade as PDF;
 
 include_once(app_path() .'/../public/PHPExcel/Classes/PHPExcel.php');
-use PHPExcel;
-use PHPExcel_IOFactory;
-use PHPExcel_Style_Alignment;
+use PHPExcel; 
+use PHPExcel_IOFactory; 
+use PHPExcel_Style_Alignment; 
 use PHPExcel_Style_Fill;
 use PHPExcel_Style_Border;
 use PHPExcel_Style_NumberFormat;
@@ -35,11 +35,7 @@ use App\GrupoCorte;
 use App\Mikrotik;
 use App\Integracion;
 use App\CRMLOG;
-use App\Instance;
 use App\PromesaPago;
-use App\Services\WapiService;
-use GuzzleHttp\Exception\ClientException;
-
 include_once(app_path() .'/../public/routeros_api.class.php');
 use RouterosAPI;
 
@@ -51,12 +47,13 @@ class CRMController extends Controller
         set_time_limit(300);
         view()->share(['inicio' => 'master', 'seccion' => 'crm', 'title' => 'CRM', 'icon' => 'fas fa-receipt']);
     }
-
+    
     public function index(Request $request){
+      
         $this->getAllPermissions(Auth::user()->id);
         view()->share(['subseccion' => 'crm_cartera', 'title' => 'CRM: Cartera', 'invert' => true]);
-
-        $clientes = (Auth::user()->oficina && Auth::user()->empresa()->oficina) ? CRM::join('contactos', 'crm.cliente', '=', 'contactos.id')->where('contactos.oficina', Auth::user()->oficina)->where('crm.empresa', Auth::user()->empresa)->groupBy('crm.cliente')->get() : CRM::join('contactos', 'crm.cliente', '=', 'contactos.id')->where('crm.empresa', Auth::user()->empresa)->groupBy('crm.cliente')->get();
+        
+        $clientes = (Auth::user()->oficina && Auth::user()->empresa()->oficina) ? CRM::join('contactos', 'crm.cliente', '=', 'contactos.id')->where('contactos.oficina', Auth::user()->oficina)->where('estado','=',0)->where('crm.empresa', Auth::user()->empresa) ->select('crm.*', 'contactos.*')->groupBy('crm.cliente')->get() : CRM::join('contactos', 'crm.cliente', '=', 'contactos.id') ->select('crm.*', 'contactos.*')->where('crm.empresa', Auth::user()->empresa)->where('estado','=',0)->groupBy('crm.cliente')->get();
         $usuarios = User::where('user_status', 1)->where('empresa', Auth::user()->empresa)->get();
         $servidores   = Mikrotik::where('status', 1)->where('empresa', Auth::user()->empresa)->get();
         $grupos_corte = GrupoCorte::where('status', 1)->where('empresa', Auth::user()->empresa)->get();
@@ -64,7 +61,7 @@ class CRMController extends Controller
         $ini = Carbon::create(date('Y'), date('m'), date('d'))->startOfMonth()->format('d-m-Y');
         return view('crm.index')->with(compact('clientes', 'usuarios', 'servidores', 'grupos_corte', 'etiquetas', 'ini'));
     }
-
+    
     public function informe(Request $request){
         $this->getAllPermissions(Auth::user()->id);
         view()->share(['subseccion' => 'crm_informe', 'title' => 'CRM: Informe', 'invert' => true]);
@@ -73,23 +70,25 @@ class CRMController extends Controller
         $usuarios = User::where('user_status', 1)->where('empresa', Auth::user()->empresa)->get();
         $servidores   = Mikrotik::where('status', 1)->where('empresa', Auth::user()->empresa)->get();
         $grupos_corte = GrupoCorte::where('status', 1)->where('empresa', Auth::user()->empresa)->get();
-
+        
         $ini = Carbon::create(date('Y'), date('m'), date('d'))->startOfMonth()->format('d-m-Y');
         $fin = Carbon::create(date('Y'), date('m'), date('d'))->endOfMonth()->format('d-m-Y');
         return view('crm.informe')->with(compact('clientes', 'usuarios', 'ini', 'fin', 'servidores', 'grupos_corte'));
     }
-
+    
     public function cartera(Request $request, $tipo){
         $modoLectura = auth()->user()->modo_lectura();
         $etiquetas = Etiqueta::where('empresa_id', auth()->user()->empresa)->get();
         $contratos = CRM::query()
-			->select('crm.*', 'factura.fecha as fecha_factura', 'contactos.nit as c_nit', 'contactos.id as c_id', 'contactos.nombre as c_nombre', 'contactos.apellido1 as c_apellido1', 'contactos.apellido2 as c_apellido2', 'contactos.celular as c_celular', 'factura.codigo', 'factura.estatus', 'items_factura.precio', DB::raw('(select count(factura.id) from factura where factura.cliente = crm.cliente and factura.estatus = 1) AS facAbiertas'))
+			->select('crm.*', 'factura.fecha as fecha_factura', 'contactos.nit as c_nit', 'contactos.id as c_id', 'contactos.nombre as c_nombre', 'contactos.apellido1 as c_apellido1', 'contactos.apellido2 as c_apellido2', 'contactos.celular as c_celular', 'factura.codigo', 'factura.estatus', 'items_factura.precio', DB::raw('(select count(factura.id) from factura where factura.cliente = crm.cliente and factura.estatus = 1 ) AS facAbiertas'))
             ->join('contactos', 'crm.cliente', '=', 'contactos.id')
             ->leftjoin('factura', 'crm.factura', '=', 'factura.id')
             ->leftjoin('items_factura', 'items_factura.factura', '=', 'factura.id')
+            ->havingRaw('facAbiertas > 0')
             ->where('crm.empresa', Auth::user()->empresa)
             ->distinct();
-
+           
+            
         if ($request->filtro == true) {
             if($request->cliente){
                 $contratos->where(function ($query) use ($request) {
@@ -161,7 +160,7 @@ class CRMController extends Controller
                 });
             }
         }
-
+        
         if($tipo == 1){
             $contratos->whereIn('crm.estado', [1, 2, 6]);
         }else if($tipo == 0){
@@ -177,7 +176,7 @@ class CRMController extends Controller
                 $contratos->where('contactos.oficina', auth()->user()->oficina);
             }
         }
-
+        
         return datatables()->eloquent($contratos)
             ->editColumn('nombre', function (CRM $crm) {
 
@@ -220,8 +219,8 @@ class CRMController extends Controller
 
     private function getInfo(){
         $usuarios =  DB::table("usuarios")
-                        ->get();
-
+                        ->get();   
+        
         $users = [];
         $users[] = [
             "id"=>0,
@@ -235,42 +234,18 @@ class CRMController extends Controller
                 "nombres"=>$usuario->nombres
             ];
         }
-
+        
         $chats = DB::table('chats_whatsapp')
                         ->orderBy("last_update","desc")
                         ->get();
-
+        
         return [$chats,$users];
     }
-
-    public function whatsapp(Request $request, WapiService $wapiService)
-    {
-        $this->getAllPermissions(auth()->user()->id);
-        $instance = Instance::where('company_id', auth()->user()->empresa)->first();
-        if(!$instance) {
-            return view('crm.whatsapp')->with(compact('instance'));
-        }
-        try {
-            $response = $wapiService->getInstance($instance->uuid);
-        } catch (ClientException $e) {
-            if($e->getResponse()->getStatusCode() === 404) {
-                return back()->withErrors([
-                    'instance_id' => 'Esta instancia no existe, valida el identificador con tu proveedor.'
-                ])->withInput($request->input());
-            }
-        }
-
-        $getResponse = json_decode($response);
-        $instance->status = $getResponse->data->status == "PAIRED" ? "PAIRED" : "UNPAIRED";
-        $instance->save();
-        return view('crm.whatsapp')->with(compact('instance'));
-    }
-
-    public function whatsapp2(Request $request){
+    public function whatsapp(Request $request){
         $this->getAllPermissions(Auth::user()->id);
         $instancia = DB::table("instancia")
                             ->first();
-
+       
         if(is_null($instancia) || empty($instancia)){
             return view("crm.whatsapp")->with(compact("instancia"));
         }
@@ -279,11 +254,382 @@ class CRMController extends Controller
             return view("crm.whatsapp")->with(compact("instancia","info"));
         }
         return view("crm.whatsapp")->with(compact("instancia"));
-
+        
     }
-    public function whatsappActions(Request $request){
+   /* public function whatsappActions(Request $request){
+        $unique = uniqid();
+        DB::table("instancia")
+                        ->update(["unique"=>$unique]);
 
+        switch ($request->input("action")) {
+            case 'getChat':
+                $instancia = DB::table("instancia")
+                                        ->first();
+                $secret = "sk_wh47s1v3"; //no borrar, id para seguridad
+                $url = 'https://api.whatsive.com/aliance/';
+                $data = array(
+                    'secret' => $secret,
+                    'action' => 'getChat',
+                    'id' => $request->input("id"),
+                    'limit' => $request->input("limit"),
+                    'idVerification'=>$unique,
+                    'addr'=>$instancia->addr,
+                    'port'=>$instancia->port
+                );
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                
+                $response = curl_exec($ch);
+                $response = json_decode($response);
+                if($response->salida != "success"){
+                    return json_encode(["salida"=>"error","message"=>$response->message]);
+                }
+                if (curl_errno($ch)) {
+                    return json_encode(["salida"=>"error","message"=>"No se pudo recuperar el archivo"]);
+                }
+                curl_close($ch);
+                return json_encode(["salida"=>"success","messages"=>$response->chats]);
+                break;
+            case 'closeChat':
+                DB::statement("UPDATE `chats_whatsapp` set `estado`= 'cerrado' where number='".explode("@",$request->input("id"))[0]."'");
+                return "true";
+                break;
+            case 'changeTecnico':
+                DB::statement("UPDATE `chats_whatsapp` set `asigned_to`= '".$request->input("tecnico")."' where number='".explode("@",$request->input("id"))[0]."'");
+                return "true";
+                break;
+            case 'changeName':
+                DB::statement("UPDATE `chats_whatsapp` set `name`= '".$request->input("nombre")."' where number='".explode("@",$request->input("id"))[0]."'");
+                return "true";
+                break;
+            case 'getMedia':
+                $instancia = DB::table("instancia")
+                                        ->first();
+                $secret = "sk_wh47s1v3"; //no borrar, id para seguridad
+                $url = 'https://api.whatsive.com/aliance/';
+                $data = array(
+                    'secret' => $secret,
+                    'action' => 'getMedia',
+                    'id' => $request->input("id"),
+                    'idVerification'=>$unique,
+                    'addr'=>$instancia->addr,
+                    'port'=>$instancia->port
+                );
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                
+                $response = curl_exec($ch);
+                $response = json_decode($response);
+                if($response->salida != "success"){
+                    return json_encode(["salida"=>"error","message"=>$response->message]);
+                }
+                if (curl_errno($ch)) {
+                    return json_encode(["salida"=>"error","message"=>"No se pudo recuperar el archivo"]);
+                }
+                curl_close($ch);
+                return json_encode(["salida"=>"success","src"=>"data:".$request->input("mimetype").";base64,".$response->src]);
+                break;
+            case 'sendMessage':
+                $instancia = DB::table("instancia")
+                                        ->first();
+                if($request->input("cron") == "true"){ 
+                    $usuario = DB::table("usuarios")
+                                        ->where("id","=","1")
+                                        ->first();
+                }else{
+                    $usuario = DB::table("usuarios")
+                                        ->where("id","=",Auth::user()->id)
+                                        ->first();
+                }
+                $secret = "sk_wh47s1v3"; //no borrar, id para seguridad
+                $message;
+                if($request->input("cron") == "true"){ 
+                    $message = $request->input("message");
+                }else{
+                    $message = "*".trim($usuario->nombres)."*\n".$request->input("message");
+                }
+                $url = 'https://api.whatsive.com/aliance/';
+                $data = array(
+                    'secret' => $secret,
+                    'action' => 'sendMessage',
+                    'isFile' => 'false',
+                    'message' => $message,
+                    'recipient' => $request->input("id"),
+                    'idVerification'=>$unique,
+                    'addr'=>$instancia->addr,
+                    'port'=>$instancia->port
+                );
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                
+                $response = curl_exec($ch);
+                $response = json_decode($response);
+                if($response->salida != "success"){
+                    return json_encode(["salida"=>"error","message"=>"No se pudo enviar el mensaje"]);
+                }
+                if (curl_errno($ch)) {
+                    return json_encode(["salida"=>"error","message"=>"No se pudo enviar el mensaje"]);
+                }
+                curl_close($ch);
+                DB::statement("UPDATE `chats_whatsapp` SET `last_message`= '".$request->input("message")."', `last_update`='".date("Y-m-d H:i:s")."', `notRead`='0', `fromMe`='1' WHERE `number`= '".explode("@",$request->input("id"))[0]."' ");
+                return json_encode(["salida"=>"success","message"=>"mensaje enviado correctamente","from"=>$request->input("id"),"body"=>$request->input("message"),"timestamp"=>strtotime(date("Y-m-d H:i:s"))]);
+                break;
+            case 'sendFile':
+                $instancia = DB::table("instancia")
+                                        ->first();
+                $usuario;
+                if($request->input("cron") == "true"){ 
+                    $usuario = DB::table("usuarios")
+                                        ->where("id","=","1")
+                                        ->first();
+                }else{
+                    $usuario = DB::table("usuarios")
+                                        ->where("id","=",Auth::user()->id)
+                                        ->first();
+                }
+                
+                $secret = "sk_wh47s1v3"; //no borrar, id para seguridad
+                $message;
+                if($request->input("cron") == "true"){ 
+                    $message = $request->input("mensaje");
+                }else{
+                    $message = "*".trim($usuario->nombres)."*\n".$request->input("mensaje");
+                }
+                if($request->input("cron") == "true"){ 
+                    $content = base64_encode(file_get_contents($request->input("file")));
+
+                }else{
+
+                    $content = base64_encode(file_get_contents(Storage::disk('local')->path($request->input("file"))));
+                }
+                $d = "false";
+                if(strpos($request->input("mime"),"image")>=0 || strpos($request->input("mime"),"video")>=0){
+                    $d = "true";
+                }
+                $url = 'https://api.whatsive.com/aliance/';
+                $data = array(
+                    'secret' => $secret,
+                    'action' => 'sendMessage',
+                    'isFile' => 'true',
+                    'description'=>$d,
+                    'mimetype'=>$request->input("mime"),
+                    "namefile"=>(is_null($request->input("namefile"))? "documento":$request->input("namefile")),
+                    'file'=>$content,
+                    'message' => $message,
+                    'recipient' => $request->input("id"),
+                    'idVerification'=>$unique,
+                    'addr'=>$instancia->addr,
+                    'port'=>$instancia->port
+                );
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                
+                $response = curl_exec($ch);
+                $response = json_decode($response);
+                
+                if($response->salida != "success"){
+                    return json_encode(["salida"=>"error","message"=>"Error al enviar el mensaje"]);
+                }
+                if (curl_errno($ch)) {
+                    return json_encode(["salida"=>"error","message"=>"No se pudo enviar el mensaje"]);
+                }
+                curl_close($ch);
+
+                $chat =  json_decode(json_encode($response->chat),true);
+                $typechats = [
+                    "video"=> "  <span class = 'fas fa-video fa-lg' ></span> Video",
+                    "ptt"=> "  <span class = 'fas fa-microphone fa-lg' ></span> Audio",
+                    "audio"=> "  <span class = 'fas fa-microphone fa-lg' ></span> Audio",
+                    "image"=> "  <span class = 'fas fa-image fa-lg' ></span> Imagen",
+                    "sticker"=> "  <span class = 'fas fa-file fa-lg' ></span> Sticker",
+                    "document"=> "  <span class = 'fas fa-file-archive fa-lg' ></span> Archivo",
+                    "location"=> "  <span class = 'fas fa-map fa-lg' ></span> Ubicacion",
+                    "call_log"=> "  <span style = 'color:red' class = 'fa fa-phone fa-lg' ></span> Llamada perdida ",
+                    "e2e_notification" =>"Respuesta automatica",
+                    "ciphertext" => "  <span class = 'fas fa-microphone fa-lg' ></span> Audio",
+                    "revoked" => "<span class = 'fa fa-ban fa-lg' ></span> Elimino el mensaje",
+                    "vcard" => "<span class = 'fa fa-user fa-lg' ></span> Contacto",
+                    "notification_template" => "<span class = 'fa fa-clock-o fa-lg' ></span> Aviso whatsapp",
+                    "gp2" => "<span class = 'fa fa-clock-o fa-lg' ></span> Aviso whatsapp",
+                ];
+                if(!isset($chat["timestamp"])){
+                    $chat["timestamp"] = strtotime(date("Y-m-d H:i:s")." -30 days");
+                }
+                $hora = date("Y-m-d H:i:s",$chat["timestamp"]);
+
+                if(isset($chat['lastMessage'])){
+                    if($chat['lastMessage']["type"] != "chat"){
+                        $chat['lastMessage']["body"] = $typechats[$chat['lastMessage']["type"]];
+                    }
+                    DB::statement("UPDATE `chats_whatsapp` SET `last_message`= '".str_replace("'","\"",$chat['lastMessage']["body"])."', `last_update`='".$hora."', `notRead`='0', `fromMe`='1' WHERE `number`= '".explode("@",$request->input("id"))[0]."' ");
+                    return json_encode(["salida"=>"success","message"=>"mensaje enviado correctamente","from"=>$request->input("id"),"body"=>str_replace("'","\"",$chat['lastMessage']["body"]),"type"=>$chat['lastMessage']["type"],"timestamp"=>strtotime($hora)]);
+                }else{
+                    DB::statement("UPDATE `chats_whatsapp` SET `last_message`= '', `last_update`='".$hora."', `notRead`='0', `fromMe`='1' WHERE `number`= '".explode("@",$request->input("id"))[0]."' ");
+                    return json_encode(["salida"=>"success","message"=>"mensaje enviado correctamente","from"=>$request->input("id"),"body"=>"","type"=>"chat","timestamp"=>strtotime($hora)]); 
+                }
+                
+                break;
+            case 'getChats':
+                $instancia = DB::table("instancia")
+                                        ->first();
+                                      
+                $secret = "sk_wh47s1v3"; //no borrar, id para seguridad
+                $url = 'https://api.whatsive.com/aliance/';
+                $data = array(
+                    'secret' => $secret,
+                    'action' => 'getChats',
+                    'idVerification'=>$unique,
+                    'addr'=>$instancia->addr,
+                    'port'=>$instancia->port
+                );
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                
+                $response = curl_exec($ch);
+                $response = json_decode($response);
+                if($response->salida != "success"){
+                    return json_encode(["salida"=>"error","message"=>$response->message]);
+                }
+                if (curl_errno($ch)) {
+                    return json_encode(["salida"=>"error","message"=>"No se pudieron recuperar los mensajes de la instancia"]);
+                }
+                curl_close($ch);
+                DB::statement('DELETE FROM `chats_whatsapp`');
+                foreach (json_decode($response->chats,true) as $chat) {
+                    $typechats = [
+                        "video"=> "  <span class = 'fas fa-video fa-lg' ></span> Video",
+                        "ptt"=> "  <span class = 'fas fa-microphone fa-lg' ></span> Audio",
+                        "audio"=> "  <span class = 'fas fa-microphone fa-lg' ></span> Audio",
+                        "image"=> "  <span class = 'fas fa-image fa-lg' ></span> Imagen",
+                        "sticker"=> "  <span class = 'fas fa-file fa-lg' ></span> Sticker",
+                        "document"=> "  <span class = 'fas fa-file-archive fa-lg' ></span> Archivo",
+                        "location"=> "  <span class = 'fas fa-map fa-lg' ></span> Ubicacion",
+                        "call_log"=> "  <span style = 'color:red' class = 'fa fa-phone fa-lg' ></span> Llamada perdida ",
+                        "e2e_notification" =>"Respuesta automatica",
+                        "ciphertext" => "  <span class = 'fas fa-microphone fa-lg' ></span> Audio",
+                        "revoked" => "<span class = 'fa fa-ban fa-lg' ></span> Elimino el mensaje",
+                        "vcard" => "<span class = 'fa fa-user fa-lg' ></span> Contacto",
+                        "notification_template" => "<span class = 'fa fa-clock-o fa-lg' ></span> Aviso whatsapp",
+                        "gp2" => "<span class = 'fa fa-clock-o fa-lg' ></span> Aviso whatsapp",
+                    ];
+                    if($chat['id']['user'] == "status"){
+                        continue;
+                    }
+                    if($chat["isGroup"]){
+                        continue;
+                    }
+                    if(!isset($chat["timestamp"])){
+                        $chat["timestamp"] = strtotime(date("Y-m-d H:i:s")." -30 days");
+                    }
+                    try {
+                        $hora = date("Y-m-d H:i:s",$chat["timestamp"]);
+                        if(isset($chat['lastMessage'])){
+                            if($chat['lastMessage']["type"] != "chat"){
+                                $chat['lastMessage']["body"] = $typechats[$chat['lastMessage']["type"]];
+                            }
+                            DB::statement("INSERT INTO `chats_whatsapp` (`number`,`name`,`last_update`,`asigned_to`,`last_message`,`type`,`notRead`,`photo`) values('".$chat['id']['user']."','".(isset($chat["contact"]['name'])?$chat["contact"]['name']:$chat['id']['user'])."','".$hora."','0','".str_replace("'","\"",$chat['lastMessage']["body"])."', '".$chat['lastMessage']["type"]."','".$chat["unreadCount"]."','".(!isset($chat["picUrl"]) || is_null($chat["picUrl"])?"https://ramenparados.com/wp-content/uploads/2019/03/no-avatar-png-8.png":$chat["picUrl"])."')");
+                        }else{
+                            DB::statement("INSERT INTO `chats_whatsapp` (`number`,`name`,`last_update`,`asigned_to`,`last_message`, `notRead`,`photo`) values('".$chat['id']['user']."','".(isset($chat["contact"]['name'])?$chat["contact"]['name']:$chat['id']['user'])."','".$hora."','0','','".$chat["unreadCount"]."','".(!isset($chat["picUrl"]) || is_null($chat["picUrl"])?"https://ramenparados.com/wp-content/uploads/2019/03/no-avatar-png-8.png":$chat["picUrl"])."') ");
+                        }
+                    } catch (\Throwable $th) {
+                        //throw $th;
+                    }
+                    
+                   
+
+                }
+                return json_encode(["salida"=>"success","message"=>"Instancia iniciada correctamente"]);
+                break;
+            case 'create':
+                
+                $secret = "sk_wh47s1v3"; //no borrar, id para seguridad
+                $url = 'https://api.whatsive.com/aliance/';
+                $data = array(
+                    'secret' => $secret,
+                    'action' => 'create',
+                    'idVerification'=>$unique,
+                    'addr'=>$request->input("addr")
+                );
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                
+                $response = curl_exec($ch);
+                $response = json_decode($response);
+                if($response->salida != "success"){
+                    return json_encode(["salida"=>"error","message"=>$response->message]);
+                }
+                if (curl_errno($ch)) {
+                    return json_encode(["salida"=>"error","message"=>"la instancia no pudo ser creada"]);
+                }
+                curl_close($ch);
+                
+                DB::statement("INSERT INTO `instancia` (`port`, `unique`, `status`, `addr`) values('".$response->puerto."','".$response->unique."','0','".$request->input("addr")."')");
+                return json_encode(["salida"=>"success","message"=>"Instancia creada correctamente"]);
+                break;
+            
+            case "reloadInstancia":
+                $instancia = DB::table("instancia")
+                                        ->first();
+                DB::statement("UPDATE instancia set `status`= '0'");
+                $secret = "sk_wh47s1v3"; //no borrar, id para seguridad
+                $url = 'https://api.whatsive.com/aliance/';
+                $data = array(
+                    'secret' => $secret,
+                    'action' => 'reload',
+                    'idVerification'=>$unique,
+                    'port'=>$instancia->port,
+                    'addr'=>$instancia->addr
+                );
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                
+                $response = curl_exec($ch);
+                $response = json_decode($response);
+                
+                if(isset($response->salida) && $response->salida != "success"){
+                    return json_encode(["salida"=>"error","message"=>$response->message]);
+                }
+                if (curl_errno($ch)) {
+                    return json_encode(["salida"=>"error","message"=>"la instancia no pudo ser creada"]);
+                }
+                return json_encode(["salida"=>"success","message"=>"Instancia reiniciada correctamente"]);
+                curl_close($ch);
+                break;
+            default:
+                # code...
+                break;
+        }
+    }*/
+    public function whatsappActions(Request $request){
+           
          // Configura los datos para la API
+         //$telefono =$request->numero;
          $telefono =$request->numero;
          $mensaje = $request->mensaje;
          $pdf = $request->file;
@@ -293,7 +639,7 @@ class CRMController extends Controller
                         "number" => $telefono,
                         "message" => $mensaje,
                         "media" => "document",
-                        "url" => "https://enternet.site/software".$pdf
+                        "url" => "https://www.interconexiones.co/software".$pdf
                     )
                 )
             );
@@ -309,7 +655,7 @@ class CRMController extends Controller
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS =>json_encode($postdata),
             CURLOPT_HTTPHEADER => array(
-                'Api-key:c47f0efb-6949-4e2c-a65b-160cf3d5e332',
+                'Api-key:b815afe3-583c-41f4-bd04-02bf1e93e4b9',
                 'Content-Type: application/json',
             ),
         ));
@@ -702,12 +1048,11 @@ class CRMController extends Controller
                 # code...
                 break;
         }*/
-        dd("has enviado el mensaje");
+        return json_encode(["salida"=>"success","message"=>"Instancia reiniciada correctamente"]);
     }
-
     public function carteraContacto($contacto, Request $request){
         $modoLectura = auth()->user()->modo_lectura();
-
+      
 
         $columns = array(
             0 => 'radicados.codigo',
@@ -725,7 +1070,7 @@ class CRMController extends Controller
             ->join('items_factura', 'items_factura.factura', '=', 'factura.id')
             ->where('crm.empresa', Auth::user()->empresa)
             ->where('contactos.id', $contacto);
-
+        
 
             if (isset($requestData->search['value'])) {
                 $contratos=$contratos->where(function ($query) use ($requestData) {
@@ -735,9 +1080,9 @@ class CRMController extends Controller
                     ->orwhere('factura.estatus', 'like', '%'.$requestData->search['value'].'%');
                 });
             }
-
+    
             $totalFiltered=$totalData=$contratos->count();
-
+            
             $contratos=$contratos->skip($requestData['start'])->take($requestData['length']);
             $contratos=$contratos->orderBy('created_at', 'desc');
             $contratos=$contratos->distinct()->get();
@@ -752,7 +1097,7 @@ class CRMController extends Controller
                 $nestedData[] = "<div class='text-center-c'>".($c->informacion)."</div>";
                 $data[] = $nestedData;
             }
-
+           
             $json_data = array(
                 "draw" => intval($requestData->draw),
                 "recordsTotal" => intval($totalData),
@@ -762,7 +1107,7 @@ class CRMController extends Controller
 
             return json_encode($json_data);
     }
-
+    
     public function reporte(Request $request){
         $modoLectura = auth()->user()->modo_lectura();
         $contratos = CRM::query()
@@ -772,7 +1117,7 @@ class CRMController extends Controller
             ->join('items_factura', 'items_factura.factura', '=', 'factura.id')
             ->whereIn('crm.estado', [1, 2, 3, 4, 5, 6])
             ->where('crm.empresa', Auth::user()->empresa);
-
+            
         if ($request->filtro == true) {
             if($request->cliente){
                 $contratos->where(function ($query) use ($request) {
@@ -833,7 +1178,7 @@ class CRMController extends Controller
                 $contratos->where('contactos.oficina', auth()->user()->oficina);
             }
         }
-
+        
         return datatables()->eloquent($contratos)
             ->editColumn('nombre', function (CRM $crm) {
                 return "<a href=" . route('contactos.show', $crm->cliente) . " target='_blank'>{$crm->c_nombre} {$crm->c_apellido1} {$crm->c_apellido2}</div></a>";
@@ -860,7 +1205,7 @@ class CRMController extends Controller
             ->rawColumns(['acciones', 'nombre', 'nit', 'celular', 'estado', 'created_by', 'updated_at', 'estatus'])
             ->toJson();
     }
-
+    
     public function store(Request $request){
         $request->validate([
             'idcliente' => 'required',
@@ -873,7 +1218,7 @@ class CRMController extends Controller
         if(request()->modalGestion){
             $comunicar = request()->send_mail;
         }
-
+        
         //$crm = CRM::where('cliente', $request->idcliente)->where('empresa', Auth::user()->empresa)->where('id', $idCRM)->get()->last();
         $crm = CRM::find($request->idCRM);
 
@@ -886,7 +1231,7 @@ class CRMController extends Controller
                 $estado = 1;
                 $accion_log .= 'CRM Gestionado';
             }
-
+            
             if($request->retirado == 1){
                 $estado = 4;
                 $accion_log .= ': Cliente Retirado<br>';
@@ -894,7 +1239,7 @@ class CRMController extends Controller
                 $estado = 5;
                 $accion_log .= ': Cliente Retirado Total<br>';
             }
-
+            
             $crm->llamada      = $request->llamada;
             //$crm->informacion  = $request->informacion;
             $crm->informacion  = ($crm->informacion) ? $crm->informacion.'<hr><b>Fecha: </b>'.date('d-m-Y g:i:s A').'<br><b>Gestionado:</b> '.Auth::user()->nombres.'<br><b>Información: </b>'.$request->informacion : '<b>Fecha: </b>'.date('d-m-Y g:i:s A').'<br><b>Gestionado:</b> '.Auth::user()->nombres.'<br><b>Información: </b>'.$request->informacion;
@@ -904,7 +1249,7 @@ class CRMController extends Controller
             $crm->tiempo       = $request->tiempo;
             $crm->created_by   = auth()->user()->id;
             $crm->empresa      = Auth::user()->empresa;
-
+            
             if($request->promesa_pago && $request->fecha){
                 $factura = Factura::find($crm->factura);
                 $factura->vencimiento = date('Y-m-d', strtotime($request->fecha));
@@ -1068,7 +1413,7 @@ class CRMController extends Controller
                     }
                 }
             }
-
+            
             if($request->numero_nuevo){
                 $contacto = Contacto::find($crm->cliente);
                 $contacto->celular = $request->numero_nuevo;
@@ -1077,7 +1422,7 @@ class CRMController extends Controller
 
                 $accion_log .= ': Actualización de número telefónico '.$request->numero_nuevo.'<br>';
             }
-
+            
             $crm->estado = $estado;
             $crm->save();
 
@@ -1088,7 +1433,7 @@ class CRMController extends Controller
             $log->accion     = $accion_log;
             $log->created_by = Auth::user()->id;
             $log->save();
-
+            
             return response()->json([
                 'success' => true,
                 'text' => 'SE HA REALIZADO LA GESTIÓN DEL CLIENTE DE MANERA SATISFACTORIA',
@@ -1096,7 +1441,7 @@ class CRMController extends Controller
                 'icon'  => 'success'
             ]);
         }
-
+        
         return response()->json([
             'success' => false,
             'text' => 'EL CLIENTE QUE INTENTA GESTIONAR, YA SE ENCUENTRA CON ESTADO DE GESTIONADO',
@@ -1108,25 +1453,25 @@ class CRMController extends Controller
     public function show($id){
         $this->getAllPermissions(Auth::user()->id);
         $crm = CRM::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
-
+        
         if($crm){
             view()->share(['subseccion' => 'crm_cartera', 'title' => 'Detalles CRM: '.$crm->id]);
             return view('crm.show')->with(compact('crm'));
         }
     }
-
+    
     public function edit($id){
-
+        
     }
 
     public function update(Request $request, $id){
-
+        
     }
-
+    
     public function destroy($id){
-
+        
     }
-
+    
     public function contacto($id, $crm){
         //$contacto = DB::select("SELECT C.id, C.nombre, C.apellido1, C.apellido2, C.nit, C.tip_iden, C.telefono1, C.celular FROM contactos AS C WHERE C.id = '$id'");
 
@@ -1135,7 +1480,7 @@ class CRMController extends Controller
             return json_encode($contacto);
         }
     }
-
+    
     public function exportar(Request $request){
         $this->getAllPermissions(Auth::user()->id);
         $objPHPExcel = new PHPExcel();
@@ -1151,16 +1496,16 @@ class CRMController extends Controller
         ->setDescription("Informe CRM")
         ->setKeywords("Informe CRM")
         ->setCategory("Informe CRM");
-
+        
         $objPHPExcel->setActiveSheetIndex(0)
             ->mergeCells('A1:H1');
-
+            
         $objPHPExcel->setActiveSheetIndex(0)
             ->setCellValue('A1',$tituloReporte);
-
+            
         $objPHPExcel->setActiveSheetIndex(0)
             ->mergeCells('A2:H2');
-
+            
         $objPHPExcel->setActiveSheetIndex(0)
             ->setCellValue('A2','Desde '.$request->desde.' hasta '.$request->hasta); // Titulo del reporte
 
@@ -1186,7 +1531,7 @@ class CRMController extends Controller
 
         $i=4;
         $letra=0;
-
+        
         $crms = CRM::select('crm.*', 'contactos.nit as c_nit', 'contactos.id as c_id', 'contactos.nombre as c_nombre', 'contactos.celular as c_celular', 'factura.codigo', 'factura.estatus', 'items_factura.precio')
         ->join('contactos', 'crm.cliente', '=', 'contactos.id')
         ->join('factura', 'crm.factura', '=', 'factura.id')
@@ -1226,7 +1571,7 @@ class CRMController extends Controller
         }else{
             $crms->where('crm.estado', '<>', 0);
         }
-
+        
         $crms=$crms->orderBy('crm.updated_at', 'desc')->get();
 
         foreach ($crms as $crm) {
@@ -1273,27 +1618,27 @@ class CRMController extends Controller
         $objWriter->save('php://output');
         exit;
     }
-
+    
     public static function notificacion(){
         $fecha = date('d-m-Y');
         $fecha = date('d-m-Y', strtotime("-1 days", strtotime($fecha)));
         $notificaciones = CRM::join('factura as f','f.id','=','crm.factura')->where('f.estatus',1)->where('crm.fecha_pago', $fecha)->where('crm.created_by', Auth::user()->id)->select('f.id as factura', 'f.cliente', 'f.estatus', 'crm.id', 'crm.estado')->get();
-
+        
         foreach($notificaciones as $notificacion){
             $notificacion->estado = 2;
             $notificacion->notificacion = 1;
             $notificacion->save();
 
-
+            
             /*$crm = new CRM();
             $crm->cliente = $notificacion->cliente;
             $crm->factura = $notificacion->factura;
             $crm->save();*/
         }
-
+        
         return response()->json(['success' => true, 'data' => $notificaciones]);
     }
-
+    
     public function status($id){
         $crm = CRM::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
         if($crm){
@@ -1306,7 +1651,7 @@ class CRMController extends Controller
             }
             $crm->estado = 5;
             $crm->update();
-
+            
             return response()->json([
                 'success' => true,
                 'text' => 'SE HA CAMBIADO DE ESTADO EL REGISTRO DE MANERA SATISFACTORIA',
@@ -1314,7 +1659,7 @@ class CRMController extends Controller
                 'icon'  => 'success'
             ]);
         }
-
+        
         return response()->json([
             'success' => false,
             'text' => 'EL CLIENTE QUE INTENTA GESTIONAR, YA SE ENCUENTRA CON ESTADO DE GESTIONADO',
