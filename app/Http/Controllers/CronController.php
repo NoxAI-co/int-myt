@@ -115,7 +115,7 @@ class CronController extends Controller
 
             $grupos_corte = GrupoCorte::
             // where('hora_creacion_factura','>=', $horaInicio)
-            // ->where('hora_creacion_factura','<=', $horaFin)
+            // ->where('hora_creacion_factura','<=', $horaFin) . . 
             where('fecha_factura', $date)
             ->where('status', 1)->get();
 
