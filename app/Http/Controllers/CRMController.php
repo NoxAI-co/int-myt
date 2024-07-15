@@ -243,17 +243,17 @@ class CRMController extends Controller
     }
     public function whatsapp(Request $request){
         $this->getAllPermissions(Auth::user()->id);
-        $instancia = DB::table("instancia")
+        $instance = DB::table("instances")
                             ->first();
        
-        if(is_null($instancia) || empty($instancia)){
-            return view("crm.whatsapp")->with(compact("instancia"));
+        if(is_null($instance) || empty($instance)){
+            return view("crm.whatsapp")->with(compact("instance"));
         }
-        if($instancia->status!=0){
+        if($instance->status!=0){
             $info = $this->getInfo();
-            return view("crm.whatsapp")->with(compact("instancia","info"));
+            return view("crm.whatsapp")->with(compact("instance","info"));
         }
-        return view("crm.whatsapp")->with(compact("instancia"));
+        return view("crm.whatsapp")->with(compact("instance"));
         
     }
    /* public function whatsappActions(Request $request){
