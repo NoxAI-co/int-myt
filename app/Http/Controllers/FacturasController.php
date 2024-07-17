@@ -53,6 +53,8 @@ use App\PucMovimiento; use App\Puc;
 use App\Plantilla;
 use App\Services\ElectronicBillingService;
 use App\CRM;
+use App\Instance;
+use App\Services\WapiService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -3946,7 +3948,57 @@ class FacturasController extends Controller{
         exit;
     }
 
-    public function whatsapp($id,Request $request ){
+    public function whatsapp($id, Request $request, WapiService $wapiService)
+    {
+        $factura = Factura::find($id);
+        $facturaPDF = $this->getPdfFactura($id);
+        $facturabase64 = base64_encode($facturaPDF);
+        $instance = Instance::where('company_id', auth()->user()->empresa)->first();
+        $contacto = $factura->cliente();
+
+        if(is_null($instance) || empty($instance)){
+            return back()->with('danger', 'Aún no ha creado una instancia, por favor pongase en contacto con el administrador.');
+        }
+
+        if($instance->status !== "PAIRED") {
+            return back()->with('danger', 'La instancia de whatsapp no está conectada, por favor conectese a whatsapp y vuelva a intentarlo.');
+        }
+
+        $file = [
+            "mime" => "@file/pdf",
+            "data" => $facturabase64,
+        ];
+
+        $contact = [
+            "phone" => "57" . $contacto->celular,
+            "name" => $contacto->nombre . " " . $contacto->apellido1
+        ];
+
+        $nameEmpresa = auth()->user()->empresa()->nombre;
+        $total = $factura->total()->total;
+        $message = "$nameEmpresa Le informa que su factura ha sido generada bajo el numero $factura->codigo por un monto de $$total pesos.";
+
+        $body = [
+            "contact" => $contact,
+            "body" => $message,
+            "file" => $file
+        ];
+
+        $response = (object) $wapiService->sendMessageMedia($instance->uuid_whatsapp, $instance->api_key, $body);
+        if(isset($response->statusCode)) {
+            return back()->with('danger', 'No se pudo enviar el mensaje, por favor intente nuevamente.');
+        }
+        $response = json_decode($response->scalar);
+
+        if($response->status != "success") {
+            return back()->with('danger', 'No se pudo enviar el mensaje, por favor intente nuevamente.');
+        }
+
+        return back()->with('success', 'Mensaje enviado correctamente.');
+
+    }
+
+    public function whatsapp2($id,Request $request ){
 
         $factura = Factura::find($id);
         $servicio = Integracion::where('empresa', Auth::user()->empresa)->where('tipo', 'WHATSAPP')->where('status', 1)->first();
