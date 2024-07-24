@@ -52,7 +52,7 @@ use App\Model\Ingresos\NotaCredito;
 use App\Model\Nomina\Nomina;
 use App\Movimiento;
 use App\PucMovimiento;
-use App\Services\EmisionesService;
+use App\Services\EmisionesServices;
 use App\Services\WapiService;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Facades\DB;
@@ -2984,7 +2984,7 @@ class CronController extends Controller
             ];
 
             try {
-                $emisionService = new EmisionesService();
+                $emisionService = new EmisionesServices();
                 $response = $emisionService->sendEmisionsEmpresa($data);
 
                 $response = json_decode($response);
