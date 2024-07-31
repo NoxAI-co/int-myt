@@ -2409,4 +2409,18 @@ class ConfiguracionController extends Controller
         return redirect('empresa/configuracion/numeraciones-equivalente')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
     }
 
+    public function factCronAbiertas(Request $request){
+      $empresa = Empresa::find(auth()->user()->empresa);
+  
+      if ($request->status == 0) {
+        $empresa->cron_fact_abiertas = 1;
+        $empresa->save();
+        return 1;
+      } else {
+        $empresa->cron_fact_abiertas = 0;
+        $empresa->save();
+        return 0;
+      }
+    }
+
 }

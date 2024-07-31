@@ -113,16 +113,11 @@ class CronController extends Controller
             $date = getdate()['mday'] * 1;
             $numeros = [];
             $bulk = '';
-            $fail = 0;
-            $succ = 0;
-
-            $horaInicio = now()->subMinutes(5)->format('H:i');
-            $horaFin = now()->addMinutes(5)->format('H:i');
+            $horaActual = date('H:i');
 
             $grupos_corte = GrupoCorte::
-            // where('hora_creacion_factura','>=', $horaInicio)
-            // ->where('hora_creacion_factura','<=', $horaFin) . . 
             where('fecha_factura', $date)
+            ->where('hora_creacion_factura','<=',$horaActual)
             ->where('status', 1)->get();
 
             $fecha = Carbon::now()->format('Y-m-d');
@@ -138,7 +133,7 @@ class CronController extends Controller
                 'e.terminos_cond', 'e.notas_fact', 'contracts.servicio_tv', 'contracts.factura_individual','contracts.nro')
                 ->where('contracts.grupo_corte',$grupo_corte->id)->
                 where('contracts.status',1)->
-                // whereIn('contracts.id',[1932])->
+                // whereIn('contracts.id',[1944])->
                 // where('c.saldo_favor','>',80000)->//rc
                 where('contracts.state','enabled')
                 // ->limit(1)->skip(7)
@@ -200,10 +195,15 @@ class CronController extends Controller
                     ->get()->last();
 
                     //Primer filtro de la validación, que la factura esté cerrada o que no exista una factura.
-                    if(isset($fac->estatus) || !$fac){
+                    if(isset($fac->estatus) || !$fac || $empresa->cron_fact_abiertas == 1){
 
                         //Segundo filtro, que la fecha de vencimiento de la factura abierta sea mayor a la fecha actual
-                        if(isset($fac->vencimiento) && $fac->vencimiento > $fecha || isset($fac->estatus) && $fac->estatus == 0 || !$fac || isset($fac->estatus) && $fac->estatus == 2){
+                        if(isset($fac->vencimiento) && $fac->vencimiento > $fecha ||
+                           isset($fac->estatus) && $fac->estatus == 0 || !$fac ||
+                           isset($fac->estatus) && $fac->estatus == 2 ||
+                           $empresa->cron_fact_abiertas == 1
+                           ){
+
                             if(!$fac || isset($fac) && $fecha != $fac->fecha){
                                 $numero=round($numero)+1;
 
@@ -302,6 +302,9 @@ class CronController extends Controller
                                                 }
                                                 $item_reg->cant        = 1;
                                                 $item_reg->desc        = $cm->descuento;
+                                                if($cm->descuento_pesos != null){
+                                                    $item->precio      = $item->precio - $cm->descuento_pesos;
+                                                }
                                                 $item_reg->save();
                                             }
 
