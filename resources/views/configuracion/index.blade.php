@@ -113,6 +113,7 @@
 			@if(isset($_SESSION['permisos']['751']))
 			<a href="javascript:parametrosContratoDigital();">Parámetros Contrato Digital</a><br>
 			<a href="javascript:facturacionCronAbiertas()">{{ Auth::user()->empresa()->cron_fact_abiertas == 0 ? 'Habilitar':'Deshabilitar' }} facturacion automatica fact. abiertas</a><br>
+			<input type="hidden" id="cronAbierta" value="{{Auth::user()->empresa()->cron_fact_abiertas}}">
 			@endif
 		</div>
 		@endif
