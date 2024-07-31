@@ -278,9 +278,9 @@
             </tfoot>
         </table>
         
-        @if(isset($codqr))
-    <p style="font-size:7px;margin-top:-20px;"><strong>cufe: </strong>{{$CUFEvr}}</p> 
-    @endif
+        @if(isset($codqr) && isset($CUFEvr))
+            <p style="font-size:7px;margin-top:-20px;"><strong>cufe: </strong>{{$CUFEvr}}</p> 
+        @endif
 
         <p style="text-align: justify;" class="small">{{$resolucion->resolucion}}</p>
     </div>
