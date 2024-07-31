@@ -130,7 +130,7 @@
         </div>
         <div style="width: 21%; display: inline-block; text-align: left; vertical-align: top;
     margin-top: 2%;">
-            <p class="medium">@if($factura->tipo == 1 && isset($codqr))Factura de Venta Electrónica @elseif($factura->tipo == 1) Factura de Venta @elseif($factura->tipo == 3) Cuenta de Cobro @endif</p>
+            <p class="medium">@if($factura->tipo == 2 && isset($codqr))Factura de Venta Electrónica @elseif($factura->tipo == 1) Factura de Venta @elseif($factura->tipo == 3) Cuenta de Cobro @else Factura de venta @endif</p>
             <h4 style="text-align: left; ">No. #{{$factura->codigo}}</h4>
             <p class="small">{{$tipo}}</p>
             <h4 style="text-align: left; ">{{Auth::user()->tipo_fac()}}</h4>
@@ -286,7 +286,7 @@
     </div>
     <div style="width: 70%; margin-top: 1%">
         <p style="text-align: justify;" class="small">{{$factura->term_cond}}</p>
-        @if(isset($codqr))
+        @if($factura->tipo == 2 && isset($codqr))
         <div>
             <img src="data:image/png;base64, {!! base64_encode(QrCode::format('png')->size(200)->generate($codqr)) !!} ">
         </div>
