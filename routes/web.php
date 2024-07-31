@@ -1463,6 +1463,7 @@ Route::get('/GoogleAnalytics', 'GoogleAnalyticsController@index')->name('Google.
 	        Route::get('/envio/{id}/email', 'AvisosController@email')->name('avisos.envio.email.cliente');
 	        Route::get('/envio/{id}/sms', 'AvisosController@sms')->name('avisos.envio.sms.cliente');
             Route::post('/envio_personalizado', 'AvisosController@envio_personalizado')->name('avisos.envio_personalizado');
+			Route::get('/envio/whatsapp', 'AvisosController@whatsapp')->name('avisos.envio_whatsapp');
 	    });
 
 	    Route::resource('avisos', 'AvisosController');

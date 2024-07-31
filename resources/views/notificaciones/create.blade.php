@@ -73,4 +73,3 @@
 	    </div>
 	</form>
 @endsection
-

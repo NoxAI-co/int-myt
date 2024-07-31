@@ -157,7 +157,46 @@ class AvisosController extends Controller
             if ($contrato) {
                 $plantilla = Plantilla::find($request->plantilla);
 
-                if($request->type == 'SMS'){
+                if($request->type == 'whatsapp'){
+
+                    $wapiService = new WapiService();
+                    $instance = Instance::where('company_id', $empresa->id)->first();
+                    if(is_null($instance) || empty($instance)){
+                        Log::error('Instancia no está creada.');
+                        return;
+                    }
+                    if($instance->status !== "PAIRED") {
+                        Log::error('La instancia de whatsapp no está conectada, por favor conectese a whatsapp y vuelva a intentarlo.');
+                        return;
+                    }
+                    $contacto = $contrato->cliente();
+
+                    $contact = [
+                        "phone" =>  "57" . $contacto->celular,
+                        "name" => $contacto->nombre . " " . $contacto->apellido1
+                    ];
+
+                    $nameEmpresa = $empresa->nombre;
+
+                    // Reemplazar los placeholders en el contenido de la plantilla
+                    $contenido = $plantilla->contenido;
+                    $contenido = str_replace('{{$name}}', $contacto->nombre, $contenido);
+                    $contenido = str_replace('{{$company}}', $nameEmpresa, $contenido);
+                    $contenido = str_replace('{{$nit}}', $empresa->nit, $contenido);
+                    $contenido = str_replace('{{$date}}', date('Y-m-d'), $contenido);
+
+                    $message = $plantilla->title . "\r\n" . $contenido;
+
+                    $body = [
+                        "contact" => $contact,
+                        "body" => $message,
+                        "file" => ''
+                    ];
+
+                $response = (object) $wapiService->sendMessageMedia($instance->uuid_whatsapp, $instance->api_key, $body);
+
+                }
+                else if($request->type == 'SMS'){
                     $numero = str_replace('+','',$contrato->cliente()->celular);
                     $numero = str_replace(' ','',$numero);
                     array_push($numeros, '57'.$numero);
@@ -233,6 +272,10 @@ class AvisosController extends Controller
                     }
                 }
             }
+        }
+
+        if($request->type == 'whatsapp'){
+            return redirect('empresa/avisos')->with('success', 'Proceso de envío realizado con exito notificaciones de email');
         }
 
         if($request->type == 'EMAIL'){
