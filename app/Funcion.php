@@ -6,7 +6,14 @@ use Auth;
 class Funcion
 {
     public static function Parsear($valor){
-    	return number_format($valor, Auth::user()->empresa()->precision, Auth::user()->empresa()->sep_dec, (Auth::user()->empresa()->sep_dec=='.'?',':'.'));
+        if(!Auth::user()){
+            $empresa = Empresa::Find(1);
+        }
+        else{
+            $empresa = Auth::user()->empresa();
+        }
+
+    	return number_format($valor, $empresa->precision, $empresa->sep_dec, ($empresa->sep_dec=='.'?',':'.'));
 
     }
     
