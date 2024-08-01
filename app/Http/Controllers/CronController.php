@@ -46,6 +46,7 @@ use App\Numeracion;
 use App\Model\Ingresos\Ingreso;
 use App\Model\Ingresos\IngresosFactura;
 use App\Banco;
+use App\Instance;
 use App\Model\Gastos\FacturaProveedores;
 use App\Model\Gastos\NotaDedito;
 use App\Model\Ingresos\NotaCredito;
