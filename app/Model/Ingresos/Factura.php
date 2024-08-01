@@ -85,6 +85,10 @@ class Factura extends Model
          return Banco::where('id',$this->cuenta)->first();
     }
 
+    public function plazos(){
+        return TerminosPago::where('id',$this->plazo)->first();
+   }
+
     public function contrato(){
         if($this->contrato_id){
         return $contrato = Contrato::where('id',$this->contrato_id)->first();
@@ -864,14 +868,15 @@ public function forma_pago()
 
         $estadoCuenta = array('saldoMesAnterior' => 0, 'saldoMesActual' => 0, 'equipoCuota' => 0, 'servicioAdicional' => 0, 'total' => 0);
 
-        $fechaActual = date("Y-m-d", strtotime(Carbon::now()));
+        $fechaActual = $this->fecha;
         $saldoMesAnterior=0;
         $saldoMesActual=0;
+        $total = 0;
 
         /*>>>>>>>>>>>>>>>>>>>>>>>>>> Saldo mes Anterior <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*/
 
         //traemos todas las facturas que el vencimiento haya pasado la fecha actual.
-        $facturasVencidas = Factura::where('cliente',$this->cliente)->where('vencimiento','<',$fechaActual)->where('estatus','!=',2)->get();
+        $facturasVencidas = Factura::where('cliente',$this->cliente)->where('vencimiento','<',$fechaActual)->where('estatus','=',1)->get();
 
         //sumamos todo lo que deba el cliente despues de la fecha de vencimiento
         foreach($facturasVencidas as $vencida){
@@ -881,8 +886,8 @@ public function forma_pago()
         $estadoCuenta['saldoMesAnterior'] = $saldoMesAnterior;
 
         /*>>>>>>>>>>>>>>>>>>>>>>>>>> Saldo mes Actual <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*/
-
-        $facturasActuales = Factura::where('cliente',$this->cliente)->where('vencimiento','>',$fechaActual)->where('estatus','!=',2)->get();
+        $facturasActuales = Factura::where('id',$this->id)->get();
+        // $facturasActuales = Factura::where('cliente',$this->cliente)->where('vencimiento','>',$fechaActual)->where('estatus','!=',2)->get();
 
         //sumamos todo lo que deba el cliente despues de la fecha de vencimiento
         foreach($facturasActuales as $actual){
@@ -890,6 +895,7 @@ public function forma_pago()
         }
 
         $estadoCuenta['saldoMesActual'] = $saldoMesActual;
+        $estadoCuenta['total'] = $saldoMesActual + $saldoMesAnterior;
 
         return (object) $estadoCuenta;
     }

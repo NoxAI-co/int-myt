@@ -1,7 +1,14 @@
 @extends('layouts.pdf')
 
 @section('content')
-@php $empresa = Auth::user()->empresa(); @endphp
+@php
+    if(!Auth::user())
+    {
+        $empresa = App\Empresa::Find(1);
+    }else{
+        $empresa = Auth::user()->empresa();
+    }
+@endphp
     <style type="text/css">
         /**
         * Define the width, height, margins and position of the watermark.
@@ -9,7 +16,7 @@
             position: fixed; top: 25%;
             width: 100%; text-align:
             center; opacity: .6;
-            transform: rotate(-30deg);
+            transform: rotate(-30deg);T
             transform-origin: 50% 50%;
             z-index: 1000;
             font-size: 130px;
@@ -300,7 +307,7 @@
 
     <div class="divheader-pr">
         <div style="width: 30%; display: inline-block; vertical-align: top; text-align: center; height:100px !important;  margin-top: 2%; overflow:hidden; text-align:center;">
-            <img src="{{asset('images/Empresas/Empresa'.Auth::user()->empresa.'/'.$empresa->logo)}}" alt="" style="max-width: 100%; max-height:100px; object-fit:contain; text-align:left;">
+            <img src="{{asset('images/Empresas/Empresa'.$empresa->id.'/'.$empresa->logo)}}" alt="" style="max-width: 100%; max-height:100px; object-fit:contain; text-align:left;">
         </div>
         <div style="width: 40%; text-align: center; display: inline-block;  height:auto; margin-right:45px;margin-top: .5%;">
             <br><br>
@@ -346,6 +353,10 @@
                 <td colspan="">{{isset($factura->contract()->address_street) ? $factura->contract()->address_street : $factura->cliente()->direccion}}</td>
             </tr>
             <tr>
+                <th class="right smalltd" width="10%">BARRIO</th>
+                <td colspan="">{{isset($factura->contract()->barrio) ? $factura->contract()->barrio : $factura->cliente()->barrio}}</td>
+            </tr>
+            <tr>
                 <th class="right smalltd">CIUDAD/DEP</th>
                 <td colspan="">{{$factura->cliente()->municipio()->nombre}}</td>
             </tr>
@@ -353,6 +364,25 @@
                 <th class="right smalltd" width="10%">EMAIL</th>
                 <td colspan="">{{$factura->cliente()->email}}</td>
             </tr>
+            <tr>
+                <th class="right smalltd" width="10%">ORDEN DE COMPRA</th>
+                <td colspan="">{{$factura->ordencompra}}</td>
+            </tr>
+            <tr>
+                <th class="right smalltd" width="10%">ORDEN DE SERVICIO</th>
+                <td colspan="">{{$factura->ordenservicio}}</td>
+            </tr>
+            <tr>
+                <th class="right smalltd" width="10%">PLAZO</th>
+                <td colspan="">
+                    @if($factura->plazo == 31)
+                        {{$factura->plazos()->nombre}}
+                    @else
+                        {{$factura->plazos()->nombre}} DIAS
+                    @endif
+                </td>
+            </tr>
+
         </table>
     </div>
 
@@ -534,11 +564,10 @@
                 </tr>
                 <tr class="tr-estadocuenta-precio">
                 <td><li>{{$empresa->moneda}} {{App\Funcion::Parsear($factura->estadoCuenta()->saldoMesAnterior)}}</li></td>
-                {{-- <td><li>{{$empresa->moneda}} {{App\Funcion::Parsear($factura->estadoCuenta()->saldoMesActual)}}</li></td> --}}
-                <td><li>$0</li></td>
+                <td><li>{{$empresa->moneda}} {{App\Funcion::Parsear($factura->estadoCuenta()->saldoMesActual)}}</li></td>
                 <td><li>{{$empresa->moneda}} 0</li></td>
                 <td><li>{{$empresa->moneda}} 0</li></td>
-                <td><li>{{$empresa->moneda}} {{App\Funcion::Parsear($factura->total()->total)}}</li></td>
+                <td><li>{{$empresa->moneda}} {{App\Funcion::Parsear($factura->estadoCuenta()->total)}}</li></td>
                 </tr>
                 </tbody>
                 </table>
@@ -614,24 +643,21 @@
 
            <div class="div-content-border">
             <div>
-                <table style="width:100%;margin:5px;">
+               <table style="width:100%;margin:5px;">
                 <tbody>
                 <tr class="tr-estadocuenta">
                 <td><li style="background-color:#f6c009;">SALDO MES ANTERIOR</li></td>
                 <td><li style="background-color:#6cad40;">SALDO MES ACTUAL</li></td>
                 <td><li style="background-color:#589cdc;">EQUIPO / CUOTA </li></td>
                 <td><li style="background-color:#ccc;">SERVICIO ADICIONAL</li></td>
-                <td><li style="background-color:#fb0404;">RECONEXION</li></td>
                 <td><li style="background-color:#6cad40;">TOTAL</li></td>
                 </tr>
                 <tr class="tr-estadocuenta-precio">
                 <td><li>{{$empresa->moneda}} {{App\Funcion::Parsear($factura->estadoCuenta()->saldoMesAnterior)}}</li></td>
-                {{-- <td><li>{{$empresa->moneda}} {{App\Funcion::Parsear($factura->estadoCuenta()->saldoMesActual)}}</li></td> --}}
-                <td><li>$0</li></td>
+                <td><li>{{$empresa->moneda}} {{App\Funcion::Parsear($factura->estadoCuenta()->saldoMesActual)}}</li></td>
                 <td><li>{{$empresa->moneda}} 0</li></td>
                 <td><li>{{$empresa->moneda}} 0</li></td>
-                <td><li>{{$empresa->moneda}} 0</li></td>
-                <td><li>{{$empresa->moneda}} {{App\Funcion::Parsear($factura->total()->total)}}</li></td>
+                <td><li>{{$empresa->moneda}} {{App\Funcion::Parsear($factura->estadoCuenta()->total)}}</li></td>
                 </tr>
                 </tbody>
                 </table>
@@ -675,7 +701,7 @@
                     <td style="border:1px solid {{$empresa->color}}; border-radius:5px;padding:4px;"> {{$empresa->moneda}} {{App\Funcion::Parsear($factura->impuestos_totales())}}</td>
                     </tr>
                     <tr>
-                    <td style="border:1px solid {{$empresa->color}}; border-radius:5px;padding:4px;">{{$empresa->moneda}} {{App\Funcion::Parsear($factura->total()->total)}}</td>
+                    <td style="border:1px solid {{$empresa->color}}; border-radius:5px;padding:4px;">{{$empresa->moneda}} {{App\Funcion::Parsear($factura->total()->total + $factura->estadoCuenta()->saldoMesAnterior)}}</td>
                     </tr>
                     </tbody>
 
@@ -860,7 +886,7 @@
                     </div>
                 </td>
                 <td style="border:1px solid {{$empresa->color}};text-align:center;border-radius:5px;width:30%;">
-                    {{$empresa->moneda}} {{App\Funcion::Parsear($factura->total()->total)}}
+                    {{$empresa->moneda}} {{App\Funcion::Parsear($factura->total()->total + $factura->estadoCuenta()->saldoMesAnterior)}}
                 </td>
                 </tr>
             </tbody>
