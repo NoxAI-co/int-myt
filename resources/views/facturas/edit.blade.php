@@ -56,7 +56,7 @@
                     </div>
 
             {{-- Nuevo desarrollo de contratos. --}}
-            @if(count($contratos) > 0 && isset($contratosFacturas))
+            @if(count($contratos) > 0)
             <div class="form-group row">
                 <label class="col-sm-4 col-form-label">Contrato <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
