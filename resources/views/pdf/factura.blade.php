@@ -271,7 +271,14 @@
                     </tr>
                 @endforeach
                 <tr class="foot">
-                    <td colspan="4"> </td>
+                    @if($factura->estadoCuenta()->saldoMesAnterior)
+                    <td class="right">Saldo Mes Anterior</td>
+                    <td class="center padding-right">{{Auth::user()->empresa()->moneda}}{{App\Funcion::Parsear($factura->estadoCuenta()->saldoMesAnterior)}}</td>
+                    <td colspan="2"></td>
+                    @else
+                    <td colspan="4"></td>
+                    @endif
+
                     <th class="right padding-right">Total</th>
                     <th class="center padding-right">{{Auth::user()->empresa()->moneda}}{{App\Funcion::Parsear($factura->total()->total)}} </th>
                 </tr>
