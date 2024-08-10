@@ -848,8 +848,8 @@ class CronController extends Controller
 
         $grupos_corte = DB::table('grupos_corte')
         ->where('status', 1)
-        // ->where('hora_suspension','<=',$horaActual)
-        // ->where('fecha_suspension','!=',0)
+        ->where('hora_suspension','<=',$horaActual)
+        ->where('fecha_suspension','!=',0)
         ->where('id',1)
         ->get();
 
@@ -874,7 +874,7 @@ class CronController extends Controller
                 where('cs.state_olt_catv',true)->
                 whereDate('f.vencimiento', '<=', now())->
                 orderBy('f.id', 'desc')->
-                take(1)->
+                take(45)->
                 get();
                 $swGrupo = 1; //masivo
 
@@ -930,7 +930,7 @@ class CronController extends Controller
                                     $curl = curl_init();
 
                                 curl_setopt_array($curl, array(
-                                CURLOPT_URL => 'https://interycom.smartolt.com/api/onu/disable_catv/'.$contrato->olt_sn_mac,
+                                CURLOPT_URL => $empresa->adminOLT.'/api/onu/disable_catv/'.$contrato->olt_sn_mac,
                                 CURLOPT_RETURNTRANSFER => true,
                                 CURLOPT_ENCODING => '',
                                 CURLOPT_MAXREDIRS => 10,

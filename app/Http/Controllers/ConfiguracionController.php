@@ -1915,12 +1915,12 @@ class ConfiguracionController extends Controller
   public function configurarOLT(Request $request){
     $empresa = Empresa::find(Auth::user()->empresa);
 
-    if ($empresa) {    
+    if ($empresa) {
       //Probando conexion de la api.
       $curl = curl_init();
       
       curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://interycom.smartolt.com/api/system/get_olts',
+        CURLOPT_URL => $request->adminOLT.'/api/system/get_olts',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
@@ -1939,6 +1939,7 @@ class ConfiguracionController extends Controller
       
       if(isset($response->status) && $response->status == true){
         $empresa->smartOLT = $request->smartOLT;
+        $empresa->adminOLT = $request->adminOLT;
         $empresa->save();
         return 1;
       }

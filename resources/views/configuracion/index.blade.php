@@ -360,19 +360,19 @@
 						{{ csrf_field() }}
 						<div class="row">
 							<div class="col-md-12 form-group">
+								<label class="control-label">URL (ejemplo: https://dominio.smartolt.com)</label>
+								<input type="text" class="form-control"  id="adminOLT" name="adminOLT" value="{{Auth::user()->empresa()->adminOLT}}"  maxlength="200">
+								<span class="help-block error">
+									<strong>{{ $errors->first('adminOLT') }}</strong>
+								</span>
+							</div>
+							<div class="col-md-12 form-group">
 								<label class="control-label">ApiKey Smart OLT</label>
 								<input type="text" class="form-control"  id="smartOLT" name="smartOLT"  required="" value="{{Auth::user()->empresa()->smartOLT}}" maxlength="200">
 								<span class="help-block error">
 									<strong>{{ $errors->first('smartOLT') }}</strong>
 								</span>
 							</div>
-							{{-- <div class="col-md-12 form-group">
-								<label class="control-label">Admin OLT</label>
-								<input type="text" class="form-control"  id="adminOLT" name="adminOLT" value="{{Auth::user()->empresa()->adminOLT}}"  maxlength="200">
-								<span class="help-block error">
-									<strong>{{ $errors->first('adminOLT') }}</strong>
-								</span>
-							</div> --}}
 						</div>
 					</form>
 				</div>
