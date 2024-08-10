@@ -5,6 +5,11 @@
 <form action="{{ route('contratos.state',$id) }}" method="post" class="delete_form" style="margin:0;display: inline-block;" id="cambiar-state{{$id}}">
     @csrf
 </form>
+
+<form action="{{ route('contratos.state_oltcatv',$id) }}" method="post" class="delete_form" style="margin:0;display: inline-block;" id="cambiar-statecatv{{$id}}">
+    @csrf
+</form>
+
 @if(Auth::user()->rol == 3 && $mk == 0)
 <form action="{{ route('contratos.enviar_mk',$id) }}" method="post" class="delete_form" style="margin:0;display: inline-block;" id="enviar-mk-{{$id}}">
     @csrf
@@ -36,3 +41,8 @@
 <a href="{{route('factura.create.cliente', $c_id)}}" class="btn btn-outline-warning btn-icons" title="Crear una factura" target="_blank"><i class="fas fa-file-invoice-dollar"></i></a>
 
 <a href="{{ route('contrato.iniciar', $id) }}" class="btn btn-outline-warning btn-icons" title="Iniciar contrato" onclick="return confirm('¿Estás seguro de iniciar el contrato?');"><i class="fas fa-clipboard-list"></i></a>
+
+<a href="#" class="btn {{$state_olt_catv == true ? 'btn-outline-success' : 'btn-outline-danger'}} btn-icons" title="Iniciar contrato"
+onclick="confirmar('cambiar-statecatv{{$id}}', 
+'¿Está seguro que desea cambiar el estado del catv a {{$state_olt_catv == true ? 'deshabilitado?' : 'habilitado?'}}', 
+'Se actualizará su estado');"><i class="fas fa-tv"></i></a>

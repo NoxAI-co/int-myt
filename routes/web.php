@@ -45,6 +45,7 @@ Route::get('/generarfactura','CronController@CrearFactura')->name('CrearFactura'
 Route::get('/deleteAll','CronController@deleteFactura');
 Route::get('/aplicateProrrateo','CronController@aplicateProrrateo');
 Route::get('/cortarfacturas','CronController@CortarFacturas')->name('CortarFacturas');
+Route::get('/cortartelevision','CronController@CortarTelevision');
 Route::get('/enviarsms','CronController@EnviarSMS')->name('EnviarSMS');
 Route::get('/migrarCRM','CronController@migrarCRM')->name('migrarCRM');
 Route::get('monitorBlacklist','CronController@monitorBlacklist')->name('monitorBlacklist');
@@ -1330,6 +1331,7 @@ Route::get('/GoogleAnalytics', 'GoogleAnalyticsController@index')->name('Google.
     Route::get('/clientes/contratos/{id}','ContactosController@clientes_contratos')->name('cliente.contratos');
 	Route::group(['prefix' => 'contratos'], function() {
 		Route::post('{id}/state', 'ContratosController@state')->name('contratos.state');
+		Route::post('{id}/statecatv', 'ContratosController@state_oltcatv')->name('contratos.state_oltcatv');
 		Route::get('corte/{corte}', 'ContratosController@index')->name('contratos.corte');
 		Route::get('exportar', 'ContratosController@exportar')->name('contratos.exportar');
 		Route::get('{id}/grafica', 'ContratosController@grafica')->name('contratos.grafica');

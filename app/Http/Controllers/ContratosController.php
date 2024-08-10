@@ -834,8 +834,8 @@ class ContratosController extends Controller
                 $contrato->contrasena_wifi         = $request->contrasena_wifi;
                 $contrato->ip_receptora            = $request->ip_receptora;
                 $contrato->puerto_receptor         = $request->puerto_receptor;
+                $contrato->olt_sn_mac              = $request->olt_sn_mac;
               
-
 
                 if($request->tipo_suspension_no == 1){
                     $contrato->tipo_nosuspension = 1;
@@ -1492,6 +1492,7 @@ class ContratosController extends Controller
                     $contrato->contrasena_wifi         = $request->contrasena_wifi;
                     $contrato->ip_receptora            = $request->ip_receptora;
                     $contrato->puerto_receptor         = $request->puerto_receptor;
+                    $contrato->olt_sn_mac              = $request->olt_sn_mac;
 
                     if(isset($request->factura_individual)){
                         $contrato->factura_individual = $request->factura_individual;
@@ -1971,6 +1972,79 @@ class ContratosController extends Controller
                 }
         }
         return redirect('empresa/contratos')->with('danger', 'EL CONTRATO DE SERVICIOS NO HA ENCONTRADO');
+    }
+
+    public function state_oltcatv($id){
+        $this->getAllPermissions(Auth::user()->id);
+        $contrato = Contrato::find($id);
+        $empresa = Empresa::Find($contrato->empresa);
+        
+        if($contrato->state_olt_catv == true){
+            $contrato->state_olt_catv = false;
+        }else{
+            $contrato->state_olt_catv = true;
+        }
+
+        if($contrato->state_olt_catv == true){
+            $curl = curl_init();
+
+            curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://interycom.smartolt.com/api/onu/enable_catv/'.$contrato->olt_sn_mac,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_HTTPHEADER => array(
+                'X-token: '.$empresa->smartOLT
+            ),
+            ));
+
+            $response = curl_exec($curl);
+            $response = json_decode($response);
+
+            if(isset($response->status) && $response->status == true){
+                $message = 'HABILITADO';
+                $contrato->save();
+                return back()->with('success', 'EL CONTRATO NRO. '.$contrato->nro.' HA SIDO MODIFICADO EN SU CATV A '.$message);
+            }else{
+                return back()->with('danger', 'EL CONTRATO NRO. '.$contrato->nro.' NO HA SIDO MODIFICADO POR UN ERROR');
+            }
+
+            curl_close($curl);
+        }else{
+
+            $curl = curl_init();
+
+            curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://interycom.smartolt.com/api/onu/disable_catv/'.$contrato->olt_sn_mac,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_HTTPHEADER => array(
+                'X-token: '.$empresa->smartOLT
+            ),
+            ));
+
+            $response = curl_exec($curl);
+            $response = json_decode($response);
+
+            curl_close($curl);
+
+            if(isset($response->status) && $response->status == true){
+                $message = 'DESHABILITADO';
+                $contrato->save();
+                return back()->with('success', 'EL CONTRATO NRO. '.$contrato->nro.' HA SIDO MODIFICADO EN SU CATV A '.$message);
+            }else{
+                return back()->with('danger', 'EL CONTRATO NRO. '.$contrato->nro.' NO HA SIDO MODIFICADO POR UN ERROR');
+            }
+        }   
     }
 
     public function exportar(Request $request){

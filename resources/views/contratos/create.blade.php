@@ -624,6 +624,14 @@
                                     <strong>{{ $errors->first('servicio_tv') }}</strong>
                                 </span>
                             </div>
+
+                            <div class="col-md-4 form-group">
+                                <label class="control-label font-weight-bold">SN / MAC</label>
+                                <input type="text" class="form-control" id="olt_sn_mac" name="olt_sn_mac" maxlength="200">
+                                <span class="help-block error">
+                                    <strong>{{ $errors->first('olt_sn_mac') }}</strong>
+                                </span>
+                            </div>
                         </div>
                     </div>
                     @endif
