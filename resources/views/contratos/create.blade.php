@@ -632,6 +632,21 @@
                                     <strong>{{ $errors->first('olt_sn_mac') }}</strong>
                                 </span>
                             </div>
+
+                            <div class="col-md-4 form-group">
+                                <label class="control-label font-weight-bold">
+                                    Estado del catv 
+                                    <a><i data-tippy-content="Elige el estado en el que estará el catv en el smart olt" class="icono far fa-question-circle"></i></a>
+                                </label>
+                                <select class="form-control selectpicker" name="state_olt_catv" id="state_olt_catv" title="Seleccione" data-live-search="true" data-size="2">
+                                    <option value="1">HABILITADO</option>
+                                    <option value="0">DESHABILITADO</option>
+                                </select>
+                                <span class="help-block error">
+                                    <strong>{{ $errors->first('state_olt_catv') }}</strong>
+                                </span>
+                            </div>
+
                         </div>
                     </div>
                     @endif
