@@ -1129,7 +1129,8 @@ class ContratosController extends Controller
          'contracts.contrato_permanencia', 'contracts.contrato_permanencia_meses', 'contracts.serial_onu','contracts.iva_factura',
           'contracts.linea', 'contracts.descuento', 'contracts.vendedor', 'contracts.canal', 'contracts.address_street',
           'contracts.tecnologia', 'contracts.costo_reconexion', 'contracts.tipo_contrato', 'contracts.puerto_conexion',
-          'contracts.observaciones','contracts.fecha_hasta_nosuspension','contracts.fecha_desde_nosuspension','contracts.tipo_nosuspension','contracts.fecha_inicio_contrato')
+          'contracts.observaciones','contracts.fecha_hasta_nosuspension','contracts.fecha_desde_nosuspension','contracts.tipo_nosuspension','contracts.fecha_inicio_contrato',
+          'contracts.olt_sn_mac','contracts.state_olt_catv')
           ->where('contracts.id', $id)->where('contracts.empresa', Auth::user()->empresa)->first();
 
 
