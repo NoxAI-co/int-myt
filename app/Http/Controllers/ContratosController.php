@@ -863,7 +863,8 @@ class ContratosController extends Controller
                             'X-token: '.$empresa->smartOLT
                         ),
                         ));
-                    }
+                    } 
+                    //
                     
                     $response = curl_exec($curl);
                     $response = json_decode($response);
