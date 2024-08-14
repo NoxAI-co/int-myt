@@ -80,8 +80,14 @@ class HomeController extends Controller
         $factura_cerrada = Factura::where('estatus',0)->where('lectura',1)->where('empresa', Auth::user()->empresa)->count();
         $factura_abierta = Factura::where('estatus',1)->where('lectura',1)->where('empresa', Auth::user()->empresa)->count();
 
+        $contratosCatv = Contrato::where('olt_sn_mac','<>',null)->count();
+        $contratosCatvEnabled = Contrato::where('olt_sn_mac','<>',null)->where('state_olt_catv',1)->count();
+        $contratosCatvDisabled = Contrato::where('olt_sn_mac','<>',null)->where('state_olt_catv',0)->count();
+
         view()->share(['inicio' => 'empresa', 'seccion' => 'inicio', 'title' => Auth::user()->empresa()->nombre , 'icon' =>'fa fa-building']);
-        return view('welcome')->with(compact('radicados','contra_ena','contra_disa','contra_factura','factura','factura_cerrada','factura_abierta','radicados_pendiente','radicados_solventado'));
+        return view('welcome')->with(compact('contratosCatv','contratosCatvEnabled','contratosCatvDisabled',
+            'radicados','contra_ena','contra_disa','contra_factura',
+        'factura','factura_cerrada','factura_abierta','radicados_pendiente','radicados_solventado'));
 
         if (!Auth::check())
         {

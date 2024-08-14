@@ -250,6 +250,49 @@
             <div class="col-md-12">
                 <div class="card-body">
                     <div class="notice notice-info">
+                        <h4 class="float-left">TELEVISIÓN CATV</h4>
+                        <a class="btn btn-sm btn-none float-right" data-toggle="collapse" href="#welcomeCatv" role="button" aria-expanded="false" aria-controls="welcomeContratos" style="color: {{Auth::user()->rol > 1 ? Auth::user()->empresa()->color:''}} !important;">
+                            <i class="fas fa-angle-double-up"></i>
+                        </a>
+                        <hr class="mt-4">
+                    </div>
+                    <div class="collapse show" id="welcomeCatv">
+                        <div class="row">
+                            <div class="col-md-3 offset-md-1">
+                                <a href="javascript:void">
+                    			<div class="btn btn-danger">
+                                    <i class="fas fa-file-contract"></i>
+                                    <span class="count-numbers">{{ $contratosCatv }}</span>
+                    			    <span class="count-name">Registrados</span>
+                    			</div>
+                    			</a>
+                    		</div>
+                    		<div class="col-md-3">
+                                <a href="javascript:void">
+                    			<div class="btn btn-danger">
+                                    <i class="fas fa-file-contract"></i>
+                                    <span class="count-numbers">{{ $contratosCatvEnabled }}</span>
+                    			    <span class="count-name">Habilitados</span>
+                    			</div>
+                    			</a>
+                    		</div>
+                    		<div class="col-md-3">
+                                <a href="javascript:void">
+                    			<div class="btn btn-danger">
+                                    <i class="fas fa-file-contract"></i>
+                                    <span class="count-numbers">{{ $contratosCatvDisabled }}</span>
+                    			    <span class="count-name">Deshabilitados</span>
+                    			</div>
+                    			</a>
+                    		</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <div class="card-body">
+                    <div class="notice notice-info">
                         <h4 class="float-left">FACTURACION</h4>
                         <a class="btn btn-sm btn-none float-right" data-toggle="collapse" href="#welcomeFacturacion" role="button" aria-expanded="false" aria-controls="welcomeFacturacion" style="color: {{Auth::user()->rol > 1 ? Auth::user()->empresa()->color:''}} !important;">
                             <i class="fas fa-angle-double-up"></i>
