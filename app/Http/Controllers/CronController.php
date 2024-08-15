@@ -850,7 +850,6 @@ class CronController extends Controller
         ->where('status', 1)
         ->where('hora_suspension','<=',$horaActual)
         ->where('fecha_suspension','!=',0)
-        ->where('id',1)
         ->get();
 
         if($grupos_corte->count() > 0 && $empresa->smartOLT != null){
