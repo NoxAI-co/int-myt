@@ -627,9 +627,11 @@ class CronController extends Controller
                 whereIn('f.tipo', [1,2])->
                 where('contactos.status',1)->
                 where('cs.state','enabled')->
+                where('cs.olt_sn_mac',null)->
                 whereIn('cs.grupo_corte',$grupos_corte_array)->
                 where('cs.fecha_suspension', null)->
                 where('cs.server_configuration_id','!=',null)-> //se comenta por que tambien se peuden canclear planes de tv que no estan con servidor
+                
                 whereDate('f.vencimiento', '<=', now())->
                 orderBy('f.id', 'desc')->
                 take(20)->
@@ -873,7 +875,7 @@ class CronController extends Controller
                 where('cs.state_olt_catv',true)->
                 whereDate('f.vencimiento', '<=', now())->
                 orderBy('f.id', 'desc')->
-                take(45)->
+                take(20)->
                 get();
                 $swGrupo = 1; //masivo
 
@@ -921,10 +923,17 @@ class CronController extends Controller
                             $contratos = Contrato::where('id',$contacto->contrato_id)->get();
                         }
                     }
+                    
+                    $promesaExtendida = DB::table('promesa_pago')->where('factura', $contacto->factura)->where('vencimiento', '>=', $fecha)->count();
 
                     //2. Debemos recorrer el o los contratos para que haga el disabled.
+                    
+                    if($promesaExtendida == 0){
+                        
                         foreach($contratos as $contrato){
                                 
+                                
+                                // DESHABILITACION DEL CATV
                                 if($contrato->olt_sn_mac != null){
                                     $curl = curl_init();
 
@@ -952,8 +961,53 @@ class CronController extends Controller
                                     $contrato->save();
                                 }
 
-                            }
+                            } //FIN DESHABILITACION CATV
+                            
+                            //INICIO DESHABILITACION DE MK PLANES COMBO
+                            if(isset($contrato->server_configuration_id)){
+
+                                $mikrotik = Mikrotik::where('id', $contrato->server_configuration_id)->first();
+                                $API = new RouterosAPI();
+                                $API->port = $mikrotik->puerto_api;
+
+                                if ($API->connect($mikrotik->ip,$mikrotik->usuario,$mikrotik->clave)) {
+                                    $API->write('/ip/firewall/address-list/print', TRUE);
+                                    $ARRAYS = $API->read();
+                                    if($contrato->state == 'enabled'){
+                                        if($contrato->ip){
+                                            $API->comm("/ip/firewall/address-list/add", array(
+                                                "address" => $contrato->ip,
+                                                "comment" => $contrato->servicio,
+                                                "list" => 'morosos'
+                                                )
+                                            );
+
+                                            #ELIMINAMOS DE IP_AUTORIZADAS#
+                                            $API->write('/ip/firewall/address-list/print', false);
+                                            $API->write('?address='.$contrato->ip, false);
+                                            $API->write("?list=ips_autorizadas",false);
+                                            $API->write('=.proplist=.id');
+                                            $ARRAYS = $API->read();
+                                            if(count($ARRAYS)>0){
+                                                $API->write('/ip/firewall/address-list/remove', false);
+                                                $API->write('=.id='.$ARRAYS[0]['.id']);
+                                                $READ = $API->read();
+                                            }
+                                            #ELIMINAMOS DE IP_AUTORIZADAS#
+                                        }
+                                        $i++;
+                                    }
+                                    $API->disconnect();
+                                }
+                            }//FIN DESHABILITACION MK CON PLANES COMBO
+                            
+                            $contrato->state = 'disabled';
+                            $contrato->observaciones = $contrato->observaciones. " - Contrato deshabilitado automaticamente";
+                            $contrato->save();
+                            
                         }
+                    }
+                        
                     }
 
                 }
