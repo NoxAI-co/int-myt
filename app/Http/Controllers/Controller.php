@@ -1919,6 +1919,7 @@ class Controller extends BaseController
 
         $contratos->where(function ($query) use ($barrio) {
             $query->orWhere('contactos.direccion', 'like', "%{$barrio}%");
+            $query->orWhere('contactos.barrio', 'like', "%{$barrio}%");
             $query->orWhere('contracts.address_street', 'like', "%{$barrio}%");
         });
 
