@@ -57,10 +57,11 @@ class NotaCredito extends Model
          return Contacto::where('id',$this->cliente)->first();
     }
     public function total(){
-        $totales=array('total'=>0, 'subtotal'=>0, 'descuento'=>0, 'subsub'=>0,'totalreten'=>0, 'imp'=>Impuesto::where('empresa',Auth::user()->empresa)->orWhere('empresa', null)->Where('estado', 1)->get());
+        $empresa = 1;
+        $totales=array('total'=>0, 'subtotal'=>0, 'descuento'=>0, 'subsub'=>0,'totalreten'=>0, 'imp'=>Impuesto::where('empresa',$empresa)->orWhere('empresa', null)->Where('estado', 1)->get());
         $items=ItemsNotaCredito::where('nota',$this->id)->get(); 
         $result=0; $desc=0; $impuesto=0;
-        $totales["reten"]= Retencion::where('empresa',Auth::user()->empresa)->orWhere('empresa', null)->Where('estado', 1)->get();
+        $totales["reten"]= Retencion::where('empresa',$empresa)->orWhere('empresa', null)->Where('estado', 1)->get();
         
         foreach ($items as $item) {
             $result=$item->precio*$item->cant;
