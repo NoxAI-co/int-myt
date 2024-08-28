@@ -1,6 +1,4 @@
 @extends('layouts.app')
-
-
 @section('boton')
 	@if(auth()->user()->modo_lectura())
 		<div class="alert alert-warning text-left" role="alert">
@@ -123,7 +121,7 @@
 				@foreach ($materiales as $material)
 					<tr>
 						<td></td>
-						<td><a href="#">{{ $material->referencia }}</a></td>
+						<td><a href="{{ route('asignacionmaterial.show', $material->id) }}">{{ $material->referencia }}</a></td>
 						<td>{{$material->tecnico->nombres}}</td>
 						<td>{{$material->tecnico->email}}</td>
 						<td>{{$material->fecha}}</td>

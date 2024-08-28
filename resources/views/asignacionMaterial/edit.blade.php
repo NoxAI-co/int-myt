@@ -101,7 +101,7 @@
                                 <th hidden=""></th>
                                 <th width="24%">Material</th>
                                 <th width="10%">Referencia - Material</th>
-                                <th width="13%">Descripción</th>
+                                <!--<th width="13%">Descripción</th>-->
                                 <th width="7%">Cantidad</th>
                                 <th width="2%"></th>
                             </tr>
@@ -112,7 +112,7 @@
                                     <td hidden="">
                                         <input type="text"  id="itemId{{$key + 1}}" name="itemId[]" value="{{ $item->id }}" hidden="">
                                     </td>
-                                    <td  class="no-padding" style="padding-top: 2% !important;">
+                                    <td  class="no-padding">
                                         <select class="form-control selectpicker items_inv"  title="Seleccione" data-live-search="true" data-size="5" name="item[]" id="item{{$key + 1}}" onchange="setReference('{{$key + 1}}', this.value);" required="">
                                             @foreach($inventario as $material)
                                                 <option value="{{$material->id}}" {{ $item->id_material == $material->id ? 'selected':'' }}>{{$material->producto}} - ({{$material->ref}})</option>
@@ -121,15 +121,17 @@
                                     </td>
                                     <td>
                                         <div class="resp-refer">
-                                            <input type="text" class="form-control form-control-sm" id="ref{{$key + 1}}" name="ref[]" placeholder="Referencia" required="" value="{{ $item->material->ref }}">
+                                            <input type="text" class="form-control form-control" id="ref{{$key + 1}}" name="ref[]" placeholder="Referencia" required="" value="{{ $item->material->ref }}">
                                         </div>
+                                    </td>
+                                    <!--
                                     <td  style="padding-top: 1% !important;">
                                         <div class="resp-descripcion">
                                             <textarea  class="form-control form-control-sm" id="descripcion{{$key + 1}}" name="descripcion[]" placeholder="Descripción"></textarea>
                                         </div>
-                                    </td>
+                                    </td>-->
                                     <td>
-                                        <input type="number" class="form-control form-control-sm" id="cant{{$key + 1}}" name="cant[]" placeholder="Cantidad" min="1" required="" onblur="checkStock('{{$key + 1}}')" value="{{ $item->cantidad }}">
+                                        <input type="number" class="form-control form-control" id="cant{{$key + 1}}" name="cant[]" placeholder="Cantidad" min="1" required="" onblur="checkStock('{{$key + 1}}')" value="{{ $item->cantidad }}">
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-outline-secondary btn-icons" onclick="removeRow('{{$key + 1}}');">X</button>

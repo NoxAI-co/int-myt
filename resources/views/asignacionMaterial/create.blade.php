@@ -101,7 +101,7 @@
                             <tr>
                                 <th width="24%">Material</th>
                                 <th width="10%">Referencia - Material</th>
-                                <th width="13%">Descripción</th>
+                                <!--<th width="13%">Descripción</th>-->
                                 <th width="7%">Cantidad</th>
                                 <th width="2%"></th>
                             </tr>
@@ -119,11 +119,13 @@
                                     <div class="resp-refer">
                                         <input type="text" class="form-control form-control-sm" id="ref1" name="ref[]" placeholder="Referencia" required="">
                                     </div>
+                                </td>
+                                <!--
                                 <td  style="padding-top: 1% !important;">
                                     <div class="resp-descripcion">
                                         <textarea  class="form-control form-control-sm" id="descripcion1" name="descripcion[]" placeholder="Descripción" ></textarea>
                                     </div>
-                                </td>
+                                </td>-->
                                 <td>
                                     <input type="number" class="form-control form-control-sm" id="cant1" name="cant[]" placeholder="Cantidad" min="1" required="" onblur="checkStock(1)">
                                 </td>

@@ -78,11 +78,11 @@
                 color: #c7c7c7;
             }
             .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-                color: #000;
+                color: {{ isset(Auth::user()->empresa->color)?Auth::user()->empresa->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
                 background-color: {{Auth::user()->username == 'desarrollo' ? '#022454' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#000') }};
             }
             .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link {
-                color: #000;
+                color: {{ isset(Auth::user()->empresa->color)?Auth::user()->empresa->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
                 background-color: {{Auth::user()->username == 'desarrollo' ? '#022454' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#000') }};
                 border-color: #dee2e6 #dee2e6 #fff;
             }
@@ -179,13 +179,13 @@
                 z-index:999;
             }
             span.menu-title {
-                color: #000 !important;
+                color: {{ isset(Auth::user()->empresa->color)?Auth::user()->empresa->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
             }
             i.menu-icon {
-                    color: #000 !important;
+                color: {{ isset(Auth::user()->empresa->color)?Auth::user()->empresa->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
                 }
             .nav-link {
-                color: #000 !important;
+                color: {{ isset(Auth::user()->empresa->color)?Auth::user()->empresa->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
             }
             .whatsapp img {
                 width:60px; /*Alto del icono*/
