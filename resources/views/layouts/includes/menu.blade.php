@@ -102,6 +102,9 @@
                         <li class="nav-item" id="asignacion_material">
                             <a class="nav-link" href="{{route('asignacionmaterial.index')}}">Asiganción herramientas<br> para tecnicos</a>
                         </li>
+                        <li class="nav-item" id="inventario_tecnicos">
+                            <a class="nav-link" href="{{route('inventarioTecnicos.index')}}">Inventario tecnicos</a>
+                        </li>
                     <?php } ?>
                     <?php if(isset($_SESSION['permisos']['412'])){ ?>
                     {{-- <li class="nav-item" id="modems">

@@ -469,7 +469,9 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
     Route::delete('asignacion_material/delete/{id}','AsignacionMaterialController@delete')->name('asignacionmaterial.delete');
     Route::get('asignacion_material/show/{id}','AsignacionMaterialController@show')->name('asignacionmaterial.show');
 
-
+    // RUTAS INVENTARIO DE TECNICOS
+    Route::get('inventario_tecnicos', 'InventarioTecnicosController@index')->name('inventarioTecnicos.index');
+    Route::get('inventario_tecnicos/show/{id}/{type}/{group}','InventarioTecnicosController@show')->name('inventarioTecnicos.show');
 
 	//Facturas de Venta
 
