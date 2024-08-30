@@ -6,6 +6,7 @@ use App\Model\Ingresos\Factura;
 use App\Model\Ingresos\ItemsFactura;
 use App\TipoEmpresa;
 use App\TipoIdentificacion;
+use App\User;
 use Illuminate\Http\Request;
 use App\Empresa; use App\Contacto;
 use App\Categoria; use App\Numeracion;
@@ -215,6 +216,8 @@ class RemisionesController extends Controller
 
     $categorias=Categoria::where('empresa',Auth::user()->empresa)->orWhere('empresa', 1)->whereNull('asociado')->get();
 
+    $tecnicos = User::where('rol',4)->get();
+
     $dataPro = (new InventarioController)->create();
     $categorias2 = $dataPro->categorias;
     $unidades2 = $dataPro->unidades;
@@ -229,7 +232,7 @@ class RemisionesController extends Controller
     $vendedores = $dataPro->vendedores;
     view()->share(['icon' =>'', 'title' => 'Nueva Remisión', 'seccion' => 'facturas', 'subseccion' => 'remisiones']);
 
-    return view('remisiones.create')->with(compact('clientes', 'inventario', 'vendedores', 'impuestos', 'nro', 'bodegas', 'listas','categorias2', 'unidades2','medidas2', 'impuestos2', 'extras2', 'listas2', 'bodegas2', 'identificaciones','tipos_empresa', 'prefijos', 'vendedores','categorias', 'extras'));
+    return view('remisiones.create')->with(compact('clientes', 'inventario', 'vendedores', 'impuestos', 'nro', 'bodegas', 'listas','categorias2', 'unidades2','medidas2', 'impuestos2', 'extras2', 'listas2', 'bodegas2', 'identificaciones','tipos_empresa', 'prefijos', 'vendedores','categorias', 'extras', 'tecnicos'));
   }
 
   public function create_item($item){
@@ -315,6 +318,7 @@ class RemisionesController extends Controller
     $remision->nro=$caja;
     $remision->empresa=Auth::user()->empresa;
     $remision->vendedor=$request->vendedor;
+    $remision->id_tecnico = $request->id_tecnico;
     $remision->documento=$request->documento;
     $remision->cliente=$request->cliente;
     $remision->fecha=Carbon::parse($request->fecha)->format('Y-m-d');
@@ -432,6 +436,8 @@ $categorias=Categoria::where('empresa',Auth::user()->empresa)
     
     $extras = CamposExtra::where('empresa',Auth::user()->empresa)->where('status', 1)->get();
 
+    $tecnicos = User::where('rol',4)->get();
+
     $inventario = Inventario::select('inventario.*', DB::raw('(Select nro from productos_bodegas where bodega='.$bodega->id.' and producto=inventario.id) as nro'))
         ->where('empresa',Auth::user()->empresa)->where('status', 1)->havingRaw('if(inventario.tipo_producto=1, id in (Select producto from productos_bodegas where bodega='.$bodega->id.'), true)')->get();
     $bodegas = Bodega::where('empresa',Auth::user()->empresa)->where('status', 1)->get();
@@ -443,7 +449,7 @@ $categorias=Categoria::where('empresa',Auth::user()->empresa)
         view()->share(['title' => 'Modificar Remisión '.$remision->nro, 'icon' =>'']);
 
     return view('remisiones.edit')->with(compact('remision', 'clientes', 'inventario', 'vendedores', 'impuestos', 'items', 'bodegas', 'listas','categorias2', 'unidades2','medidas2', 'impuestos2', 'extras2',
-        'listas2', 'bodegas2', 'identificaciones2','tipos_empresa2', 'prefijos2', 'vendedores2','categorias', 'extras'));
+        'listas2', 'bodegas2', 'identificaciones2','tipos_empresa2', 'prefijos2', 'vendedores2','categorias', 'extras', 'tecnicos'));
     }
     return redirect('empresa/remisiones')->with('success', 'No existe un registro con ese id');
   }
@@ -469,6 +475,7 @@ $categorias=Categoria::where('empresa',Auth::user()->empresa)
         $remision->fecha=Carbon::parse($request->fecha)->format('Y-m-d');
         $remision->vencimiento=Carbon::parse($request->vencimiento)->format('Y-m-d');
         $remision->observaciones=$request->observaciones;
+        $remision->id_tecnico = $request->id_tecnico;
         $remision->notas=$request->notas;
         $remision->lista_precios=$request->lista_precios;
         $remision->bodega=$request->bodega;

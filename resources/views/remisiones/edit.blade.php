@@ -90,6 +90,18 @@
             </select>
           </div>
         </div>
+        <div class="form-group row">
+          <label class="col-sm-4 col-form-label">Técnico <span class="text-danger">*</span></label>
+          <div class="col-sm-8">
+            <div class="input-group">
+              <select class="form-control selectpicker" name="id_tecnico" id="id_tecnico" required="" title="Seleccione" data-live-search="true" data-size="5">
+                @foreach($tecnicos as $tecnico)
+                  <option value="{{$tecnico->id}}" {{ $remision->id_tecnico == $tecnico->id ? 'selected':'' }}>{{$tecnico->nombres}}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
       <small>Los campos marcados con <span class="text-danger">*</span> son obligatorios</small>
       

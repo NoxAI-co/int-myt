@@ -45,7 +45,6 @@ class ItemsRemision extends Model
     }
 
     public function producto($name = true){
-        $producto = Inventario::where('id',$this->producto)->first();
          return $name ? Inventario::where('id',$this->producto)->first()->producto  : Inventario::where('id',$this->producto)->first();
     }
 
@@ -56,6 +55,16 @@ class ItemsRemision extends Model
         }
         return '';
         
+    }
+
+    public function material()
+    {
+        return $this->belongsTo(Inventario::class, 'producto','id');
+    }
+
+    public function remision_obj()
+    {
+        return $this->belongsTo(Remision::class, 'remision','id');
     }
 
 }

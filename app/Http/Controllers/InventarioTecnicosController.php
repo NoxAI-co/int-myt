@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\AsignarMaterial;
 use App\Model\Ingresos\ItemsAsignarMaterial;
+use App\Model\Ingresos\ItemsRemision;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +43,22 @@ class InventarioTecnicosController extends Controller
                         $query->where('id_tecnico', $id_tecnico);
                     })
                     ->select('id_material', 'cantidad', 'created_at')
+                    ->get();
+            }
+        }else{
+            if($group == "agrupar"){
+                $materials = ItemsRemision::with('material')
+                    ->join('remisiones', 'items_remision.remision', '=', 'remisiones.id')
+                    ->select('producto', DB::raw('SUM(cant) as total_cantidad'))
+                    ->where('remisiones.id_tecnico', $id_tecnico)
+                    ->groupBy('producto')
+                    ->get();
+            }else{
+                $materials = ItemsRemision::with(['material', 'remision_obj'])
+                    ->whereHas('remision_obj', function($query) use ($id_tecnico) {
+                        $query->where('id_tecnico', $id_tecnico);
+                    })
+                    ->select('producto', 'cant as cantidad', 'created_at')
                     ->get();
             }
         }
