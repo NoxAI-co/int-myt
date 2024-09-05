@@ -32,7 +32,9 @@
         <link rel="stylesheet" href="{{asset('css/style.css')}}">
         <link rel="stylesheet" href="{{asset('css/documentacion.css')}}">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
-
+        @php
+            $empresa_data = \App\Empresa::find(\Illuminate\Support\Facades\Auth::user()->empresa);
+        @endphp
         <style>
                 .alerta-whatsapp{
                     background: #506de300 !important;
@@ -78,11 +80,11 @@
                 color: #c7c7c7;
             }
             .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-                color: {{ isset(Auth::user()->empresa->color)?Auth::user()->empresa->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
+                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username != 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
                 background-color: {{Auth::user()->username == 'desarrollo' ? '#022454' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#000') }};
             }
             .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link {
-                color: {{ isset(Auth::user()->empresa->color)?Auth::user()->empresa->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
+                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username != 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
                 background-color: {{Auth::user()->username == 'desarrollo' ? '#022454' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#000') }};
                 border-color: #dee2e6 #dee2e6 #fff;
             }
@@ -179,13 +181,13 @@
                 z-index:999;
             }
             span.menu-title {
-                color: {{ isset(Auth::user()->empresa->color)?Auth::user()->empresa->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
+                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username != 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
             }
             i.menu-icon {
-                color: {{ isset(Auth::user()->empresa->color)?Auth::user()->empresa->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
+                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username != 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
                 }
             .nav-link {
-                color: {{ isset(Auth::user()->empresa->color)?Auth::user()->empresa->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
+                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username != 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
             }
             .whatsapp img {
                 width:60px; /*Alto del icono*/
