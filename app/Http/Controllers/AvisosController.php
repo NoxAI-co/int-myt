@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use stdClass;
-use Auth;
 use DB;
 use App\Empresa;
 use Carbon\Carbon;
@@ -22,6 +21,7 @@ use App\Mikrotik;
 use App\GrupoCorte;
 use App\Instance;
 use App\Services\WapiService;
+use Illuminate\Support\Facades\Auth as Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 
@@ -42,7 +42,21 @@ class AvisosController extends Controller
     public function index()
     {
         $this->getAllPermissions(Auth::user()->id);
-        $clientes = (Auth::user()->oficina && Auth::user()->empresa()->oficina) ? Contacto::whereIn('tipo_contacto', [0,2])->where('status', 1)->where('empresa', Auth::user()->empresa)->where('oficina', Auth::user()->oficina)->orderBy('nombre', 'ASC')->get() : Contacto::whereIn('tipo_contacto', [0,2])->where('status', 1)->where('empresa', Auth::user()->empresa)->orderBy('nombre', 'ASC')->get();
+        $clientes = (Auth::user()->oficina && Auth::user()->empresa()->oficina) ? 
+        Contacto::leftJoin('factura as f','f.cliente','contactos.id')
+        ->where('f.estatus',1)
+        ->whereIn('tipo_contacto', [0,2])->where('status', 1)  
+        ->where('contactos.empresa', Auth::user()->empresa)
+        ->where('oficina', Auth::user()->oficina)
+        ->orderBy('nombre', 'ASC')->get() 
+        : 
+        Contacto::leftJoin('factura as f','f.cliente','contactos.id')
+        ->where('f.estatus',1)
+        ->whereIn('tipo_contacto', [0,2])
+        ->where('status', 1)
+        ->where('contactos.empresa', Auth::user()->empresa)
+        ->orderBy('nombre', 'ASC')->get();
+
         return view('avisos.index', compact('clientes'));
     }
 
@@ -85,7 +99,6 @@ class AvisosController extends Controller
         $plantillas = Plantilla::where('status', 1)->where('tipo', 0)->get();
         $contratos = Contrato::select('contracts.*', 'contactos.id as c_id', 'contactos.nombre as c_nombre', 'contactos.apellido1 as c_apellido1', 'contactos.apellido2 as c_apellido2', 'contactos.nit as c_nit', 'contactos.telefono1 as c_telefono', 'contactos.email as c_email', 'contactos.barrio as c_barrio')
 			->join('contactos', 'contracts.client_id', '=', 'contactos.id')
-			/* ->where('contracts.status', 1) */
             ->where('contracts.empresa', Auth::user()->empresa)
             ->whereNotNull('contactos.celular');
 
@@ -115,9 +128,13 @@ class AvisosController extends Controller
 
         view()->share(['title' => 'Envío de Notificaciones por '.$opcion, 'icon' => 'fas fa-paper-plane']);
         $plantillas = Plantilla::where('status', 1)->where('tipo', 2)->get();
-        $contratos = Contrato::select('contracts.*', 'contactos.id as c_id', 'contactos.nombre as c_nombre', 'contactos.apellido1 as c_apellido1', 'contactos.apellido2 as c_apellido2', 'contactos.nit as c_nit', 'contactos.telefono1 as c_telefono', 'contactos.email as c_email', 'contactos.barrio as c_barrio')
+
+        $contratos = Contrato::select('contracts.*', 'contactos.id as c_id', 
+        'contactos.nombre as c_nombre', 'contactos.apellido1 as c_apellido1', 
+        'contactos.apellido2 as c_apellido2', 'contactos.nit as c_nit', 
+        'contactos.telefono1 as c_telefono', 'contactos.email as c_email', 
+        'contactos.barrio as c_barrio')
 			->join('contactos', 'contracts.client_id', '=', 'contactos.id')
-			/* ->where('contracts.status', 1) */
             ->where('contracts.empresa', Auth::user()->empresa)
             ->whereNotNull('contactos.celular');
 
@@ -131,8 +148,22 @@ class AvisosController extends Controller
                       ->groupBy('contracts.id');
         }
 
-
         $contratos = $contratos->get();
+
+        foreach($contratos as $contrato){
+    
+            $facturaContrato = Factura::join('facturas_contratos as fc','fc.factura_id','factura.id')
+            ->where('fc.contrato_nro',$contrato->nro)
+            ->where('estatus',1)
+            ->orderBy('fc.id','desc')
+            ->first();
+            
+            if($facturaContrato){
+                $contrato->factura_id = $facturaContrato->id;
+            }else{
+                $contrato->factura_id = null;
+            }
+        }
 
         $servidores = Mikrotik::where('empresa', auth()->user()->empresa)->get();
         $gruposCorte = GrupoCorte::where('empresa', Auth::user()->empresa)->get();
