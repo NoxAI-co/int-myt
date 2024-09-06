@@ -108,7 +108,11 @@ class Gastos extends Model
             if ($pdf) {
                 return 'Devolución en nota crédito '.NotaCredito::where('empresa',Auth::user()->empresa)->where('id', $this->nota_credito)->first()->nro; die;
             }
-            return 'Nota de Crédito: '.NotaCredito::where('empresa',Auth::user()->empresa)->where('id', $this->nota_credito)->first()->nro; 
+            $notaCredito = NotaCredito::where('empresa',Auth::user()->empresa)->where('id', $this->nota_credito)->first();
+            if($notaCredito){
+                return 'Nota de Crédito: '. $notaCredito->nro; 
+            }
+            else return "";
         }        
     }
 
