@@ -406,27 +406,27 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
 		Route::resource('ajustes', 'AjusteInventarioController');
 
 	});
-	Route::group(['prefix' => 'inventariowifi'], function() {
-		Route::post('/{id}/act_desc', 'InventarioWifiController@act_desc')->name('inventario.act_desc');
-		Route::get('{id}/json', 'InventarioWifiController@json')->name('inventario.json');
-		Route::get('json', 'InventarioWifiController@json')->name('inventario.all');
-		Route::get('importar', 'InventarioWifiController@importar')->name('inventario.importar');
-		Route::post('importar', 'InventarioWifiController@cargando')->name('inventario.importar');
-		Route::get('actualizar', 'InventarioWifiController@actualizar')->name('inventario.actualizar');
-		Route::post('actualizar', 'InventarioWifiController@actualizando')->name('inventario.actualizar');
-		Route::get('exportar', 'InventarioWifiController@exportar')->name('inventario.exportar');
-		Route::get('ejemplo', 'InventarioWifiController@ejemplo')->name('inventario.ejemplo');
-		Route::post('{id}/imagenes', 'InventarioWifiController@imagenes')->name('inventario.imagenes');
+	Route::group(['prefix' => 'inventario'], function() {
+		Route::post('/{id}/act_desc', 'InventarioController@act_desc')->name('inventario.act_desc');
+		Route::get('{id}/json', 'InventarioController@json')->name('inventario.json');
+		Route::get('json', 'InventarioController@json')->name('inventario.all');
+		Route::get('importar', 'InventarioController@importar')->name('inventario.importar');
+		Route::post('importar', 'InventarioController@cargando')->name('inventario.importar');
+		Route::get('actualizar', 'InventarioController@actualizar')->name('inventario.actualizar');
+		Route::post('actualizar', 'InventarioController@actualizando')->name('inventario.actualizar');
+		Route::get('exportar', 'InventarioController@exportar')->name('inventario.exportar');
+		Route::get('ejemplo', 'InventarioController@ejemplo')->name('inventario.ejemplo');
+		Route::post('{id}/imagenes', 'InventarioController@imagenes')->name('inventario.imagenes');
 		Route::get('/valor', 'ExtraInventarioController@valorinventario')->name('valorinventario');
 		Route::get('/gestion', 'ExtraInventarioController@gestion')->name('inventario.gestion');
 		Route::get('/precios', 'ExtraInventarioController@lista_precio')->name('inventario.precios');
-		Route::post('/publicar/{id}', 'InventarioWifiController@publicar')->name('inventario.publicar');
-		Route::get('/modems', 'InventarioWifiController@modems')->name('inventario.modems');
-		Route::get('/material-wifi', 'InventarioWifiController@material')->name('inventario.wifi.material');
-        Route::get('/television', 'InventarioWifiController@television')->name('inventario.television');
-        Route::get('/television/create', 'InventarioWifiController@television_create')->name('inventario.television_create');
+		Route::post('/publicar/{id}', 'InventarioController@publicar')->name('inventario.publicar');
+		Route::get('/modems', 'InventarioController@modems')->name('inventario.modems');
+		Route::get('/material-wifi', 'InventarioController@material')->name('inventario.wifi.material');
+        Route::get('/television', 'InventarioController@television')->name('inventario.television');
+        Route::get('/television/create', 'InventarioController@television_create')->name('inventario.television_create');
 
-		Route::post('/diaiva', 'InventarioWifiController@diaIva');
+		Route::post('/diaiva', 'InventarioController@diaIva');
 
 
 
@@ -434,7 +434,7 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
         Route::get('/productos', 'InventarioController@getDataTable');
 
 
-		Route::get('items','InventarioWifiController@repararLinea')->name('inventario.items');
+		Route::get('items','InventarioController@repararLinea')->name('inventario.items');
 
 		//Ruta para rellenar las tablas inferiores de informacion del porducto
         Route::get('/{id}/facturaVenta', 'FacturasController@datatable_producto')->name('rellenarFV');
