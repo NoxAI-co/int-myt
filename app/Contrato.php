@@ -279,7 +279,7 @@ class Contrato extends Model
         ->select('factura.id')
         ->selectRaw('COALESCE(SUM(if.pago), 0) as totalIngreso') // Usa COALESCE para manejar los nulos
         ->where(function ($query) {
-            $query->where('factura.contrato_id', $this->nro)
+            $query->where('factura.contrato_id', $this->id)
                   ->orWhere('fc.contrato_nro', $this->nro);
         })
         ->where('factura.estatus', 1)
