@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Contrato;
 use Illuminate\Http\Request;
 use App\Radicado;
 use App\Servicio;
@@ -301,7 +302,6 @@ class RadicadosController extends Controller{
     }
 
     public function store(Request $request){
-
         $request->validate([
             'cliente' => 'required',
             'fecha' => 'required',
@@ -368,6 +368,13 @@ class RadicadosController extends Controller{
             $movimiento->created_by  = Auth::user()->id;
             $movimiento->empresa     = Auth::user()->empresa;
             $movimiento->save();
+
+            if($request->deshabilitar_contrato == 1){
+                $contrato = Contrato::where("nro",$request->contrato)->first();
+                $contrato->update([
+                    "status" => 0
+                ]);
+            }
         }
 
         $log = new RadicadoLOG;

@@ -33,6 +33,13 @@
                     <strong>{{ $errors->first('cliente') }}</strong>
                 </span>
             </div>
+            <div class="col-md-4 form-group" id="contrato-deshabilitado" style="display: none;">
+                <label class="control-label">Contrato deshabilitado</label>
+                <select class="form-control selectpicker" name="deshabilitar_contrato" id="deshabilitar_contrato"  required>
+                    <option value="0" selected>No</option>
+                    <option value="1">Si</option>
+                </select>
+            </div>
 
             <div class="col-md-4">
 
@@ -41,7 +48,6 @@
                 </ul>
 
             </div>
-
         </div>
 
         <div class="row" id="content" style="display: none;">
@@ -288,6 +294,8 @@
                         $('#servicio').find('[value=6]').prop('disabled', false);
                         $('#servicio').find('[value=7]').prop('disabled', false);
                         $("#servicio").selectpicker('val', '');
+                        var div = document.getElementById("contrato-deshabilitado");
+                        div.style.display = "block";
                     }else{
                         $(".contract").addClass('d-none');
                         $("#contrato").val('');
@@ -299,6 +307,8 @@
                         $('#servicio').find('[value=6]').prop('disabled', true);
                         $('#servicio').find('[value=7]').prop('disabled', true);
                         $("#servicio").selectpicker('val', '4');
+                        var div = document.getElementById("contrato-deshabilitado");
+                        div.style.display = "none";
                     }
 
                     $('#list-contratos').html('');
