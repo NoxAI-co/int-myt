@@ -651,9 +651,8 @@ class IngresosController extends Controller
 
                             /* * * API CATV * * */
                             if($contrato->olt_sn_mac && $empresa->adminOLT != null){
-                                $contrato->olt_sn_mac          = $request->olt_sn_mac;
+                                
                                 $curl = curl_init();
-    
                                 curl_setopt_array($curl, array(
                                     CURLOPT_URL => $empresa->adminOLT.'/api/onu/enable_catv/'.$contrato->olt_sn_mac,
                                     CURLOPT_RETURNTRANSFER => true,
