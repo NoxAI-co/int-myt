@@ -296,6 +296,7 @@ class IngresosController extends Controller
             }
 
             $user = Auth::user();
+            $empresa = Empresa::Find($user->empresa);
             //el tipo 2 significa que estoy realizando un ingreso para darle un anticipo a un cliente
             if($request->realizar == 2){
             //Cuando se realiza el ingreso por categoría.
@@ -594,9 +595,9 @@ class IngresosController extends Controller
                             }
                         }
 
-                        /* * * API MK * * */
-
                         if($contrato){
+
+                            /* * * API MK * * */
                             $asignacion = Producto::where('contrato', $contrato->id)->where('venta', 1)->where('status', 2)->where('cuotas_pendientes', '>', 0)->get()->last();
 
                             if ($asignacion) {
@@ -646,9 +647,38 @@ class IngresosController extends Controller
                                     $contrato->save();
                                 }
                             }
-                        }
+                            /* * * API MK * * */
 
-                        /* * * API MK * * */
+                            /* * * API CATV * * */
+                            if($contrato->olt_sn_mac && $empresa->adminOLT != null){
+                                $contrato->olt_sn_mac          = $request->olt_sn_mac;
+                                $curl = curl_init();
+    
+                                curl_setopt_array($curl, array(
+                                    CURLOPT_URL => $empresa->adminOLT.'/api/onu/enable_catv/'.$contrato->olt_sn_mac,
+                                    CURLOPT_RETURNTRANSFER => true,
+                                    CURLOPT_ENCODING => '',
+                                    CURLOPT_MAXREDIRS => 10,
+                                    CURLOPT_TIMEOUT => 0,
+                                    CURLOPT_FOLLOWLOCATION => true,
+                                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                                    CURLOPT_CUSTOMREQUEST => 'POST',
+                                    CURLOPT_HTTPHEADER => array(
+                                        'X-token: '.$empresa->smartOLT
+                                    ),
+                                    ));
+
+                                $response = curl_exec($curl);
+                                $response = json_decode($response);
+
+                                if(isset($response->status) && $response->status == true){
+                                    $contrato->state_olt_catv = 1;
+                                    $contrato->save();
+                                }
+                            }
+                            /* * * API CATV * * */
+
+                        }
 
                         /* * * ENVÍO SMS * * */
                         $servicio = Integracion::where('empresa', Auth::user()->empresa)->where('tipo', 'SMS')->where('status', 1)->first();
