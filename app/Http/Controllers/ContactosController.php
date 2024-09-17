@@ -960,7 +960,7 @@ class ContactosController extends Controller
                 //obtengo el A4 desde donde empieza la data
                 $nombre = $sheet->getCell('A'.$row)->getValue();
                 if (empty($nombre)) {
-                    break;
+                    continue;
                 }
 
                 $request->apellido1 = $sheet->getCell('B'.$row)->getValue();
@@ -1045,7 +1045,7 @@ class ContactosController extends Controller
                 $tipo_identifi = 1;
                 $nombre = $sheet->getCell('A'.$row)->getValue();
                 if (empty($nombre)) {
-                    break;
+                    continue;
                 }
                 $request = (object) [];
                 $request->nombre = $nombre;
