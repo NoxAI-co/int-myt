@@ -144,7 +144,7 @@
         Fecha del Pago: {{ date('d/m/Y', strtotime($ingreso->fecha)) }}<br>
         Cuenta: {{ $ingreso->cuenta()->nombre }}<br>
         Método de Pago: {{ $ingreso->metodo_pago() }}<br>
-        Periodo: {{$ingreso->ingresofactura()->factura()->periodoCobrado('true')}}<br> 
+        Periodo: {{$ingreso->ingresofactura()->factura()->periodoCobradoTexto()}}<br> 
         @if($ingreso->notas) Notas: {{ $ingreso->notas }} @endif
     </div>
     
