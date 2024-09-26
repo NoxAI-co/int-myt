@@ -383,6 +383,24 @@ class RadicadosController extends Controller{
         $log->accion = 'Creación del radicado bajo el código #'.$radicado->codigo;
         $log->save();
 
+        if($request->adjunto){
+            $radicado->adjunto = $request->adjunto;
+
+            $file = $request->file('adjunto');
+            $nombre = $radicado->codigo.'-'.date('Ymd').'.'.$file->extension();
+            $ruta = public_path('/adjuntos/documentos/');
+            $file->move($ruta, $nombre);
+
+            $radicado->adjunto = $nombre;
+            $radicado->update();
+
+            $log = new RadicadoLOG;
+            $log->id_radicado = $radicado->id;
+            $log->id_usuario = Auth::user()->id;
+            $log->accion = 'Carga de archivo adjunto.';
+            $log->save();
+        }
+
         $mensaje='Se ha creado satisfactoriamente el radicado bajo el código #'.$radicado->codigo;
         return redirect('empresa/radicados')->with('success', $mensaje);
     }

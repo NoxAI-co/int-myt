@@ -17,7 +17,12 @@
 		</script>
 	@endif
 
-    <form method="POST" action="{{ route('radicados.store') }}" style="padding: 2% 3%;" role="form" class="forms-sample" id="form-radicado" >
+    <form method="POST" action="{{ route('radicados.store') }}" style="padding: 2% 3%;" role="form" class="forms-sample" id="form-radicado"  enctype="multipart/form-data">
+        <div class="row form-group pb-2">
+            <div class="col-12">
+                <a href="javascript:void" data-toggle="modal" data-target="#modalAdjunto" class="btn btn-outline-info btn-sm" id="btn_adjunto"><i class="fas fa-file-upload"></i> Adjuntar Archivo</a>
+            </div>
+        </div>
         {{ csrf_field() }}
         <div class="row">
             <div class="col-md-4 form-group">
@@ -209,6 +214,34 @@
             <div class="col-sm-12" style="text-align: right;  padding-top: 1%;">
                 <a href="{{route('radicados.index')}}" class="btn btn-outline-secondary">Cancelar</a>
                 <button type="submit" id="submitcheck" onclick="submitLimit(this.id)" class="btn btn-success">Guardar</button>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalAdjunto" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">ADJUNTAR ARCHIVO AL RADICADO</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12 form-group">
+                                <label class="control-label"></label>
+                                <input type="file" class="form-control"  id="adjunto" name="adjunto"  accept=".jpg, .jpeg, .png, .pdf, .JPG, .JPEG, .PNG, .PDF">
+                                <span style="color: red;">
+                            <strong>{{ $errors->first('adjunto') }}</strong>
+                        </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-success" data-dismiss="modal">Subir Adjunto</button>
+                    </div>
+
+                </div>
             </div>
         </div>
     </form>
