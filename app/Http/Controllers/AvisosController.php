@@ -212,7 +212,7 @@ class AvisosController extends Controller
         for ($i = 0; $i < count($request->contrato); $i++) {
             $contrato = Contrato::find($request->contrato[$i]);
 
-            if($request->isAbierta){
+            if($request->isAbierta && $request->type != 'whatsapp'){
                 $factura =  Factura::where('contrato_id')->latest()
                                              ->first();
 
