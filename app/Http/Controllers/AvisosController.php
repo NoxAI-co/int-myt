@@ -142,13 +142,35 @@ class AvisosController extends Controller
             $contratos = $contratos->where('contactos.id', $id);
         }
 
-        if(request()->vencimiento){
-            $contratos->join('facturas_contratos as fc','fc.contrato_nro','contracts.nro')
-            ->join('factura', 'factura.id', '=', 'fc.factura_id')
-            ->where('factura.vencimiento', date('Y-m-d', strtotime(request()->vencimiento)))
-            ->where('estatus',1)
-            ->orderBy('fc.id','desc')
-            ->groupBy('contracts.id');
+        if(request()->vencimiento) {
+            // Construimos la primera consulta con el modelo Contrato
+            $contratos = Contrato::leftJoin('facturas_contratos as fc', 'fc.contrato_nro', 'contracts.nro')
+                ->leftJoin('factura', 'factura.id', '=', 'fc.factura_id')
+                ->where('factura.vencimiento', date('Y-m-d', strtotime(request()->vencimiento)))
+                ->where('factura.estatus', 1)
+                ->orderBy('fc.id', 'desc')
+                ->groupBy('contracts.id');
+        
+            // Verificamos si la primera consulta no retorna resultados
+            if($contratos->get()->isEmpty()) {
+
+                // Si no hay resultados, redefinimos la variable $contratos con la segunda consulta
+                $contratos = Contrato::leftJoin('factura as f', 'f.contrato_id', '=', 'contracts.id')
+                ->leftJoin('contactos', 'contactos.id', '=', 'contracts.client_id') // Asegúrate que existe la relación entre contratos y contactos
+                ->where('f.vencimiento', date('Y-m-d', strtotime(request()->vencimiento)))
+                ->where('f.estatus', 1)
+                ->select('contracts.*', 
+                         'contactos.id as c_id', 
+                         'contactos.nombre as c_nombre', 
+                         'contactos.apellido1 as c_apellido1', 
+                         'contactos.apellido2 as c_apellido2', 
+                         'contactos.nit as c_nit', 
+                         'contactos.telefono1 as c_telefono', 
+                         'contactos.email as c_email', 
+                         'contactos.barrio as c_barrio')
+                ->groupBy('contracts.id')
+                ->orderBy('f.id', 'desc');
+            }
         }
 
         $contratos = $contratos->get();
