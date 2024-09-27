@@ -143,9 +143,12 @@ class AvisosController extends Controller
         }
 
         if(request()->vencimiento){
-            $contratos->join('factura', 'factura.contrato_id', '=', 'contracts.id')
-                      ->where('factura.vencimiento', date('Y-m-d', strtotime(request()->vencimiento)))
-                      ->groupBy('contracts.id');
+            $contratos->join('facturas_contratos as fc','fc.contrato_nro','contracts.nro')
+            ->join('factura', 'factura.id', '=', 'fc.factura_id')
+            ->where('factura.vencimiento', date('Y-m-d', strtotime(request()->vencimiento)))
+            ->where('estatus',1)
+            ->orderBy('fc.id','desc')
+            ->groupBy('contracts.id');
         }
 
         $contratos = $contratos->get();
