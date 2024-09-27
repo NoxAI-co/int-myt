@@ -169,7 +169,6 @@
 
 			}else{
 				ultimoVencimiento = $(this).val();
-				alert(window.location.pathname + '?' + 'vencimiento=' + ultimoVencimiento);
 				window.location.href =  window.location.pathname + '?' + 'vencimiento=' + ultimoVencimiento;
 			}
 		});
