@@ -133,8 +133,9 @@ class AvisosController extends Controller
         'contactos.nombre as c_nombre', 'contactos.apellido1 as c_apellido1', 
         'contactos.apellido2 as c_apellido2', 'contactos.nit as c_nit', 
         'contactos.telefono1 as c_telefono', 'contactos.email as c_email', 
-        'contactos.barrio as c_barrio')
+        'contactos.barrio as c_barrio','planes_velocidad.price as factura_total')
 			->join('contactos', 'contracts.client_id', '=', 'contactos.id')
+            ->join('planes_velocidad', 'contracts.plan_id', '=', 'planes_velocidad.id')
             ->where('contracts.empresa', Auth::user()->empresa)
             ->whereNotNull('contactos.celular');
 
