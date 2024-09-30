@@ -158,6 +158,7 @@ class AvisosController extends Controller
                 // Si no hay resultados, redefinimos la variable $contratos con la segunda consulta
                 $contratos = Contrato::leftJoin('factura as f', 'f.contrato_id', '=', 'contracts.id')
                 ->leftJoin('contactos', 'contactos.id', '=', 'contracts.client_id') // Asegúrate que existe la relación entre contratos y contactos
+                ->join('planes_velocidad', 'contracts.plan_id', '=', 'planes_velocidad.id')
                 ->where('f.vencimiento', date('Y-m-d', strtotime(request()->vencimiento)))
                 ->where('f.estatus', 1)
                 ->select('contracts.*', 
@@ -168,7 +169,7 @@ class AvisosController extends Controller
                          'contactos.nit as c_nit', 
                          'contactos.telefono1 as c_telefono', 
                          'contactos.email as c_email', 
-                         'contactos.barrio as c_barrio')
+                         'contactos.barrio as c_barrio','planes_velocidad.price as factura_total')
                 ->groupBy('contracts.id')
                 ->orderBy('f.id', 'desc');
             }
