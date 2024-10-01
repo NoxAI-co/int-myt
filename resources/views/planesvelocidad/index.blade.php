@@ -165,6 +165,40 @@
 		</div>
 
 	</div>
+
+    <div id="copyModal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="{{ route('planes-velocidad.copyPlan') }}" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Título del Modal</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" id="plan_id" name="plan_id" value="" hidden="">
+                        <div class="col-md-6 form-group">
+                            @CSRF
+                            <label class="control-label">Mikrotik Asociada <span class="text-danger">*</span></label>
+                            <select name="mikrotik[]" id="mikrotik" class="form-control selectpicker " title="Seleccione" data-live-search="true" data-size="5" required multiple>
+                                @foreach($mikrotiks as $mikrotik)
+                                    <option value="{{$mikrotik->id}}">{{$mikrotik->nombre}}</option>
+                                @endforeach
+                            </select>
+                            <span class="help-block error">
+        	                <strong>{{ $errors->first('mikrotik') }}</strong>
+        	            </span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -489,5 +523,13 @@
             @endif
         });
     }
+
+    function openCopyPlanModal(planId, planName){
+        var myModal = new bootstrap.Modal(document.getElementById('copyModal'), {});
+        document.getElementById('modalTitle').textContent = planName;
+        document.getElementById('plan_id').value = planId;
+        myModal.show();
+    }
+
 </script>
 @endsection

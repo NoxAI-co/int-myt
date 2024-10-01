@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Model\Gastos\DevolucionesDebito;
+use App\Planes;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Empresa;
@@ -872,5 +874,72 @@ class PlanesVelocidadController extends Controller
             'correctos' => $succ,
             'state'     => 'eliminados'
         ]);
+    }
+    public function copy(Request $request){
+        try {
+            if($request->mikrotik == null){
+                return back()->with('error', 'Debe asociar la mikrotik');
+            }
+
+            $plan_copy = PlanesVelocidad::where('id', $request->plan_id)->where('empresa', Auth::user()->empresa)->first();
+            $inventario_copy  = Inventario::find($plan_copy->item);
+
+            $num_microtik = count($request->mikrotik);
+
+            for ($i=0; $i < $num_microtik ; $i++) {
+                $inventario                = new Inventario;
+                $inventario->empresa       = Auth::user()->empresa;
+                $inventario->producto      = $inventario_copy->producto;
+                $inventario->ref           = $inventario_copy->ref;
+                $inventario->precio        = $inventario_copy->precio;
+
+                $inventario->id_impuesto   = $inventario_copy->id_impuesto;
+                $inventario->impuesto      = $inventario_copy->impuesto;
+
+                $inventario->tipo_producto = $inventario_copy->tipo_producto;
+                $inventario->unidad        = $inventario_copy->unidad;
+                $inventario->nro           = $inventario_copy->nro;
+                $inventario->categoria     = $inventario_copy->categoria;
+                $inventario->lista         = $inventario_copy->lista;
+                $inventario->type_autoretencion = $inventario_copy->type_autoretencion;
+                $inventario->type          = 'PLAN';
+                $inventario->save();
+
+
+                $plan = new PlanesVelocidad;
+                $plan->mikrotik = $request->mikrotik[$i];
+
+
+                $plan->name = $plan_copy->name;
+                $plan->price = $plan_copy->price;
+                $plan->upload = $plan_copy->upload;
+                $plan->download = $plan_copy->download;
+                $plan->type = $plan_copy->type;
+                $plan->address_list = $plan_copy->address_list;
+                $plan->created_by = Auth::user()->id;
+                $plan->tipo_plan = $plan_copy->tipo_plan;
+                $plan->burst_limit_subida = $plan_copy->burst_limit_subida;
+                $plan->burst_limit_bajada = $plan_copy->burst_limit_bajada;
+                $plan->burst_threshold_subida = $plan_copy->burst_threshold_subida;
+                $plan->burst_threshold_bajada = $plan_copy->burst_threshold_bajada;
+                $plan->burst_time_subida = $plan_copy->burst_time_subida;
+                $plan->burst_time_bajada = $plan_copy->burst_time_bajada;
+                $plan->queue_type_subida = $plan_copy->queue_type_subida;
+                $plan->queue_type_bajada = $plan_copy->queue_type_bajada;
+                $plan->parenta = $plan_copy->parenta;
+                $plan->prioridad = $plan_copy->prioridad;
+                $plan->limit_at_subida = $plan_copy->limit_at_subida;
+                $plan->limit_at_bajada = $plan_copy->limit_at_bajada;
+                $plan->item = $plan_copy->item;
+                $plan->empresa = Auth::user()->empresa;
+                $plan->dhcp_server = $plan_copy->dhcp_server;
+                $plan->save();
+            }
+
+            $mensaje = 'SE HA CREADO SATISFACTORIAMENTE EL PLAN';
+            return redirect('empresa/planes-velocidad')->with('success', $mensaje)->with('mikrotik_id', $plan->id);
+        }catch (\Exception $exception){
+            return redirect('empresa/planes-velocidad')->with('error', $exception->getMessage());
+        }
     }
 }

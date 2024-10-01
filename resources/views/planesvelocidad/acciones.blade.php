@@ -21,3 +21,4 @@
 @if($uso==0)
 <button class="btn btn-outline-danger btn-icons" type="submit" title="Eliminar" onclick="confirmar('eliminar-plan{{$id}}', '¿Está seguro que desea eliminar el Plan?', 'Se borrará de forma permanente');"><i class="fas fa-times"></i></button>
 @endif
+<button class="btn btn-outline-info btn-icons" type="button" title="Copiar" onclick="openCopyPlanModal('{{ $id }}', '{{ $name }}')"><i class="fas fa-copy"></i></button>
