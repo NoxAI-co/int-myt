@@ -189,7 +189,7 @@ class RadicadosController extends Controller{
 
         if($estado == 0){
             $radicados->where(function ($query) use ($estado) {
-                $query->whereIn('radicados.estatus', [0,2]);
+                $query->whereIn('radicados.estatus', [0,2,4,5]);
             });
         }elseif($estado == 1){
             $radicados->where(function ($query) use ($estado) {
@@ -838,6 +838,7 @@ class RadicadosController extends Controller{
                 $radicado->tiempo_est = $radicado->servicio()->tiempo;
                 $mensaje = 'Radicado Iniciado, recuerde que tiene un tiempo de '.$radicado->tiempo_est.'min para solventarlo';
                 $msj = 'Iniciado el tiempo para solventar el radicado.';
+                $radicado->estatus = 4;
             }else{
                 $radicado->tiempo_fin = Carbon::now()->toDateTimeString();
                 $inicio = Carbon::parse($radicado->tiempo_ini);
@@ -845,6 +846,7 @@ class RadicadosController extends Controller{
                 $duracion = $inicio->diffInMinutes($cierre);
                 $mensaje = 'Radicado Finalizado, con una duración de '.$duracion.'min';
                 $msj = 'Finalizado el tiempo para solventar el radicado.';
+                $radicado->estatus = 5;
             }
 
             $radicado->update();

@@ -79,6 +79,8 @@ class Radicado extends Model
                 return 'danger';
             } elseif (1 == $this->estatus || 3 == $this->estatus) {
                 return 'success';
+            }else if($this->estatus == 4 || $this->estatus == 5){
+                return 'warning';
             }
         }
 
@@ -90,6 +92,10 @@ class Radicado extends Model
             $status = 'Escalado / Pendiente';
         } elseif (3 == $this->estatus) {
             $status = 'Escalado / Solventado';
+        } elseif (4 == $this->estatus) {
+            $status = 'Iniciado';
+        } elseif (5 == $this->estatus) {
+            $status = 'Finalizado';
         }
 
         return $status;

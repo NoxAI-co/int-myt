@@ -81,8 +81,11 @@
                                 @endif
                             @endif
 
-                            @if($radicado->estatus==0 || $radicado->estatus==2)
-                                <a href="#" onclick="confirmar('proceder{{$radicado->id}}', '¿Está seguro de que desea @if($radicado->tiempo_ini == null) iniciar @else finalizar @endif  el radicado?');" class="btn btn-outline-success btn-sm "title="@if($radicado->tiempo_ini == null) Iniciar @else Finalizar @endif Radicado"><i class="fas fa-stopwatch"></i> @if($radicado->tiempo_ini == null) Iniciar @else Finalizar @endif Radicado</a>
+                            @if($radicado->estatus==0 || $radicado->estatus==2 || $radicado->estatus==4 || $radicado->estatus==5)
+								@if($radicado->tiempo_fin == null)
+									<a href="#" onclick="confirmar('proceder{{$radicado->id}}', '¿Está seguro de que desea @if($radicado->tiempo_ini == null) iniciar @else finalizar @endif  el radicado?');" class="btn btn-outline-success btn-sm "title="@if($radicado->tiempo_ini == null) Iniciar @else Finalizar @endif Radicado"><i class="fas fa-stopwatch"></i> @if($radicado->tiempo_ini == null) Iniciar @else Finalizar @endif Radicado</a>
+								@endif
+
                                 @if(isset($_SESSION['permisos']['203']))
                                     <a href="{{route('radicados.edit',$radicado->id)}}" class="btn btn-outline-primary btn-sm" title="Editar"><i class="fas fa-edit"></i> Editar Caso</a>
                                 @endif
@@ -299,6 +302,12 @@
     							@if ($radicado->estatus == 3)
     							    <span class="text-success font-weight-bold">Escalado / Resuelto</span>
     							@endif
+								@if ($radicado->estatus == 4)
+									<span class="text-warning font-weight-bold">Iniciado</span>
+								@endif
+								@if ($radicado->estatus == 5)
+									<span class="text-warning font-weight-bold">Finalizado</span>
+								@endif
                             </td>
     					</tr>
                         @if($radicado->solventado)
