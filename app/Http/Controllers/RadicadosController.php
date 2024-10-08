@@ -687,7 +687,7 @@ class RadicadosController extends Controller{
         $this->getAllPermissions(Auth::user()->id);
         $radicado = Radicado::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
         if ($radicado) {
-            if ($radicado->estatus==0) {
+            if ($radicado->estatus==0 || $radicado->estatus==4 || $radicado->estatus==5) {
                 $radicado->estatus=1;
             }else if ($radicado->estatus==2 && $radicado->reporte) {
                 $radicado->estatus=3;

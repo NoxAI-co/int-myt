@@ -102,7 +102,7 @@
                                     <a href="#" onclick="confirmar('reabrir-{{$radicado->id}}', '¿Está seguro de que desea reabrir el radicado?');" class="btn btn-outline-success btn-sm" title="Reabrir Radicado"><i class="fas fa-lock-open"></i> Reabrir Radicado</a>
                                 @endif
                             @else
-                                @if($radicado->firma || $radicado->estatus==0)
+                                @if($radicado->firma || $radicado->estatus==0 || $radicado->estatus==5)
                                     @if(isset($_SESSION['permisos']['207']))
                                         <a href="#" onclick="confirmar('solventar{{$radicado->id}}', '¿Está seguro de que desea solventar el caso?');" class="btn btn-outline-success btn-sm "title="Solventar Caso"><i class="fas fa-check-double"></i> Solventar Caso</a>
                                     @endif
