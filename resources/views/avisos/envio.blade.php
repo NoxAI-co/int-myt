@@ -337,9 +337,9 @@
 					case 'igual_a':
 						return saldo === valorSaldo;
 					case 'menor_a':
-						return saldo < valorSaldo;
+						return saldo > 0 && saldo < valorSaldo;
 					case 'menor_igual':
-						return saldo <= valorSaldo;
+						return saldo > 0 && saldo <= valorSaldo;
 					default:
 						return true;
 				}
