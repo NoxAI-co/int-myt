@@ -133,9 +133,8 @@ class AvisosController extends Controller
         'contactos.nombre as c_nombre', 'contactos.apellido1 as c_apellido1', 
         'contactos.apellido2 as c_apellido2', 'contactos.nit as c_nit', 
         'contactos.telefono1 as c_telefono', 'contactos.email as c_email', 
-        'contactos.barrio as c_barrio','planes_velocidad.price as factura_total')
+        'contactos.barrio as c_barrio')
 			->join('contactos', 'contracts.client_id', '=', 'contactos.id')
-            ->join('planes_velocidad', 'contracts.plan_id', '=', 'planes_velocidad.id')
             ->where('contracts.empresa', Auth::user()->empresa)
             ->whereNotNull('contactos.celular');
 
@@ -158,7 +157,6 @@ class AvisosController extends Controller
                 // Si no hay resultados, redefinimos la variable $contratos con la segunda consulta
                 $contratos = Contrato::leftJoin('factura as f', 'f.contrato_id', '=', 'contracts.id')
                 ->leftJoin('contactos', 'contactos.id', '=', 'contracts.client_id') // Asegúrate que existe la relación entre contratos y contactos
-                ->join('planes_velocidad', 'contracts.plan_id', '=', 'planes_velocidad.id')
                 ->where('f.vencimiento', date('Y-m-d', strtotime(request()->vencimiento)))
                 ->where('f.estatus', 1)
                 ->select('contracts.*', 
@@ -169,7 +167,7 @@ class AvisosController extends Controller
                          'contactos.nit as c_nit', 
                          'contactos.telefono1 as c_telefono', 
                          'contactos.email as c_email', 
-                         'contactos.barrio as c_barrio','planes_velocidad.price as factura_total')
+                         'contactos.barrio as c_barrio')
                 ->groupBy('contracts.id')
                 ->orderBy('f.id', 'desc');
             }
@@ -184,12 +182,20 @@ class AvisosController extends Controller
             ->where('estatus',1)
             ->orderBy('fc.id','desc')
             ->first();
+
+            $totalFactura = 0;
             
             if($facturaContrato){
+                // Suma los precios de los items de la factura obtenida
+                $totalFactura = DB::table('items_factura')
+                    ->where('factura', $facturaContrato->id)
+                    ->sum('precio'); // Suma todos los precios de los items de la última factura
                 $contrato->factura_id = $facturaContrato->id;
             }else{
                 $contrato->factura_id = null;
             }
+
+            $contrato->factura_total = $totalFactura;
         }
 
         $servidores = Mikrotik::where('empresa', auth()->user()->empresa)->get();

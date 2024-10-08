@@ -275,6 +275,8 @@
 		let tipoSaldo = $('#opciones_saldo').val();
 		let valorSaldo = parseFloat($('#valor_saldo').val());
 
+		let options;
+
 		if(estadoCliente){
 
 			if(grupoCorte && servidor){
@@ -324,7 +326,7 @@
 
 		// Filtrar por valor de factura si se ingresa un valor en el input
 		// Si el tipo de saldo y el valor están definidos
-		if (tipoSaldo && !isNaN(valorSaldo)) {
+		if (tipoSaldo && !isNaN(valorSaldo) && options) {
 			options = options.filter(function() {
 				let saldo = parseFloat($(this).data('saldo'));
 				switch (tipoSaldo) {
@@ -343,20 +345,23 @@
 				}
 			});
 		}
+		console.log(options);
+		// Si se encontraron opciones válidas, seleccionarlas
+		if (options) {
 
-        if((grupoCorte || servidor) && disabledEstado == null ){
-            $("#options option:selected").prop("selected", false);
-            $("#options").selectpicker('refresh');
-        }
+			if ((grupoCorte || servidor) && disabledEstado == null) {
+				$("#options option:selected").prop("selected", false);
+				$("#options").selectpicker('refresh');
+			}
 
-		$("#contrato_sms option:selected").prop("selected", false);
-		$("#contrato_sms option:selected").removeAttr("selected");
+			$("#contrato_sms option:selected").prop("selected", false);
+			$("#contrato_sms option:selected").removeAttr("selected");
 
-		options.attr('selected', true);
-		options.prop('selected', true);
+			options.attr('selected', true);
+			options.prop('selected', true);
 
-		$('#contrato_sms').selectpicker('refresh');
-
+			$('#contrato_sms').selectpicker('refresh');
+		}
 	}
 
 </script>
