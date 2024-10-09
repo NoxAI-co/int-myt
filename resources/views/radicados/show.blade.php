@@ -81,7 +81,7 @@
                                 @endif
                             @endif
 
-                            @if($radicado->estatus==0 || $radicado->estatus==2 || $radicado->estatus==4 || $radicado->estatus==5)
+                            @if($radicado->estatus==0 || $radicado->estatus==2)
 								@if($radicado->tiempo_fin == null)
 									<a href="#" onclick="confirmar('proceder{{$radicado->id}}', '¿Está seguro de que desea @if($radicado->tiempo_ini == null) iniciar @else finalizar @endif  el radicado?');" class="btn btn-outline-success btn-sm "title="@if($radicado->tiempo_ini == null) Iniciar @else Finalizar @endif Radicado"><i class="fas fa-stopwatch"></i> @if($radicado->tiempo_ini == null) Iniciar @else Finalizar @endif Radicado</a>
 								@endif
@@ -102,7 +102,7 @@
                                     <a href="#" onclick="confirmar('reabrir-{{$radicado->id}}', '¿Está seguro de que desea reabrir el radicado?');" class="btn btn-outline-success btn-sm" title="Reabrir Radicado"><i class="fas fa-lock-open"></i> Reabrir Radicado</a>
                                 @endif
                             @else
-                                @if($radicado->firma || $radicado->estatus==0 || $radicado->estatus==5)
+                                @if($radicado->firma || $radicado->estatus==0)
                                     @if(isset($_SESSION['permisos']['207']))
                                         <a href="#" onclick="confirmar('solventar{{$radicado->id}}', '¿Está seguro de que desea solventar el caso?');" class="btn btn-outline-success btn-sm "title="Solventar Caso"><i class="fas fa-check-double"></i> Solventar Caso</a>
                                     @endif
@@ -234,11 +234,11 @@
                             <th>Final</th>
                             <td>{{date('d-m-Y g:i:s A', strtotime($radicado->tiempo_fin))}}</td>
                         </tr>
-                        <tr>
-                            <th>Duración</th>
-                            <td>{{ $duracion }} minuto(s)</td>
-                        </tr>
                         @endif
+						<tr>
+							<th>Duración</th>
+							<td>{{ $duracion }} minuto(s)</td>
+						</tr>
                         @if($radicado->contrato)
                         <tr>
                             <th>Contrato</th>
@@ -291,23 +291,39 @@
     						<th>Estatus</th>
     						<td>
     							@if ($radicado->estatus == 0)
-    							    <span class="text-danger font-weight-bold">Pendiente</span>
+									@switch($radicado->temp_status)
+										@case(1)
+											<span class="text-warning font-weight-bold">Iniciado</span>
+											@break
+
+										@case(2)
+											<span class="text-warning font-weight-bold">Finalizado</span>
+											@break
+
+										@default
+											<span class="text-danger font-weight-bold">Pendiente</span>
+									@endswitch
     							@endif
     							@if ($radicado->estatus == 1)
     							    <span class="text-success font-weight-bold">Resuelto</span>
     							@endif
     							@if ($radicado->estatus == 2)
-    							    <span class="text-danger font-weight-bold">Escalado / Pendiente</span>
+									@switch($radicado->temp_status)
+										@case(1)
+											<span class="text-warning font-weight-bold">Escalado / Iniciado</span>
+											@break
+
+										@case(2)
+											<span class="text-warning font-weight-bold">Escalado / Finalizado</span>
+											@break
+
+										@default
+											<span class="text-danger font-weight-bold">Escalado / Pendiente</span>
+									@endswitch
     							@endif
     							@if ($radicado->estatus == 3)
     							    <span class="text-success font-weight-bold">Escalado / Resuelto</span>
     							@endif
-								@if ($radicado->estatus == 4)
-									<span class="text-warning font-weight-bold">Iniciado</span>
-								@endif
-								@if ($radicado->estatus == 5)
-									<span class="text-warning font-weight-bold">Finalizado</span>
-								@endif
                             </td>
     					</tr>
                         @if($radicado->solventado)

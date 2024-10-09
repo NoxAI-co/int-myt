@@ -628,7 +628,12 @@ class RadicadosController extends Controller{
         if ($radicado) {
             view()->share(['icon'=>'far fa-life-ring', 'title' => 'Detalles: N° '.$radicado->codigo, 'precice' => true]);
             $inicio = Carbon::parse($radicado->tiempo_ini);
-            $cierre = Carbon::parse($radicado->tiempo_fin);
+            if($radicado->tiempo_fin){
+                $cierre = Carbon::parse($radicado->tiempo_fin);
+            }else{
+                $cierre = Carbon::now();
+            }
+
             $duracion = $inicio->diffInMinutes($cierre);
             return view('radicados.show')->with(compact('radicado','duracion'));
         }
@@ -687,7 +692,7 @@ class RadicadosController extends Controller{
         $this->getAllPermissions(Auth::user()->id);
         $radicado = Radicado::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
         if ($radicado) {
-            if ($radicado->estatus==0 || $radicado->estatus==4 || $radicado->estatus==5) {
+            if ($radicado->estatus==0) {
                 $radicado->estatus=1;
             }else if ($radicado->estatus==2 && $radicado->reporte) {
                 $radicado->estatus=3;
@@ -838,7 +843,7 @@ class RadicadosController extends Controller{
                 $radicado->tiempo_est = $radicado->servicio()->tiempo;
                 $mensaje = 'Radicado Iniciado, recuerde que tiene un tiempo de '.$radicado->tiempo_est.'min para solventarlo';
                 $msj = 'Iniciado el tiempo para solventar el radicado.';
-                $radicado->estatus = 4;
+                $radicado->temp_status = 1;
             }else{
                 $radicado->tiempo_fin = Carbon::now()->toDateTimeString();
                 $inicio = Carbon::parse($radicado->tiempo_ini);
@@ -846,7 +851,7 @@ class RadicadosController extends Controller{
                 $duracion = $inicio->diffInMinutes($cierre);
                 $mensaje = 'Radicado Finalizado, con una duración de '.$duracion.'min';
                 $msj = 'Finalizado el tiempo para solventar el radicado.';
-                $radicado->estatus = 5;
+                $radicado->temp_status = 2;
             }
 
             $radicado->update();

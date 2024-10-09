@@ -23,7 +23,7 @@
     @endif
 @endif
 
-@if($firma || $estatus==0 || $estatus==4 || $estatus==5)
+@if($firma || $estatus==0)
     @if(isset($session['207']))
         <form action="{{ route('radicados.solventar',$id) }}" method="POST" class="delete_form" style="display: none;" id="solventar-{{$id}}">
         	{{ csrf_field() }}
