@@ -8,11 +8,24 @@ use Illuminate\Support\Facades\Auth;
 
 class OltController extends Controller
 {
-    public function unConfiguredOnus(){
+    public function unConfiguredOnus_view(){
 
         $this->getAllPermissions(Auth::user()->id);
 
         view()->share(['title' => 'Olt - Onu Unconfigured', 'icon' => '', 'seccion'=>'']);
+        
+        $response = $this->unconfiguredOnus();
+        if(isset($response['response'])){
+            $onus = $response['response'];
+        }
+        else{
+            $onus = [];
+        }
+
+        return view('olt.unconfigured',compact('onus'));
+    }
+
+    public static function unconfiguredOnus(){
         $empresa = Empresa::Find(Auth::user()->empresa);
         $curl = curl_init();
 
@@ -34,14 +47,7 @@ class OltController extends Controller
         curl_close($curl);
         $response = json_decode($response,true);
 
-        if(isset($response['response'])){
-            $onus = $response['response'];
-        }
-        else{
-            $onus = [];
-        }
-
-        return view('olt.unconfigured',compact('onus'));
+        return $response;
     }
 
     public static function onuTypes(){

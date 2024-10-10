@@ -130,7 +130,8 @@
                         {{-- </form> --}}
                     </div>
                 @endif
-
+            
+            @if($empresa->smartOLT != null)
             <div class="col-md-12">
                 <div class="card-body">
                     <div class="notice notice-info">
@@ -146,7 +147,7 @@
                                 <a href="{{ route('olt.unconfigured') }}">
                                     <div class="card-counter primary">
                                         <i class="fas fa-file-contract"></i>
-                                        <span class="count-numbers">11</span>
+                                        <span class="count-numbers">{{ $olt_inautorizadas }}</span>
                                         <span class="count-name">Esperando Autorizacion</span>
                                     </div>
                                     </a>
@@ -155,6 +156,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <div class="col-md-12">
                 <div class="card-body">

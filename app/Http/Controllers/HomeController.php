@@ -68,6 +68,8 @@ class HomeController extends Controller
     {
         $this->getAllPermissions(Auth::user()->id);
 
+        $empresa = Empresa::Find(1);
+
         $radicados = Radicado::all()->where('empresa', Auth::user()->empresa)->count();
         $radicados_pendiente = Radicado::whereIn('estatus',[0,2])->where('empresa', Auth::user()->empresa)->count();
         $radicados_solventado = Radicado::whereIn('estatus',[1,3])->where('empresa', Auth::user()->empresa)->count();
@@ -84,10 +86,18 @@ class HomeController extends Controller
         $contratosCatvEnabled = Contrato::where('olt_sn_mac','<>',null)->where('state_olt_catv',1)->count();
         $contratosCatvDisabled = Contrato::where('olt_sn_mac','<>',null)->where('state_olt_catv',0)->count();
 
+        $olt_inautorizadas = OltController::unconfiguredOnus();
+
+        if(isset($olt_inautorizadas['response'])){
+            $olt_inautorizadas = count($olt_inautorizadas['response']);
+        }else{
+            $olt_inautorizadas = 0;
+        }
+
         view()->share(['inicio' => 'empresa', 'seccion' => 'inicio', 'title' => Auth::user()->empresa()->nombre , 'icon' =>'fa fa-building']);
         return view('welcome')->with(compact('contratosCatv','contratosCatvEnabled','contratosCatvDisabled',
             'radicados','contra_ena','contra_disa','contra_factura',
-        'factura','factura_cerrada','factura_abierta','radicados_pendiente','radicados_solventado'));
+        'factura','factura_cerrada','factura_abierta','radicados_pendiente','radicados_solventado','olt_inautorizadas','empresa'));
 
         if (!Auth::check())
         {
