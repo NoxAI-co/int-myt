@@ -284,7 +284,7 @@ class OltController extends Controller
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => array('olt_id' => '',
+        CURLOPT_POSTFIELDS => array('olt_id' => $request->olt_id,
         'pon_type' => $request->pon_type,
         'board' => $request->board,
         'port' => $request->port,
