@@ -131,7 +131,7 @@
                     </div>
                 @endif
             
-            @if($empresa->smartOLT != null)
+            {{-- @if($empresa->smartOLT != null)
             <div class="col-md-12">
                 <div class="card-body">
                     <div class="notice notice-info">
@@ -156,7 +156,7 @@
                     </div>
                 </div>
             </div>
-            @endif
+            @endif --}}
 
             <div class="col-md-12">
                 <div class="card-body">
