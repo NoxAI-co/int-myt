@@ -297,7 +297,7 @@ class OltController extends Controller
         'tag_transform_mode' => '',
         'use_other_all_tls_vlan' => '',
         'vlan' => $request->user_vlan_id,
-        'zone' => $request->$zone,
+        'zone' => $request->zone,
         'odb' => $request->odb_splitter,
         'name' => $request->name,
         'address_or_comment' => $request->address_comment,
