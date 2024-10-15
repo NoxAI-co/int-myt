@@ -318,6 +318,12 @@ Route::group(['prefix' => 'tecnico', 'middleware' => ['auth']], function() {
     Route::get('get-location/{tecnico}', [TecnicoController::class, 'getLocation'])->name('tecnico.getLocation');
 });
 
+Route::group(['prefix' => 'Olt'], function(){
+    Route::get('unconfigured-onus','OltController@unConfiguredOnus_view')->name('olt.unconfigured');
+    Route::post('authorized-onus','OltController@authorizedOnus')->name('olt.authorized-onus');
+    Route::get('form-authorized-onu','OltController@formAuthorizeOnu')->name('olt.form-authorized-onus');
+});
+
 Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
 	Route::resource('instances', 'InstanceController');
     Route::get('instances/{id}/pair', 'InstanceController@pair')->name('instances.pair');
