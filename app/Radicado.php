@@ -176,7 +176,7 @@ class Radicado extends Model
 
     public function contrato()
     {
-        return Contrato::find($this->contrato);
+        return Contrato::where("nro",$this->contrato)->first();
     }
 
     /**
