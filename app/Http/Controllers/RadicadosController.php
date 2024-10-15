@@ -209,6 +209,12 @@ class RadicadosController extends Controller{
         ->editColumn('contrato', function (Radicado $radicado) {
             return  $radicado->contrato;
         })
+        ->editColumn('usuario_pppoe', function (Radicado $radicado) {
+            return  $radicado->contrato()?$radicado->contrato()->usuario:'';
+        })
+        ->editColumn('password_pppoe', function (Radicado $radicado) {
+            return  $radicado->contrato()?$radicado->contrato()->password:'';
+        })
         ->editColumn('cliente', function (Radicado $radicado) {
             return  $radicado->nombre;
         })
