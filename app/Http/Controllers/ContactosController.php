@@ -7,6 +7,7 @@ use App\Contacto;
 use App\Contrato;
 use App\CRM;
 use App\Empresa;
+use App\Etiqueta;
 use App\Funcion;
 use App\Mikrotik;
 use App\Model\Ingresos\Factura;
@@ -18,6 +19,7 @@ use App\Vendedor;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use PHPExcel;
 
 use Exception;
@@ -63,7 +65,7 @@ class ContactosController extends Controller
         $municipio = DB::table('municipios')->select('id')->where('nombre', '=', $request->municipio)->first();
         $modoLectura = auth()->user()->modo_lectura();
         $contactos = Contacto::query();
-
+        $etiquetas = Etiqueta::where('empresa_id', auth()->user()->empresa)->get();
 
         if ($request->filtro == true) {
             if ($request->identificacion) {
@@ -184,6 +186,9 @@ class ContactosController extends Controller
             })
             ->editColumn('nit', function (Contacto $contacto) {
                 return "{$contacto->tip_iden('mini')} {$contacto->nit}";
+            })
+            ->addColumn('etiqueta', function(Contacto $contacto)use ($etiquetas){
+                return view('contactos.etiqueta', compact('etiquetas','contacto'));
             })
             ->editColumn('telefono1', function (Contacto $contacto) {
                 return $contacto->celular ? $contacto->celular : $contacto->telefono1;
@@ -1545,5 +1550,16 @@ class ContactosController extends Controller
 
         $contratos = Contrato::where('client_id',$request->id)->get();
         return response()->json($contratos);
+    }
+
+    public function cambiarEtiqueta($etiqueta, $contacto){
+
+        $contacto =  Contacto::where('id', $contacto)->where('empresa', Auth::user()->empresa)->first();
+
+        $contacto->etiqueta_id = $etiqueta;
+
+        $contacto->update();
+
+        return $contacto->etiqueta;
     }
 }
