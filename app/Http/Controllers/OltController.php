@@ -10,8 +10,6 @@ class OltController extends Controller
 {
     public function unConfiguredOnus_view(Request $request){
 
-        return $request;
-
         $this->getAllPermissions(Auth::user()->id);
 
         view()->share(['title' => 'Olt - Onu Unconfigured', 'icon' => '', 'seccion'=>'']);
@@ -25,10 +23,14 @@ class OltController extends Controller
         }
 
         $olts = $this->getOlts();
-        $olt_default = null;
+        if(!isset($request->olt)){
+            $olt_default = null;
+        }else{
+            $olt_default = $request->olt;
+        }
         if(isset($olts['response'])){
             $olts = $olts['response'];
-            $olt_default = $olts[0]['id'];
+            if($olt_default == null){$olt_default = $olts[0]['id'];}
         }else{
             $olts = [];
         }

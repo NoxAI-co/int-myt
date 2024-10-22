@@ -77,7 +77,7 @@
                     <div class="card-body py-3" style="background: #f9f9f9;">
                         <div class="row">
                             <div class="col-md-4 pl-1 pt-1">
-                                <select title="Olt a buscar" class="form-control selectpicker" id="olt_id" name="olt_id" data-size="5" data-live-search="true" onchange="oltChange()">
+                                <select title="Olt a buscar" class="form-control selectpicker" id="olt_id" name="olt_id" data-size="5" data-live-search="true" onchange="oltChange(this.value)">
                                     @foreach($olts as $olt)
                                         <option value="{{ $olt['id'] }}" {{ $olt['id'] == $olt_default ? 'selected' : '' }}>{{ $olt['name'] }}</option>
                                     @endforeach
@@ -222,8 +222,9 @@
         //     $('#table-general').DataTable().ajax.reload();
 	    // }
 
-        function oltChange(){
-            let url = `{{ route('olt.unconfigured') }}?${this.val()}`;
+        function oltChange(id){
+
+            let url = `{{ route('olt.unconfigured') }}?olt=${id}`;
             window.location.href = url;
         }
         
