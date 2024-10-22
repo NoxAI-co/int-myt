@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Auth;
 
 class OltController extends Controller
 {
-    public function unConfiguredOnus_view(){
+    public function unConfiguredOnus_view(Request $request){
+
+        return $request;
 
         $this->getAllPermissions(Auth::user()->id);
 
@@ -22,7 +24,31 @@ class OltController extends Controller
             $onus = [];
         }
 
-        return view('olt.unconfigured',compact('onus'));
+        $olts = $this->getOlts();
+        $olt_default = null;
+        if(isset($olts['response'])){
+            $olts = $olts['response'];
+            $olt_default = $olts[0]['id'];
+        }else{
+            $olts = [];
+        }
+
+        if($olt_default != null){
+            $vlan = $this->get_VLAN($olt_default);
+            if(isset($vlan['response'])){
+                $vlan = $vlan['response'];
+                // Usamos usort para ordenar el array según la clave 'vlan'
+                usort($vlan, function ($a, $b) {
+                    return (int)$a['vlan'] - (int)$b['vlan'];
+                });
+            }else{
+                $vlan = [];
+            }
+        }else{
+            $vlan = [];
+        }
+
+        return view('olt.unconfigured',compact('onus','olts','olt_default'));
     }
 
     public static function unconfiguredOnus(){

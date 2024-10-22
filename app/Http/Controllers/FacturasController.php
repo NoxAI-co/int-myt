@@ -4150,13 +4150,17 @@ class FacturasController extends Controller{
             set_time_limit(0);
 
             for ($i=0; $i < count($facturas) ; $i++) {
-                $factura = Factura::where('empresa', $empresa)->where('emitida', 0)->where('tipo',2)->where('modificado', 0)->where('id', $facturas[$i])->first();
-
-                if(isset($factura)){
+                $factura = Factura::where('empresa', $empresa)->where('emitida', 0)->where('tipo',2)->where('id', $facturas[$i])->first();
+                if(isset($factura) && Factura::where('codigo',$factura->codigo)->count() <= 1){
                     $factura->modificado = 1;
                     $factura->save();
 
                     $this->xmlFacturaVentaMasivo($factura->id, $empresa);
+                }else{
+                    return response()->json([
+                        'success' => false,
+                        'text'    => 'La factura con el codigo ' . $factura->codigo . " esta dos veces.",
+                    ]);
                 }
             }
 

@@ -1266,7 +1266,6 @@ class InventarioController extends Controller{
         exit;
     }
 
-
     public function importarFacturasXlsx(Request $request){
 
         $empresa = Empresa::Find(1);
@@ -1316,23 +1315,28 @@ class InventarioController extends Controller{
         // }
 
         //importacion de items            
-        for ($row = 2; $row <= $highestRow; $row++){
+        for ($row = 4; $row <= $highestRow; $row++){
                 
             $nombre=$sheet->getCell("A".$row)->getValue();
             $cedula=$sheet->getCell("B".$row)->getValue();
-            $saldo=$sheet->getCell("C".$row)->getValue();
-            $item = Inventario::where('ref','saldo-anterior')->first();
+            $saldo=$sheet->getCell("D".$row)->getValue();
+            $item = Inventario::where('ref','saldo-pendiente')->first();
 
             $contacto = Contacto::where('nit',$cedula)->first();
             if($contacto) {
                 $contrato = Contrato::where('client_id',$contacto->id)->first();
                 if($contrato){
+                    
+                    if($contrato->grupo_corte == ""){
+                        $contrato->grupo_corte = 15;
+                        $contrato->save();
+                    }
                     //Obtenemos el número depende del contrato que tenga asignado (con fact electrpinica o estandar).
                     $nro = NumeracionFactura::tipoNumeracion($contrato);
-                    $date_suspension = "2024-09-10";
+                    $date_suspension = "2024-10-06";
                     $plazo=TerminosPago::where('dias', Funcion::diffDates($date_suspension, Carbon::now())+1)->first();
                     $tipo = 1; //1= normal, 2=Electrónica.
-                    $electronica = Factura::booleanFacturaElectronica($contrato->cliente);
+                    $electronica = Factura::booleanFacturaElectronica($contrato->client_id);
                     $grupo_corte = GrupoCorte::where('id',$contrato->grupo_corte)->first();
 
                     if($contrato->facturacion == 3 && !$electronica){
@@ -1366,8 +1370,8 @@ class InventarioController extends Controller{
                     $factura->term_cond     = $contrato->terminos_cond;
                     $factura->facnotas      = $contrato->notas_fact;
                     $factura->empresa       = 1;
-                    $factura->cliente       = $contrato->cliente;
-                    $factura->fecha         = "2024-09-01";
+                    $factura->cliente       = $contrato->client_id;
+                    $factura->fecha         = "2024-09-25";
                     $factura->tipo          = $tipo;
                     $factura->vencimiento   = $date_suspension;
                     $factura->suspension    = $date_suspension;
@@ -1381,6 +1385,8 @@ class InventarioController extends Controller{
                     if($contrato){
                         $factura->contrato_id = $contrato->id;
                     }
+                    
+                    $factura->save();
 
                     $item_reg = new ItemsFactura();
                     $item_reg->factura     = $factura->id;
