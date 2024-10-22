@@ -1400,14 +1400,14 @@ class ContratosController extends Controller
 
                         // VALIDACIÓN PARA CONTRATOS QUE TIENEN DOS COLAS (NO DEJA ACTUALIZAR POR CONFLICTOS CON EL NOMBRE)
                         if(count($queue) > 1){
-                            $queue_id = $queue[1][".id"];
-                        }else{
-                            $queue_id = $queue[0][".id"];
+                            $API->comm("/queue/simple/remove", array(
+                                ".id" => $queue[1][".id"]
+                            ));
                         }
 
                         if($queue){
                             $API->comm("/queue/simple/set", array(
-                                ".id"             => $queue_id,
+                                ".id"             => $queue[0][".id"],
                                 "name"            => $this->normaliza($servicio).'-'.$request->nro,
                                 "target"          => $request->ip,
                                 "max-limit"       => $plan->upload.'/'.$plan->download,
