@@ -146,11 +146,9 @@
             let sn = row.cells[4].innerText;
             let onuTypeName = row.cells[5].innerText;
             let status = row.cells[6].innerText;
+            let olt_id = $("#olt_id").val();
 
-            // Construir la URL con los parámetros GET
-            let url = `{{ route('olt.form-authorized-onus') }}?ponType=${encodeURIComponent(ponType)}&board=${encodeURIComponent(board)}&port=${encodeURIComponent(port)}&ponDescription=${encodeURIComponent(ponDescription)}&sn=${encodeURIComponent(sn)}&onuTypeName=${encodeURIComponent(onuTypeName)}&status=${encodeURIComponent(status)}`;
-
-            // Redirigir a la URL
+            let url = `{{ route('olt.form-authorized-onus') }}?ponType=${encodeURIComponent(ponType)}&board=${encodeURIComponent(board)}&port=${encodeURIComponent(port)}&ponDescription=${encodeURIComponent(ponDescription)}&sn=${encodeURIComponent(sn)}&onuTypeName=${encodeURIComponent(onuTypeName)}&status=${encodeURIComponent(status)}&olt_id=${olt_id}`;
             window.location.href = url;
 
         }
@@ -208,24 +206,25 @@
 
             $('#form-filter').addClass('d-none');
             $('#boton-filtrar').html('<i class="fas fa-search"></i> Filtrar');
-            // getDataTable();
+
         }
-
-        // $('#form-filter').on('keypress',function(e) {
-        //         if(e.which == 13) {
-        //             getDataTable();
-        //             return false;
-        //         }
-        // });
-
-        // function getDataTable() {
-        //     $('#table-general').DataTable().ajax.reload();
-	    // }
 
         function oltChange(id){
 
+            Swal.fire({
+                title: 'Cargando...',
+                text: 'Por favor espera mientras se procesa la solicitud.',
+                type: 'info', 
+                showConfirmButton: false,
+                allowOutsideClick: false, 
+                didOpen: () => {
+                    Swal.showLoading(); // Muestra el preloader de carga
+                }
+            });
+
             let url = `{{ route('olt.unconfigured') }}?olt=${id}`;
             window.location.href = url;
+
         }
         
     </script>
