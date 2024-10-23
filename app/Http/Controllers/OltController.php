@@ -332,8 +332,6 @@ class OltController extends Controller
 
         $curl = curl_init();
 
-        return $request;
-
         curl_setopt_array($curl, array(
         CURLOPT_URL => $empresa->adminOLT.'/api/onu/authorize_onu',
         CURLOPT_RETURNTRANSFER => true,
