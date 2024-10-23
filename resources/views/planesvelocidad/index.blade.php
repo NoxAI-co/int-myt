@@ -216,7 +216,7 @@
           tabla.ajax.reload();
       }
 
-    @if(isset($_SESSION['permisos']['858']))
+    // @if(isset($_SESSION['permisos']['858']))
     window.addEventListener('load',
     function() {
 		tabla = $('#tabla-planes').DataTable({
@@ -317,7 +317,7 @@
             destroy();
         });
     });
-    @endif
+    // @endif
 	function abrirFiltrador() {
 		if ($('#form-filter').hasClass('d-none')) {
 			$('#boton-filtrar').html('<i class="fas fa-times"></i> Cerrar');
