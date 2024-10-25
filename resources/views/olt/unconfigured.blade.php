@@ -2,8 +2,8 @@
 
 @section('boton')
 <a href="javascript:abrirFiltrador()" class="btn btn-info btn-sm my-1" id="boton-filtrar"><i class="fas fa-search"></i>Filtrar</a>
+<a href="javascript:refreshPage()" class="btn btn-info btn-sm my-1" id="boton-filtrar"><i class="fas fa-sync-alt"></i>Refrescar</a>
 @endsection
-
 @section('content')
     @if(Session::has('success'))
         <div class="alert alert-success">
@@ -224,6 +224,25 @@
 
             let url = `{{ route('olt.unconfigured') }}?olt=${id}`;
             window.location.href = url;
+
+        }
+
+        function refreshPage(){
+        
+        let olt_id = $("#olt_id").val();
+        Swal.fire({
+            title: 'Actualizando...',
+            text: 'Por favor espera mientras se procesa la solicitud.',
+            type: 'info', 
+            showConfirmButton: false,
+            allowOutsideClick: false, 
+            didOpen: () => {
+                Swal.showLoading(); // Muestra el preloader de carga
+            }
+        });
+
+        let url = `{{ route('olt.unconfigured') }}?olt=${olt_id}`;
+        window.location.href = url;
 
         }
         

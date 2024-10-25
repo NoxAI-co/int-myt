@@ -3091,13 +3091,13 @@ class CronController extends Controller
                 $estadoCuenta = $factura->estadoCuenta();
 
                 $msg_deuda = "";
-                if($estadoCuenta->saldoMesAnterior > 0){
-                    $msg_deuda = "El total a deber es: " . Funcion::Parsear($estadoCuenta->total);
-                }
-
                 $total = $factura->total()->total;
+                if($estadoCuenta->saldoMesAnterior > 0){
+                    $msg_deuda = "El total a deber es: " . Funcion::Parsear($estadoCuenta->saldoMesAnterior + $total);
+                }
+        
                 $message = "$nameEmpresa Le informa que su factura ha sido generada bajo el número $factura->codigo por un monto de $$total pesos. " . $msg_deuda;
-
+        
                 $body = [
                     "contact" => $contact,
                     "body" => $message,
