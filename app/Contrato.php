@@ -293,4 +293,19 @@ class Contrato extends Model
     
             return $totalDebe;
         }
+
+    
+    public function cantidadFacturasVencidas (){
+        return $facturasAbiertas = Factura::leftJoin('facturas_contratos as fc', 'fc.factura_id', 'factura.id')
+        ->leftJoin('contracts as c', 'c.nro', 'fc.contrato_nro')
+        ->select('factura.id')
+        ->where(function ($query) {
+            $query->where('factura.contrato_id', $this->id)
+                  ->orWhere('fc.contrato_nro', $this->nro);
+        })
+        ->whereDate('factura.vencimiento', '<=', now())
+        ->where('factura.estatus', 1)
+        ->groupBy('factura.id') // Agrupar por ID de factura
+        ->get()->count();
+    }
 }

@@ -55,7 +55,7 @@
 	            </span>
 	        </div>
 	        <div class="col-md-3 form-group">
-	            <label class="control-label">Fecha Suspensión <span class="text-danger">*</span></label>
+	            <label class="control-label">Fecha de Suspensión <span class="text-danger">*</span></label>
 	            <select class="form-control selectpicker" name="fecha_suspension" id="fecha_suspension" title="Seleccione" data-live-search="true" data-size="5">
 	            	<option {{$grupo->fecha_suspension==0?'selected':''}} value="0">No Aplica</option>
 	            	@for ($i = 1; $i < 31; $i++)
@@ -90,6 +90,23 @@
 	                <strong>{{ $errors->first('status') }}</strong>
 	            </span>
 	        </div>
+			<div class="col-md-3 form-group" id="swSuspension">
+	            <label class="control-label">Suspender al tener <span class="text-danger">*</span></label>
+	            <select class="form-control selectpicker" name="nro_factura_vencida" id="nro_factura_vencida" title="Seleccione" required="">
+	                <option value="0" {{ $grupo->nro_factura_vencida == 0 ? 'selected':'' }}>No aplica</option>
+	                <option value="1" {{ $grupo->nro_factura_vencida == 1 ? 'selected':'' }}>1 Factura Vencida</option>
+	                <option value="2" {{ $grupo->nro_factura_vencida == 2 ? 'selected':'' }}>2 Facturas Vencidas</option>
+	                <option value="3" {{ $grupo->nro_factura_vencida == 3 ? 'selected':'' }}>3 Facturas Vencidas</option>
+	                <option value="4" {{ $grupo->nro_factura_vencida == 4 ? 'selected':'' }}>4 Facturas Vencidas</option>
+	                <option value="5" {{ $grupo->nro_factura_vencida == 5 ? 'selected':'' }}>5 Facturas Vencidas</option>
+	                <option value="6" {{ $grupo->nro_factura_vencida == 6 ? 'selected':'' }}>6 Facturas Vencidas</option>
+	                <option value="7" {{ $grupo->nro_factura_vencida == 7 ? 'selected':'' }}>7 Facturas Vencidas</option>
+	                <option value="8" {{ $grupo->nro_factura_vencida == 8 ? 'selected':'' }}>8 Facturas Vencidas</option>
+	            </select>
+	            <span class="help-block error">
+	                <strong>{{ $errors->first('nro_factura_vencida') }}</strong>
+	            </span>
+	        </div>
 	    </div>
 	    <small>Los campos marcados con <span class="text-danger">*</span> son obligatorios</small>
 	    <hr>
@@ -115,5 +132,18 @@
         		uiLibrary: 'bootstrap4',
         	});
         });
+
+		$("#fecha_suspension").change(function(){
+			let fechaSuspension = $("#fecha_suspension").val();
+			if(fechaSuspension == 0){
+				$("#swSuspension").css('display','none');
+				$("#nro_factura_vencida").val(0);
+
+			}else{
+				$("#swSuspension").css('display','block');
+				$("#nro_factura_vencida option[value='1']").prop('selected', true);
+				$("#nro_factura_vencida").trigger('change');
+			}
+		})
     </script>
 @endsection
