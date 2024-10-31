@@ -890,16 +890,18 @@ public function forma_pago()
         $anioFacturaActual = $this->vencimiento->year;
 
         // Consultar las facturas
+        // Obtener el mes y año de la fecha de la factura actual
+        $mesFacturaActual = $this->fecha->month;
+        $anioFacturaActual = $this->fecha->year;
+
+        // Consultar las facturas abiertas de meses pasados
         $facturasVencidas = Factura::where('cliente', $this->cliente)
-        ->where(function ($query) use ($fechaActual, $mesFacturaActual, $anioFacturaActual) {
-            $query->where('vencimiento', '<=', $fechaActual)
-                ->orWhere(function ($subQuery) use ($mesFacturaActual, $anioFacturaActual) {
-                    $subQuery->whereYear('vencimiento', '<', $anioFacturaActual)
-                            ->orWhere(function ($innerQuery) use ($mesFacturaActual, $anioFacturaActual) {
-                                $innerQuery->whereYear('vencimiento', '=', $anioFacturaActual)
-                                            ->whereMonth('vencimiento', '<', $mesFacturaActual);
-                            });
-                });
+            ->where(function ($query) use ($mesFacturaActual, $anioFacturaActual) {
+                $query->whereYear('fecha', '<', $anioFacturaActual)
+                    ->orWhere(function ($subQuery) use ($mesFacturaActual, $anioFacturaActual) {
+                        $subQuery->whereYear('fecha', '=', $anioFacturaActual)
+                                ->whereMonth('fecha', '<', $mesFacturaActual);
+                    });
         })
         ->where('id', '!=', $this->id)
         ->where('estatus', '=', 1)
