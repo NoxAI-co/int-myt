@@ -876,10 +876,33 @@ public function forma_pago()
         /*>>>>>>>>>>>>>>>>>>>>>>>>>> Saldo mes Anterior <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*/
 
         //traemos todas las facturas que el vencimiento haya pasado la fecha actual.
-        $facturasVencidas = Factura::where('cliente',$this->cliente)
-        ->where('vencimiento','<=',$fechaActual)
-        ->where('id','!=',$this->id)
-        ->where('estatus','=',1)
+        // $facturasVencidas = Factura::where('cliente',$this->cliente)
+        // ->where('vencimiento','<=',$fechaActual)
+        // ->where('id','!=',$this->id)
+        // ->where('estatus','=',1)
+        // ->get();
+
+        // Obtener la fecha actual
+        $fechaActual = now();
+
+        // Obtener el mes y año de la factura actual
+        $mesFacturaActual = $this->vencimiento->month;
+        $anioFacturaActual = $this->vencimiento->year;
+
+        // Consultar las facturas
+        $facturasVencidas = Factura::where('cliente', $this->cliente)
+        ->where(function ($query) use ($fechaActual, $mesFacturaActual, $anioFacturaActual) {
+            $query->where('vencimiento', '<=', $fechaActual)
+                ->orWhere(function ($subQuery) use ($mesFacturaActual, $anioFacturaActual) {
+                    $subQuery->whereYear('vencimiento', '<', $anioFacturaActual)
+                            ->orWhere(function ($innerQuery) use ($mesFacturaActual, $anioFacturaActual) {
+                                $innerQuery->whereYear('vencimiento', '=', $anioFacturaActual)
+                                            ->whereMonth('vencimiento', '<', $mesFacturaActual);
+                            });
+                });
+        })
+        ->where('id', '!=', $this->id)
+        ->where('estatus', '=', 1)
         ->get();
 
         //sumamos todo lo que deba el cliente despues de la fecha de vencimiento
