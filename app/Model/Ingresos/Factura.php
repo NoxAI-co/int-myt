@@ -882,17 +882,12 @@ public function forma_pago()
         // ->where('estatus','=',1)
         // ->get();
 
-        // Obtener la fecha actual
-        $fechaActual = now();
 
-        // Obtener el mes y año de la factura actual
-        $mesFacturaActual = $this->vencimiento->month;
-        $anioFacturaActual = $this->vencimiento->year;
+      // Convertir la fecha en un objeto Carbon
+        $fechaFacturaActual = Carbon::parse($this->fecha); // Convierte la fecha a un objeto Carbon
 
-        // Consultar las facturas
-        // Obtener el mes y año de la fecha de la factura actual
-        $mesFacturaActual = $this->fecha->month;
-        $anioFacturaActual = $this->fecha->year;
+        $mesFacturaActual = $fechaFacturaActual->month;
+        $anioFacturaActual = $fechaFacturaActual->year;
 
         // Consultar las facturas abiertas de meses pasados
         $facturasVencidas = Factura::where('cliente', $this->cliente)
