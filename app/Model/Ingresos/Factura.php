@@ -891,8 +891,9 @@ public function forma_pago()
 
         // Consultar las facturas abiertas de meses pasados
         $facturasVencidas = Factura::where('cliente', $this->cliente)
-            ->where(function ($query) use ($mesFacturaActual, $anioFacturaActual) {
-                $query->whereYear('fecha', '<', $anioFacturaActual)
+            ->where(function ($query) use ($mesFacturaActual, $anioFacturaActual, $fechaFacturaActual) {
+                $query->where('vencimiento', '<=', $fechaFacturaActual)
+                ->OrwhereYear('fecha', '<', $anioFacturaActual)
                     ->orWhere(function ($subQuery) use ($mesFacturaActual, $anioFacturaActual) {
                         $subQuery->whereYear('fecha', '=', $anioFacturaActual)
                                 ->whereMonth('fecha', '<', $mesFacturaActual);
