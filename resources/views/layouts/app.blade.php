@@ -53,16 +53,16 @@
                 border-color: #f9fafd #f9f9f9 #eaedf7 #eaedf7;
             }
             .sidebar {
-                background: {{Auth::user()->username == 'desarrollo' ? '#022454' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#022454') }};
+                background: {{Auth::user()->username == 'desarrollo' ? '#F1E314' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#F1E314') }};
             }
             .configuracion > div {
-                border: 4px solid {{Auth::user()->username == 'desarrollo' ? '#022454' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#022454') }};
+                border: 4px solid {{Auth::user()->username == 'desarrollo' ? '#F1E314' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#F1E314') }};
             }
             .configuracion h4 {
                 color: #000;
             }
             .text-primary {
-                color: {{Auth::user()->username == 'desarrollo' ? '#fff' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#fff') }};
+                color: {{Auth::user()->username == 'desarrollo' ? '#000' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#000') }};
             }
             .configuracion > div > a {
                 color: {{Auth::user()->rol > 1 ? Auth::user()->empresa()->color:''}};
@@ -80,11 +80,11 @@
                 color: #c7c7c7;
             }
             .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
+                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username != 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
                 background-color: {{Auth::user()->username == 'desarrollo' ? '#022454' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#000') }};
             }
             .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link {
-                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
+                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username != 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
                 background-color: {{Auth::user()->username == 'desarrollo' ? '#022454' : (isset(Auth::user()->empresa()->color) ? Auth::user()->empresa()->color : '#000') }};
                 border-color: #dee2e6 #dee2e6 #fff;
             }
@@ -181,13 +181,13 @@
                 z-index:999;
             }
             span.menu-title {
-                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#fff !important':'#000 !important' }};
+                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username != 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
             }
             i.menu-icon {
-                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
+                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username != 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
                 }
             .nav-link {
-                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username == 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
+                color: {{ isset($empresa_data->color)?$empresa_data->color == '#022454' && Auth::user()->username != 'desarrollo' ?'#fff':'#000 !important':'#000 !important' }};
             }
             .whatsapp img {
                 width:60px; /*Alto del icono*/
