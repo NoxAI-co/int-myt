@@ -119,8 +119,30 @@
                         <td>{{ $onus[$i]['is_disabled'] == 1 ? 'Innactivo' : 'Activo' }}</td>
                         <td>
                             @if($onus[$i]['is_disabled'] == 0)
-                            {{-- <a href="#" onclick="authorizeOnu({{$i}})">Authorize</a> --}}
-                            <a href="#" onclick="formAuthorizeOnu({{$i}})">Authorize</a>
+                                @for($k = 0; $k < count($onus[$i]['actions']) ; $k++)
+                                    <a  href="#" 
+                                    @if($onus[$i]['actions'][$k] == "authorize")
+                                        @if(count($onus[$i]['actions']) > 1 && $onus[$i]['actions'][1] == "move_here" && $k == 0)
+                                        onclick="viewOnu({{$i}})"
+                                        @else
+                                        onclick="formAuthorizeOnu({{$i}})" 
+                                        @endif
+                                    @else
+                                        @if(count($onus[$i]['actions']) > 1 && $onus[$i]['actions'][1] == "move_here" && $k == 1)
+                                            onclick="moveOnu({{$i}})"
+                                        @endif
+
+                                    @endif 
+                                    >
+                                        @if(count($onus[$i]['actions']) > 1 && $onus[$i]['actions'][1] == "move_here" && $k == 0)
+                                        {{ "View ONU" }}
+                                        @else
+                                        {{ $onus[$i]['actions'][$k] }}
+                                        @endif
+                                    </a>
+
+                                    @if(count($onus[$i]['actions']) > 1) {{ "|" }} @endif
+                                @endfor
                             @endif
                         </td>
                     </tr>
@@ -133,105 +155,158 @@
 
 @endsection
 @section('scripts')
-    <script>
+<script>
 
-        function formAuthorizeOnu(index){
+    function viewOnu(index){
+        alert("ver onu");
+    }
 
-            let row = document.getElementById('olt_' + index);
-
-            let ponType = row.cells[0].innerText;
-            let board = row.cells[1].innerText;
-            let port = row.cells[2].innerText;
-            let ponDescription = row.cells[3].innerText;
-            let sn = row.cells[4].innerText;
-            let onuTypeName = row.cells[5].innerText;
-            let status = row.cells[6].innerText;
-            let olt_id = $("#olt_id").val();
-
-            let url = `{{ route('olt.form-authorized-onus') }}?ponType=${encodeURIComponent(ponType)}&board=${encodeURIComponent(board)}&port=${encodeURIComponent(port)}&ponDescription=${encodeURIComponent(ponDescription)}&sn=${encodeURIComponent(sn)}&onuTypeName=${encodeURIComponent(onuTypeName)}&status=${encodeURIComponent(status)}&olt_id=${olt_id}`;
-            window.location.href = url;
-
+    function moveOnu(index){
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/move-onu';
+        }else{
+            var url = '/Olt/move-onu';
         }
 
-        function authorizeOnu(index){
+        let olt_id = $("#olt_id").val();
+        let row = document.getElementById('olt_' + index);
 
-            if (window.location.pathname.split("/")[1] === "software") {
-				var url='/software/Olt/authorized-onus';
-			}else{
-				var url = '/Olt/authorized-onus';
-			}
+        let ponType = row.cells[0].innerText;
+        let board = row.cells[1].innerText;
+        let port = row.cells[2].innerText;
+        let sn = row.cells[4].innerText;
 
-            let row = document.getElementById('olt_' + index);
+        Swal.fire({
+        title: 'Mover onu a el puerto correcto?',
+        text: "La onu se moverá al puerto " + port,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Si, mover'
+        }).then((result) => {
+            if (result.value) {
 
-            let ponType = row.cells[0].innerText;
-            let board = row.cells[1].innerText;
-            let port = row.cells[2].innerText;
-            let ponDescription = row.cells[3].innerText;
-            let sn = row.cells[4].innerText;
-            let onuTypeName = row.cells[5].innerText;
-            let status = row.cells[6].innerText;
-
+                Swal.fire({
+                    title: 'Cargando...',
+                    text: 'Por favor espera mientras se procesa la solicitud.',
+                    type: 'info', 
+                    showConfirmButton: false,
+                    allowOutsideClick: false, 
+                    didOpen: () => {
+                        Swal.showLoading(); // Muestra el preloader de carga
+                    }
+                });
+        
             $.ajax({
                 url: url,
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                method: 'get',
+                method: 'post',
                 data: {
-                    ponType,
+                    olt_id,
                     board,
                     port,
-                    ponDescription,
-                    sn,
-                    onuTypeName,
-                    status
+                    sn
                 },
-                success: function (data) {			
+                success: function (data) {	
+                    if(data.status == 200){
+                        Swal.fire({
+                            title: 'Onu movida correctamente...',
+                            type: 'success', 
+                            showConfirmButton: false,
+                            allowOutsideClick: false, 
+                        });
+                        let url = `{{ route('olt.unconfigured') }}?olt=${olt_id}`;
+                        window.location.href = url;
+                    }else{
+                        Swal.close();
+                        alert("Hubo un error comuniquese con soporte.")
+                    }
                 }
             });
-        }
-
-        function abrirFiltrador() {
-            if ($('#form-filter').hasClass('d-none')) {
-                $('#boton-filtrar').html('<i class="fas fa-times"></i> Cerrar');
-                $('#form-filter').removeClass('d-none');
-            } else {
-                $('#boton-filtrar').html('<i class="fas fa-search"></i> Filtrar');
-                cerrarFiltrador();
             }
-        }
+        })
+    }
 
-        function cerrarFiltrador() {
-            $('#nro').val('');
-            $('#client_id').val('').selectpicker('refresh');
-            $('#plan').val('').selectpicker('refresh');
+    function formAuthorizeOnu(index){
 
-            $('#form-filter').addClass('d-none');
-            $('#boton-filtrar').html('<i class="fas fa-search"></i> Filtrar');
+        let row = document.getElementById('olt_' + index);
 
-        }
-
-        function oltChange(id){
-
-            Swal.fire({
-                title: 'Cargando...',
-                text: 'Por favor espera mientras se procesa la solicitud.',
-                type: 'info', 
-                showConfirmButton: false,
-                allowOutsideClick: false, 
-                didOpen: () => {
-                    Swal.showLoading(); // Muestra el preloader de carga
-                }
-            });
-
-            let url = `{{ route('olt.unconfigured') }}?olt=${id}`;
-            window.location.href = url;
-
-        }
-
-        function refreshPage(){
-        
+        let ponType = row.cells[0].innerText;
+        let board = row.cells[1].innerText;
+        let port = row.cells[2].innerText;
+        let ponDescription = row.cells[3].innerText;
+        let sn = row.cells[4].innerText;
+        let onuTypeName = row.cells[5].innerText;
+        let status = row.cells[6].innerText;
         let olt_id = $("#olt_id").val();
+
+        let url = `{{ route('olt.form-authorized-onus') }}?ponType=${encodeURIComponent(ponType)}&board=${encodeURIComponent(board)}&port=${encodeURIComponent(port)}&ponDescription=${encodeURIComponent(ponDescription)}&sn=${encodeURIComponent(sn)}&onuTypeName=${encodeURIComponent(onuTypeName)}&status=${encodeURIComponent(status)}&olt_id=${olt_id}`;
+        window.location.href = url;
+
+    }
+
+    function authorizeOnu(index){
+
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/authorized-onus';
+        }else{
+            var url = '/Olt/authorized-onus';
+        }
+
+        let row = document.getElementById('olt_' + index);
+
+        let ponType = row.cells[0].innerText;
+        let board = row.cells[1].innerText;
+        let port = row.cells[2].innerText;
+        let ponDescription = row.cells[3].innerText;
+        let sn = row.cells[4].innerText;
+        let onuTypeName = row.cells[5].innerText;
+        let status = row.cells[6].innerText;
+
+        $.ajax({
+            url: url,
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            method: 'get',
+            data: {
+                ponType,
+                board,
+                port,
+                ponDescription,
+                sn,
+                onuTypeName,
+                status
+            },
+            success: function (data) {			
+            }
+        });
+    }
+
+    function abrirFiltrador() {
+        if ($('#form-filter').hasClass('d-none')) {
+            $('#boton-filtrar').html('<i class="fas fa-times"></i> Cerrar');
+            $('#form-filter').removeClass('d-none');
+        } else {
+            $('#boton-filtrar').html('<i class="fas fa-search"></i> Filtrar');
+            cerrarFiltrador();
+        }
+    }
+
+    function cerrarFiltrador() {
+        $('#nro').val('');
+        $('#client_id').val('').selectpicker('refresh');
+        $('#plan').val('').selectpicker('refresh');
+
+        $('#form-filter').addClass('d-none');
+        $('#boton-filtrar').html('<i class="fas fa-search"></i> Filtrar');
+
+    }
+
+    function oltChange(id){
+
         Swal.fire({
-            title: 'Actualizando...',
+            title: 'Cargando...',
             text: 'Por favor espera mientras se procesa la solicitud.',
             type: 'info', 
             showConfirmButton: false,
@@ -241,10 +316,29 @@
             }
         });
 
-        let url = `{{ route('olt.unconfigured') }}?olt=${olt_id}`;
+        let url = `{{ route('olt.unconfigured') }}?olt=${id}`;
         window.location.href = url;
 
+    }
+
+    function refreshPage(){
+    
+    let olt_id = $("#olt_id").val();
+    Swal.fire({
+        title: 'Actualizando...',
+        text: 'Por favor espera mientras se procesa la solicitud.',
+        type: 'info', 
+        showConfirmButton: false,
+        allowOutsideClick: false, 
+        didOpen: () => {
+            Swal.showLoading(); // Muestra el preloader de carga
         }
+    });
+
+    let url = `{{ route('olt.unconfigured') }}?olt=${olt_id}`;
+    window.location.href = url;
+
+    }
         
-    </script>
+</script>
 @endsection

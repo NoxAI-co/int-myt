@@ -53,7 +53,6 @@ class OltController extends Controller
             $onus = [];
         }
         // ****** Get onus by olt ****** //
-
         return view('olt.unconfigured',compact('onus','olts','olt_default'));
     }
 
@@ -379,5 +378,53 @@ class OltController extends Controller
             $mensaje = "Onu no ha sido autorizada";
             return redirect('Olt/unconfigured-onus')->with('error', $mensaje);
         }
+    }
+
+    public static function moveOnuSpecified($olt_id,$board,$port,$sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/move/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => array(
+        'olt_id' => $olt_id,
+        'board' => $board,
+        'port' => $port,
+        ),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $response = json_decode($response,true);
+
+        curl_close($curl);
+
+        return $response;
+    }
+
+    public function moveOnu(Request $request){
+        
+        $response = $this->moveOnuSpecified($request->olt_id,$request->board,$request->port,$request->sn);
+
+        if(isset($response['response']) && $response['status'] == true){
+            return response()->json([
+                'status' => 200
+            ]);
+        }else{
+            return response()->json([
+                'status' => 400
+            ]);
+        }
+  
     }
 }
