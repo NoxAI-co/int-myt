@@ -130,6 +130,8 @@
                                     @else
                                         @if(count($onus[$i]['actions']) > 1 && $onus[$i]['actions'][1] == "move_here" && $k == 1)
                                             onclick="moveOnu({{$i}})"
+                                        @elseif(count($onus[$i]['actions']) > 1 && $onus[$i]['actions'][1] == "resync_config" && $k == 1)
+                                            onclick="resync_config({{$i}})"
                                         @endif
 
                                     @endif 
@@ -159,6 +161,69 @@
 
     function viewOnu(index){
         alert("ver onu");
+    }
+
+    function resync_config(index){
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/resync-config-onu';
+        }else{
+            var url = '/Olt/resync-config-onu';
+        }
+
+        let olt_id = $("#olt_id").val();
+        let row = document.getElementById('olt_' + index);
+
+        let ponType = row.cells[0].innerText;
+        let board = row.cells[1].innerText;
+        let port = row.cells[2].innerText;
+        let sn = row.cells[4].innerText;
+
+        Swal.fire({
+        title: 'Resincronizar la onu?',
+        text: "La onu será resincronizada",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Si, Resincronizar'
+        }).then((result) => {
+            if (result.value) {
+
+                Swal.fire({
+                    title: 'Cargando...',
+                    text: 'Por favor espera mientras se procesa la solicitud.',
+                    type: 'info', 
+                    showConfirmButton: false,
+                    allowOutsideClick: false, 
+                    didOpen: () => {
+                        Swal.showLoading(); // Muestra el preloader de carga
+                    }
+                });
+        
+            $.ajax({
+                url: url,
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                method: 'post',
+                data: {sn},
+                success: function (data) {	
+                    if(data.status == 200){
+                        Swal.fire({
+                            title: 'Onu resincronizada correctamente...',
+                            type: 'success', 
+                            showConfirmButton: false,
+                            allowOutsideClick: false, 
+                        });
+                        let url = `{{ route('olt.unconfigured') }}?olt=${olt_id}`;
+                        window.location.href = url;
+                    }else{
+                        Swal.close();
+                        alert("Hubo un error comuniquese con soporte.")
+                    }
+                }
+            });
+            }
+        })
     }
 
     function moveOnu(index){
