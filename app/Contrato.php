@@ -308,4 +308,15 @@ class Contrato extends Model
         ->groupBy('factura.id') // Agrupar por ID de factura
         ->get()->count();
     }
+
+    public function facturasDirectas()
+    {
+        return $this->hasMany(Factura::class, 'cliente', 'client_id');
+    }
+
+    // Relación many-to-many a través de la tabla intermedia `facturas_contratos`
+    public function facturas()
+    {
+        return $this->belongsToMany(Factura::class, 'facturas_contratos', 'contrato_nro', 'factura_id', 'nro', 'id');
+    }
 }

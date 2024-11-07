@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Carbon\Carbon;
@@ -290,6 +291,24 @@ class ContratosController extends Controller
                     $query->orWhere('contactos.estrato', 'like', "%{$request->c_estrato}%");
                 });
             }
+            // ... otros filtros
+
+            if ($request->sin_facturas_check && $request->fecha_sin_facturas) {
+                $fechaFiltro = Carbon::parse($request->fecha_sin_facturas)->format('Y-m-d');
+                $inicioDia = Carbon::parse($fechaFiltro)->startOfDay();
+                $finDia = Carbon::parse($fechaFiltro)->endOfDay();
+
+                // Excluir contratos que tengan facturas en la relación many-to-many (facturas_contratos) en el rango de fecha
+                $contratos->whereDoesntHave('facturas', function ($query) use ($inicioDia, $finDia) {
+                    $query->whereBetween('facturas_contratos.created_at', [$inicioDia, $finDia]);
+                });
+
+                // Excluir contratos que tengan facturas directamente en la tabla factura en el rango de fecha
+                $contratos->whereDoesntHave('facturasDirectas', function ($query) use ($inicioDia, $finDia) {
+                    $query->whereBetween('factura.created_at', [$inicioDia, $finDia]);
+                });
+            }
+
         }
 
         $contratos->where('contracts.status', 1)->where('contracts.empresa', Auth::user()->empresa);
