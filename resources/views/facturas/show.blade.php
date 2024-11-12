@@ -171,7 +171,8 @@
 
                         @if($factura->contratos() != false)
                             @foreach ( $factura->contratos() as $detalleContrato )
-                            <h4 class="font-weight-medium text-center mb-0">No. <a href="{{route('contratos.show',$detalleContrato->contrato_nro)}}" target="_blank">{{$detalleContrato->contrato_nro}}</a></h4>
+                                @php $contract = \App\Contrato::where("nro",$detalleContrato->contrato_nro)->first() @endphp
+                            <h4 class="font-weight-medium text-center mb-0">No. <a href="{{route('contratos.show',$contract!=null?$contract->id:999999)}}" target="_blank">{{$detalleContrato->contrato_nro}}</a></h4>
                             @endforeach
                         @endif
                     </div>
