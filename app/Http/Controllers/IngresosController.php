@@ -279,6 +279,7 @@ class IngresosController extends Controller
     public function store(Request $request){
 
         try {
+            DB::beginTransaction();
 
             // ** Validar el formulario para no reenviarlo varias veces.
                 if (Ingreso::where('empresa', auth()->user()->empresa)->count() > 0) {
@@ -932,13 +933,13 @@ class IngresosController extends Controller
                         if($x <= $xmax && $y <= $ymax){
                             switch($file->getMimeType()){
                                 case 'image/jpeg':
-                                imagejpeg(imagecreatefromjpeg(public_path('/adjuntos/documentos').'/'.$nombre), public_path('/adjuntos/documentos').'/'.$nombre, 5);
+                                imagejpeg(imagecreatefromjpeg(public_path('/adjuntos/documentos').'/'.$nombre), public_path('/adjuntos/documentos').'/'.$nombre, 75);
                                 break;
                                 case 'image/png':
                                 imagepng(imagecreatefrompng(public_path('/adjuntos/documentos').'/'.$nombre), public_path('/adjuntos/documentos').'/'.$nombre, 5);
                                 break;
                                 case 'image/gif':
-                                imagegif(imagecreatefromgif(public_path('/adjuntos/documentos').'/'.$nombre), public_path('/adjuntos/documentos').'/'.$nombre, 5);
+                                imagegif(imagecreatefromgif(public_path('/adjuntos/documentos').'/'.$nombre), public_path('/adjuntos/documentos').'/'.$nombre);
                                 break;
                             }
                         }else{
@@ -953,13 +954,13 @@ class IngresosController extends Controller
                             imagecopyresized($img2, $imagen, 0, 0, 0, 0, floor($nuevax), floor($nuevay), $x, $y);
                             switch($file->getMimeType()){
                                 case 'image/jpeg':
-                                imagejpeg($img2, public_path('/adjuntos/documentos').'/'.$nombre, 100);
+                                imagejpeg($img2, public_path('/adjuntos/documentos').'/'.$nombre, 75);
                                 break;
                                 case 'image/png':
-                                imagepng($img2, public_path('/adjuntos/documentos').'/'.$nombre, 100);
+                                imagepng($img2, public_path('/adjuntos/documentos').'/'.$nombre, 5);
                                 break;
                                 case 'image/gif':
-                                imagegif($img2, public_path('/adjuntos/documentos').'/'.$nombre, 100);
+                                imagegif($img2, public_path('/adjuntos/documentos').'/'.$nombre);
                                 break;
                             }
                         }
@@ -968,15 +969,18 @@ class IngresosController extends Controller
                     $ingreso->save();
                 }
 
-                // DB::commit();
+                DB::commit();
 
                 $mensaje = 'SE HA CREADO SATISFACTORIAMENTE EL PAGO';
                 return redirect('empresa/ingresos/'.$ingreso->id)->with('success', $mensaje)->with('factura_id', $ingreso->id)->with('tirilla', $tirilla);
             }
 
         } catch (\Throwable $th) {
-            // DB::rollBack();
+            DB::rollBack();
             return back()->with('error', $th->getMessage());
+        }catch (\Exception $exception){
+            DB::rollBack();
+            return back()->with('error', $exception->getMessage());
         }
     }
 
