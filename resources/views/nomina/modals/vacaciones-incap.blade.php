@@ -373,7 +373,13 @@
 
     function editVacaciones(id) {
         cargando(true);
-        var url = '/empresa/nomina/liquidar-nomina/' + id + '/edit_vacaciones';
+
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/empresa/nomina/liquidar-nomina/' + id + '/edit_vacaciones';
+            }else{
+                var url = '/empresa/nomina/liquidar-nomina/' + id + '/edit_vacaciones';
+        }
+
         var _token = $('meta[name="csrf-token"]').attr('content');
         var i = id;
         $.post(url, {
@@ -466,7 +472,13 @@
 
     function destroyVacaciones(id) {
         cargando(true);
-        var url = '/empresa/nomina/liquidar-nomina/' + id + '/destroy_vacaciones';
+
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/empresa/nomina/liquidar-nomina/' + id + '/destroy_vacaciones';
+            }else{
+            var url = '/empresa/nomina/liquidar-nomina/' + id + '/destroy_vacaciones';
+        }
+
         var _token = $('meta[name="csrf-token"]').attr('content');
         var i = id;
         $.post(url, {

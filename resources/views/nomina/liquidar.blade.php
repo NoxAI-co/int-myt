@@ -1156,19 +1156,32 @@
         var year = '{{$year}}';
         var periodo = '{{$periodo}}';
         var type = $("#periodo_quincenal").val();
-        // alert(periodo + " - " + periodo + " - " + type);
-        var url = '/empresa/nomina/liquidar-nomina/' + periodo + '/' + year + '/' + true + '/' + type;
+        
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/empresa/nomina/liquidar-nomina/' + periodo + '/' + year + '/' + true + '/' + type
+            }else{
+            var url = '/empresa/nomina/liquidar-nomina/' + periodo + '/' + year + '/' + true + '/' + type;
+        }
+       
         $('#form-buscarnomina').attr('action', url);
         $('#form-buscarnomina').submit();
     }
 
 
     function refrescarPeriodo(idPeriodo){
-        $.get('/empresa/nomina/refrescar/periodo-individual/liquidacion/'+idPeriodo, function(response){
+        if (window.location.pathname.split("/")[1] === "software") {
+            $.get('software/empresa/nomina/refrescar/periodo-individual/liquidacion/'+idPeriodo, function(response){
             formatPago(response.valorTotal, response.idPeriodoNomina);
             refrescarCosto();
             swal("Registro Actualizado", "El pago al empleado se ha actualizado correctamente, cálculos refrescados!", "success");
         });
+            }else{
+            $.get('/empresa/nomina/refrescar/periodo-individual/liquidacion/'+idPeriodo, function(response){
+            formatPago(response.valorTotal, response.idPeriodoNomina);
+            refrescarCosto();
+            swal("Registro Actualizado", "El pago al empleado se ha actualizado correctamente, cálculos refrescados!", "success");
+        });
+        }
     }
 
     function formatPago(value, idNomina, formated = null) {
@@ -1235,8 +1248,15 @@
     }
 
     function guardarNotas(id, anclor) {
+
+        if (window.location.pathname.split("/")[1] === "software") {
+                var url = '/software/empresa/nomina/agregar-observacion-periodo';
+                }else{
+                var url = '/empresa/nomina/agregar-observacion-periodo';
+            }
+            
         $.ajax({
-            url: `/empresa/nomina/agregar-observacion-periodo`,
+            url: url,
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
