@@ -1170,7 +1170,7 @@
 
     function refrescarPeriodo(idPeriodo){
         if (window.location.pathname.split("/")[1] === "software") {
-            $.get('software/empresa/nomina/refrescar/periodo-individual/liquidacion/'+idPeriodo, function(response){
+            $.get('/software/empresa/nomina/refrescar/periodo-individual/liquidacion/'+idPeriodo, function(response){
             formatPago(response.valorTotal, response.idPeriodoNomina);
             refrescarCosto();
             swal("Registro Actualizado", "El pago al empleado se ha actualizado correctamente, cálculos refrescados!", "success");
