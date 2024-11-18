@@ -175,23 +175,31 @@ class AvisosController extends Controller
 
         $contratos = $contratos->get();
 
-        foreach($contratos as $contrato){
-    
-            $facturaContrato = Factura::join('facturas_contratos as fc','fc.factura_id','factura.id')
-            ->where('fc.contrato_nro',$contrato->nro)
-            ->where('estatus',1)
-            ->orderBy('fc.id','desc')
-            ->first();
+        foreach ($contratos as $contrato) {
+            // Buscar factura en la tabla intermedia facturas_contratos
+            $facturaContrato = Factura::join('facturas_contratos as fc', 'fc.factura_id', 'factura.id')
+                ->where('fc.contrato_nro', $contrato->nro)
+                ->where('factura.estatus', 1)
+                ->orderBy('fc.id', 'desc')
+                ->first();
 
             $totalFactura = 0;
-            
-            if($facturaContrato){
-                // Suma los precios de los items de la factura obtenida
+
+            // Si no se encuentra en facturas_contratos, buscar directamente en la tabla factura
+            if (!$facturaContrato) {
+                $facturaContrato = Factura::where('contrato_id', $contrato->id)
+                    ->where('estatus', 1)
+                    ->orderBy('id', 'desc')
+                    ->first();
+            }
+
+            if ($facturaContrato) {
+                // Sumar los precios de los ítems de la factura encontrada
                 $totalFactura = DB::table('items_factura')
                     ->where('factura', $facturaContrato->id)
-                    ->sum('precio'); // Suma todos los precios de los items de la última factura
+                    ->sum('precio');
                 $contrato->factura_id = $facturaContrato->id;
-            }else{
+            } else {
                 $contrato->factura_id = null;
             }
 
