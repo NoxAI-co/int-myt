@@ -769,8 +769,8 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
         Route::get('/proceso-habilitacion', 'NominaDianController@procesoHabilitacion')->name('nomina-dian.proceso-habilitacion');
         Route::get('/emitir-nomina/{periodo?}/{year?}/{persona?}', 'NominaDianController@emitir')->name('nomina-dian.emitir');
         Route::get('/validatedian', 'NominaDianController@validate_dian');
-        Route::get('/emitirjson/{nominaId}', 'NominaDianController@emitirJson');
-        Route::get('/nomina-json/{nomina}', 'NominaDianController@emitirJson')->name('nomina.json');
+        Route::get('/emitirjson/{nominaId?}', 'NominaDianController@emitirJson');
+        Route::get('/nomina-json/{nomina?}', 'NominaDianController@emitirJson')->name('nomina.json');
         Route::get('/nomina-emitida/xml/{nomina}', 'NominaDianController@xmlNominaEmitida')->name('nomina.xml');
     });
 
