@@ -593,7 +593,7 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
         )->name('nomina.estado_eliminado');
 
         Route::get('/traer-observacion', 'NominaController@traerObservacion')->name('nomina.traer.observacion');
-        Route::get('/emitir-nomina/email/{nomina}', 'NominaController@correoEmicionNomina')->name('emitir-nomina.email');
+        Route::get('/emitir-nomina/email/{nomina?}', 'NominaController@correoEmicionNomina')->name('emitir-nomina.email');
 
 
         Route::get('/confirmar-nomina', 'NominaController@confirmar')->name('nomina.confirmar');
