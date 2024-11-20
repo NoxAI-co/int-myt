@@ -2021,7 +2021,7 @@ class NominaController extends Controller
         ];
         $nominaPeriodo = NominaPeriodos::find($request->id);
         if($dias >= 16){
-            $nominaPeriodo->editValorTotal($calculosFijos,false);
+            // $nominaPeriodo->editValorTotal($calculosFijos,false);
         }else{
             $nominaPeriodo->editValorTotal($calculosFijos);
         }
