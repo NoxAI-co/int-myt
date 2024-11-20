@@ -575,6 +575,11 @@ class NominaPeriodos extends Model
         $totalidad['pagoContratado']['deducido'] = $totalidad['pagoContratado']['total'];
         $totalidad['diasTrabajados']['ausencia'] = $this->diasAusenteDetalle();
         $totalidad['diasTrabajados']['total'] = $totalidad['diasTrabajados']['diasPeriodo'] - array_sum($totalidad['diasTrabajados']['ausencia']);
+
+        if($totalidad['diasTrabajados']['total'] < 0){
+            $totalidad['diasTrabajados']['total'] = 0;
+        }
+
         $totalidad['ibcSeguridadSocial']['licencias'] = 0;
         $totalidad['pago']['licencias'] = 0;
         $licencias = $nominaDetalleUno->where('fk_nomina_cuenta', 2)->where('fk_nomina_cuenta_tipo', 6)->whereNotNull('fecha_inicio');
@@ -637,6 +642,11 @@ class NominaPeriodos extends Model
         
         $totalidad['pago']['total'] = $subtotal;
         $totalidad['pago']['salario'] = $totalidad['ibcSeguridadSocial']['salario'];
+        
+        if($totalidad['pago']['salario'] < 0){
+            $totalidad['pago']['salario'] = 0;
+        }
+
        // $totalidad['pago']['extrasOrdinariasRecargos'] = floatval(NominaDetalleUno::select(DB::raw("SUM(valor_categoria) as valor_total"))->where('fk_nominaperiodo', $this->id)->where('fk_nomina_cuenta', 1)->groupBy('fk_nominaperiodo')->first()->valor_total ?? 0);
         $totalidad['pago']['extrasOrdinariasRecargos'] = floatval(
         $nominaDetalleUno
