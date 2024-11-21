@@ -574,6 +574,8 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
 
 	//NOMINA
     Route::group(['namespace' => 'Nomina', 'prefix' => 'nomina', 'middleware' => ['nomina']], function () {
+		
+		Route::get('/refrescar/periodo-individual/liquidacion/{idNominaPeriodo}', 'NominaController@refrescarNomina');
 		Route::get('get-costos-periodo/{year}/{periodo}/{tipo}', 'NominaController@getCostoPeriodo')->name('nomina.get.costo.periodo');
         Route::get('/agrupadas/{periodo?}/{year?}/{tipo?}', 'NominaController@nominasAgrupadas')->name('nomina.agrupadas');
         Route::get('/individuales/{periodo?}/{year?}/{tipo?}', 'NominaController@nominasIndividuales')->name('nomina.individuales');
@@ -594,7 +596,7 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
         )->name('nomina.estado_eliminado');
 
         Route::get('/traer-observacion', 'NominaController@traerObservacion')->name('nomina.traer.observacion');
-        Route::get('/emitir-nomina/email/{nomina}', 'NominaController@correoEmicionNomina')->name('emitir-nomina.email');
+        Route::get('/emitir-nomina/email/{nomina?}', 'NominaController@correoEmicionNomina')->name('emitir-nomina.email');
 
 
         Route::get('/confirmar-nomina', 'NominaController@confirmar')->name('nomina.confirmar');
@@ -770,8 +772,8 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
         Route::get('/proceso-habilitacion', 'NominaDianController@procesoHabilitacion')->name('nomina-dian.proceso-habilitacion');
         Route::get('/emitir-nomina/{periodo?}/{year?}/{persona?}', 'NominaDianController@emitir')->name('nomina-dian.emitir');
         Route::get('/validatedian', 'NominaDianController@validate_dian');
-        Route::get('/emitirjson/{nominaId}', 'NominaDianController@emitirJson');
-        Route::get('/nomina-json/{nomina}', 'NominaDianController@emitirJson')->name('nomina.json');
+        Route::get('/emitirjson/{nominaId?}', 'NominaDianController@emitirJson');
+        Route::get('/nomina-json/{nomina?}', 'NominaDianController@emitirJson')->name('nomina.json');
         Route::get('/nomina-emitida/xml/{nomina}', 'NominaDianController@xmlNominaEmitida')->name('nomina.xml');
     });
 

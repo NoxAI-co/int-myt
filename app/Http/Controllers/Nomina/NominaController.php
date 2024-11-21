@@ -28,6 +28,8 @@ use Illuminate\Support\Facades\Storage;
 use stdClass;
 use App\SuscripcionPagoNomina;
 use App\Model\Nomina\NominaCalculoFijo;
+use App\Model\Nomina\NominaConfiguracionCalculos;
+use Illuminate\Support\Facades\DB as FacadesDB;
 use Illuminate\Support\Facades\Mail;
 use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
 
@@ -1830,7 +1832,7 @@ class NominaController extends Controller
             $arrayPost['base'] = $nominaPeriodo->valor_total;
             $arrayPost['vac_compensadas_dinero'] = $vacacionesCompensadasDinero ? $vacacionesCompensadasDinero->valor_categoria : null;
             $arrayPost['vac_compensadas_dias'] = $vacacionesCompensadasDinero ? $vacacionesCompensadasDinero->dias_compensados_dinero : null;
-            $arrayPost['limit_inicio'] = $nominaPeriodo->fecha_desde->subDays(15)->format('Y-m-d');
+            $arrayPost['limit_inicio'] = $nominaPeriodo->fecha_desde->subDays(0)->format('Y-m-d');
             $arrayPost['limit_final'] = $nominaPeriodo->fecha_hasta->addDays(15)->format('Y-m-d');
 
             return json_encode($arrayPost);
@@ -1854,6 +1856,7 @@ class NominaController extends Controller
         if (!$countV) {
             $countV = 1;
         }
+
         if (isset($request->v_id)) {
             for ($i = 0; $i < count($request->v_id); $i++) {
                 $nomina = NominaDetalleUno::where('nombre', $request->v_nombre)->where(
@@ -1991,11 +1994,24 @@ class NominaController extends Controller
             if ($detalle->fecha_inicio) {
                 $fechaEmision = Carbon::parse($detalle->fecha_inicio);
                 $fechaExpiracion = Carbon::parse($detalle->fecha_fin);
-                $dias += NominaPeriodos::diffDaysAbsolute($fechaEmision, $fechaExpiracion, ($detalle->nombre == 'VACACIONES' ? true : false)) + ($detalle->nombre == 'VACACIONES' ? 0 : 1);
+
+                // Calcula los días entre las fechas excluyendo el día 31
+                $dias += NominaPeriodos::diffDaysExcluding31($fechaEmision, $fechaExpiracion)
+                    + ($detalle->nombre == 'VACACIONES' ? 0 : 1);
+
+                // Suma los días compensados en dinero
                 $dias += $detalle->dias_compensados_dinero;
             }
         }
 
+         /**
+         * Si la suma de las vacaciones es 16 dias y el total de dias trabajados de la persona ahora es 0
+         * entonces la salud y pension se debe calcular sobre el total de vacaciones por el dia de más.
+         * **/
+        if($dias >= 16){
+            $nomina_periodo = NominaPeriodos::Find($nomina->fk_nominaperiodo);
+            $valor_pago_vacaciones = $nomina_periodo->updateCalculosNomina();
+        }
 
         $calculosFijos = [
             'subsidio_transporte' => (object)[
@@ -2004,14 +2020,18 @@ class NominaController extends Controller
             ]
         ];
         $nominaPeriodo = NominaPeriodos::find($request->id);
+        if($dias >= 16){
+            // $nominaPeriodo->editValorTotal($calculosFijos,false);
+        }else{
+            $nominaPeriodo->editValorTotal($calculosFijos);
+        }
 
-        $nominaPeriodo->editValorTotal($calculosFijos);
 
         if ($nominaPeriodo) {
             $arrayPost['status'] = 'OK';
             $arrayPost['id'] = $request->id;
             $arrayPost['horas'] = $dias;
-            $arrayPost['valor_total'] = Funcion::precision($nominaPeriodo->valor_total);
+            $arrayPost['valor_total'] = isset($valor_pago_vacaciones) ? $valor_pago_vacaciones : Funcion::precision($nominaPeriodo->valor_total);
             return json_encode($arrayPost);
         } else {
             $arrayPost['status'] = 'error';
@@ -3393,6 +3413,10 @@ class NominaController extends Controller
                                     'data' => $data
                                 ]
                                );
+
+    }
+
+    public function costoPeriodo(){
 
     }
 
