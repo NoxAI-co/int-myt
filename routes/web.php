@@ -11,6 +11,7 @@
 |
 */
 
+use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\TecnicoController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -1347,6 +1348,7 @@ Route::get('/GoogleAnalytics', 'GoogleAnalyticsController@index')->name('Google.
 	    	Route::post('/solicitudes/status/{id}', 'SolicitudesController@status')->name('solicitudes.status');
     	});
     	Route::resource('solicitudes', 'SolicitudesController');
+
 
     //CONTRATOS
     

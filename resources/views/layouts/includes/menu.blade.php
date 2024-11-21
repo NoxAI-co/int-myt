@@ -68,6 +68,12 @@
         isset($_SESSION['permisos']['402']) || isset($_SESSION['permisos']['411']) || 
         isset($_SESSION['permisos']['804']) || isset($_SESSION['permisos']['858'])
         )
+        <li class="nav-item" id="estadistica">
+            <a class="nav-link"  href="{{route('estadisticas.index')}}" aria-controls="ui-estadistica">
+                <i class="menu-icon fas fa-chart-bar"></i>
+                <span class="menu-title">Estadisticas</span>
+            </a>
+        </li>
         <li class="nav-item" id="contactos">
             <a class="nav-link" data-toggle="collapse" href="#ui-contrato" aria-expanded="false" aria-controls="ui-contrato">
                 <i class="menu-icon fas fa-file-contract"></i>
