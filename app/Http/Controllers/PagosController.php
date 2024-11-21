@@ -236,7 +236,7 @@ class PagosController extends Controller
                 $nroGasto = 1;
             }
 
-            if($request->tipo && !isset($request->factura_pendiente) || $request->tipo&& count($request->factura_pendiente) == 0){
+            if($request->tipo == 1 && !isset($request->factura_pendiente) || $request->tipo == 1 && count($request->factura_pendiente) == 0){
                 return redirect('empresa/pagos')->with('error', 'Debes escoger facturas pendientes para pagar');
             }
 
