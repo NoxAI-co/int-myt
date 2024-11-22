@@ -394,7 +394,7 @@
     				</tbody>
     			</table>
     		</div>
-    		@if($radicado->reporte=='' && $radicado->estatus > 1)
+    		@if($radicado->estatus > 1)
     			@if(isset($_SESSION['permisos']['210']))
     				<form method="POST" action="{{ route('radicados.update', $radicado->id ) }}" style="padding: 2% 3%;    " role="form" class="forms-sample" novalidate id="form-radicado" >
     					@csrf

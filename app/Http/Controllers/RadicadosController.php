@@ -556,7 +556,12 @@ class RadicadosController extends Controller{
 
 
             if ($request->reporte) {
-                $radicado->reporte = $request->reporte;
+                if($radicado->reporte){
+                    $radicado->reporte = $radicado->reporte. " || ".  $request->reporte;
+                }else{
+                    $radicado->reporte =  $request->reporte;
+                }
+
                 $radicado->update();
                 $mensaje='SE HA REGISTRADO EL REPORTE DEL TÉCNICO SATISFACTORIAMENTE.';
 
