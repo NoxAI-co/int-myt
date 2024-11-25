@@ -625,14 +625,13 @@ class CronController extends Controller
 
             //Estamos tomando la ultima factura siempre del cliente con el orderby y el groupby, despues analizamos si esta ultima ya vencio
             $contactos = Contacto::join('factura as f','f.cliente','=','contactos.id')->
-                join('contracts as cs','cs.id','=','f.contrato_id')->
-                select('contactos.id', 'contactos.nombre', 'contactos.nit', 'f.id as factura', 
-                'f.estatus', 'f.suspension', 'cs.state', 'f.contrato_id', 'cs.grupo_corte')->
+                join('facturas_contratos as fcs','fcs.factura_id','=','f.id')->
+                join('contracts as cs','cs.nro','=','fcs.contrato_nro')->
+                select('contactos.id', 'contactos.nombre', 'contactos.nit', 'f.id as factura', 'f.estatus', 'f.suspension', 'cs.state', 'f.contrato_id')->
                 where('f.estatus',1)->
                 whereIn('f.tipo', [1,2])->
                 where('contactos.status',1)->
                 where('cs.state','enabled')->
-                // where('cs.olt_sn_mac',null)->
                 whereIn('cs.grupo_corte',$grupos_corte_array)->
                 where('cs.fecha_suspension', null)->
                 where('cs.server_configuration_id','!=',null)-> //se comenta por que tambien se peuden canclear planes de tv que no estan con servidor
@@ -640,7 +639,6 @@ class CronController extends Controller
                 orderBy('f.id', 'desc')->
                 take(20)->
                 get();
-                $swGrupo = 1; //masivo
 
         }else{
             $contactos = Contacto::join('factura as f','f.cliente','=','contactos.id')->

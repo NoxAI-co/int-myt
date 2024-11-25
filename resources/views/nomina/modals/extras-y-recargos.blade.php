@@ -174,7 +174,7 @@
         editId = idNomina;
         resultTotal = updateTotal(editId);
         $('#valor_calculado_extras').val(resultTotal);
-        console.log($("#extraUpdate-" + editId).attr('action'))
+        
         $.post($("#extraUpdate-" + editId).attr('action'), $("#extraUpdate-" + editId).serialize(), function(dato) {
             if (dato['status'] == 'OK') {
                 $("#extras" + dato['id']).empty().text(dato['horas']);
@@ -262,7 +262,12 @@
 
     function editHoras(id) {
         cargando(true);
-        var url = '/empresa/nomina/liquidar-nomina/' + id + '/edit';
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url = '/software/empresa/nomina/liquidar-nomina/' + id + '/edit';
+            }else{
+            var url = '/empresa/nomina/liquidar-nomina/' + id + '/edit';
+        }
+        
         var _token = $('meta[name="csrf-token"]').attr('content');
         var i = id;
         $.post(url, {
