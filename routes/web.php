@@ -327,6 +327,13 @@ Route::group(['prefix' => 'Olt'], function(){
     Route::post('resync-config-onu','OltController@resyncConfig')->name('olt.resync-config');
 });
 
+Route::group(['prefix' => 'siigo'], function(){
+    Route::post('configuracion_siigo', 'SiigoController@configurarSiigo');
+    Route::post('create_invoice', 'SiigoController@createInvoice')->name('siigo.create_invoice');
+    Route::get('get_modal_invoice', 'SiigoController@getModalInvoice');
+    Route::get('send_invoice', 'SiigoController@sendInvoice');
+});
+
 Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
 	Route::resource('instances', 'InstanceController');
     Route::get('instances/{id}/pair', 'InstanceController@pair')->name('instances.pair');
