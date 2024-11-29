@@ -125,7 +125,7 @@
                 <ul style="list-style: none;">
                     {{-- <li><a class="body-oscuro" href="{{ route('nomina.agrupadas', ['periodo' => $request->periodo, 'year'=> $request->year, 'tipo' => $tipo]) }}" target="_blank"> <i class="fas fa-grip-vertical"></i> <span>Agrupadas</span></li> </a> --}}
                     <li><a class="body-oscuro" href="{{ route('nomina.individuales', ['periodo' => $request->periodo, 'year'=> $request->year, 'tipo' => $tipo]) }}" target="_blank"> <i class="far fa-user"></i> <span>Individuales</span></li> </a>
-                    <li><a class="body-oscuro" href="{{ route('liquidar-nomina.correo', ['periodo' => $request->periodo, 'year' => $request->year, 'tipo' => $tipo]) }}"> <i class="far fa-envelope"></i> <span>Notificar pago via email</span></li> </a>
+                    {{-- <li><a class="body-oscuro" href="{{ route('liquidar-nomina.correo', ['periodo' => $request->periodo, 'year' => $request->year, 'tipo' => $tipo]) }}"> <i class="far fa-envelope"></i> <span>Notificar pago via email</span></li> </a> --}}
                 </ul>
             </div>
         </div>
