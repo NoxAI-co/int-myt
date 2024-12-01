@@ -187,17 +187,20 @@ class CronController extends Controller
                 //Fin calculo fecha suspension
 
                 foreach ($contratos as $contrato) {
-                    DB::table('factura')->where('estatus','<>',2)
-                    ->where('contrato_id',$contrato->id)->where('fecha',$fecha)->count();
-                    if(DB::table('factura')->where('estatus','<>',2)
-                    ->where('contrato_id',$contrato->id)->where('fecha',$fecha)->count() == 0){
+
+                    $ultimaFactura = DB::table('facturas_contratos')
+                    ->join('factura', 'facturas_contratos.factura_id', '=', 'factura.id')
+                    ->where('facturas_contratos.contrato_nro', $contrato->nro)
+                    ->orderBy('factura.fecha', 'desc')
+                    ->first();
+
+                    if(!isset($ultimaFactura->fecha) || isset($ultimaFactura->fecha) && $ultimaFactura->fecha != $fecha)
+                    {
 
                     ## Verificamos que el cliente no posea la ultima factura automática abierta, de tenerla no se le genera la nueva factura
-                    $fac = Factura::where('cliente', $contrato->cliente)
-                    // ->where('facturacion_automatica', 1)
-                    ->where('contrato_id',$contrato->id)
-                    ->where('estatus','<>',2)
-                    ->get()->last();
+                    if(isset($ultimaFactura->fecha)){
+                        $fac = $ultimaFactura;
+                    }else{$fac=false;}
 
                     //Primer filtro de la validación, que la factura esté cerrada o que no exista una factura.
                     if(isset($fac->estatus) || !$fac || $empresa->cron_fact_abiertas == 1){
@@ -246,9 +249,10 @@ class CronController extends Controller
 
                                 // Validacion para que solo asigne numero consecutivo si no existe.
                                 while (Factura::where('codigo',$nro->prefijo.$inicio)->first()) {
-                                    $nro->save();
+                                    $nro = $nro->fresh();
                                     $inicio=$nro->inicio;
                                     $nro->inicio += 1;
+                                    $nro->save();
                                 }
 
                                 $factura = new Factura;
@@ -399,7 +403,7 @@ class CronController extends Controller
 
                                         $bulk .= '{"numero": "57'.$numero.'", "sms": "'.$bulksms.'"},';
 
-                                        }else if($empresa->nombre == 'FIBRACONEXION S.A.S.' || $empresa->nit == '900822955' || $empresa->nombre == 'Almeidas Comunicaciones S.A.S' ||  $empresa->nit == '901044772'){
+                                        }else if($empresa->nombre == 'FIBRACONEXION S.A.S.' || $empresa->nit == '900822955' || $empresa->nombre == 'Almeidas Comunicaciones S.A.S' ||  $empresa->nit == '901044772' || $empresa->nombre == 'Telecomunicaciones Por Redes Pon Tele Pon S.A.S' ||  $empresa->nit == '901346829' ){
                                             $fullname = $factura->cliente()->nombre.' '.$factura->cliente()->apellidos();
                                             $bulksms = ''.trim($fullname).'. '.$empresa->nombre.' le informa que su factura de servicio de internet. Tiene como fecha de vencimiento: '.$date->format('d-m-Y').' Total a pagar '.$factura->totalAPI($empresa->id)->total;
                                             $bulk .= '{"numero": "57'.$numero.'", "sms": "'.$bulksms.'"},';
