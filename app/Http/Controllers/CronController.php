@@ -117,15 +117,20 @@ class CronController extends Controller
             $horaActual = date('H:i');
 
             $grupos_corte = GrupoCorte::
-            where('fecha_factura', $date)
-            ->where('hora_creacion_factura','<=',$horaActual)
-            ->where('status', 1)->get();
+            // where('fecha_factura', $date)
+            // ->where('hora_creacion_factura','<=',$horaActual)
+            where('status', 1)->get();
 
             $fecha = Carbon::now()->format('Y-m-d');
 
+            $state = ['enabled'];
+            if ($empresa->factura_contrato_off == 1) {
+                $state[] = 'disabled';
+            }
+
             foreach($grupos_corte as $grupo_corte){
 
-                $contratos = Contrato::join('contactos as c', 'c.id', '=', 'contracts.client_id')->
+                return $contratos = Contrato::join('contactos as c', 'c.id', '=', 'contracts.client_id')->
                 join('empresas as e', 'e.id', '=', 'contracts.empresa')
                 ->select('contracts.id', 'contracts.iva_factura', 'contracts.public_id', 'c.id as cliente',
                 'contracts.state', 'contracts.fecha_corte', 'contracts.fecha_suspension', 'contracts.facturacion',
@@ -136,7 +141,7 @@ class CronController extends Controller
                 where('contracts.status',1)->
                 // whereIn('contracts.id',[1944])->
                 // where('c.saldo_favor','>',80000)->//rc
-                where('contracts.state','enabled')
+                whereIn('contracts.state',$state)
                 // ->limit(1)->skip(7)
                 ->get();
 

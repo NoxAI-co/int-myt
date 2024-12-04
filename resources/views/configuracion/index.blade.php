@@ -114,6 +114,9 @@
 			<a href="javascript:parametrosContratoDigital();">Parámetros Contrato Digital</a><br>
 			<a href="javascript:facturacionCronAbiertas()">{{ Auth::user()->empresa()->cron_fact_abiertas == 0 ? 'Habilitar':'Deshabilitar' }} facturacion automatica fact. abiertas</a><br>
 			<input type="hidden" id="cronAbierta" value="{{Auth::user()->empresa()->cron_fact_abiertas}}">
+			<a href="javascript:facturacionContratosOff()">{{ Auth::user()->empresa()->factura_contrato_off == 0 ? 'Habilitar':'Deshabilitar' }} facturas en contratos deshabilitados</a><br>
+			<input type="hidden" id="factura_contrato_off" value="{{Auth::user()->empresa()->factura_contrato_off}}">
+			
 			@endif
 		</div>
 		@endif
@@ -944,6 +947,67 @@
 		                            timer: 5000
 		                        })
 		                        $("#saldofavAuto").val(0);
+		                    }
+		                    setTimeout(function(){
+		                    	var a = document.createElement("a");
+		                    	a.href = window.location.pathname;
+		                    	a.click();
+		                    }, 1000);
+		                }
+		            });
+
+		        }
+		    })
+		}
+
+		function facturacionContratosOff() {
+			if (window.location.pathname.split("/")[1] === "software") {
+				var url='/software/configuracion_facturas_contratos_off';
+			}else{
+				var url = '/configuracion_facturas_contratos_off';
+			}
+
+		    if ($("#factura_contrato_off").val() == 0) {
+		        $titleswal = "¿Desea habilitar la generación de facturas para contratos deshabilitados?";
+		    }
+
+		    if ($("#factura_contrato_off").val() == 1) {
+		        $titleswal = "¿Desea deshabilitar la generación de facturas para contratos deshabilitados?";
+		    }
+
+		    Swal.fire({
+		        title: $titleswal,
+		        type: 'warning',
+		        showCancelButton: true,
+		        confirmButtonColor: '#3085d6',
+		        cancelButtonColor: '#d33',
+		        cancelButtonText: 'Cancelar',
+		        confirmButtonText: 'Aceptar',
+		    }).then((result) => {
+		        if (result.value) {
+		            $.ajax({
+		                url: url,
+		                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+		                method: 'post',
+		                data: { factura_contrato_off: $("#factura_contrato_off").val() },
+		                success: function (data) {
+		                    console.log(data);
+		                    if (data == 1) {
+		                        Swal.fire({
+		                            type: 'success',
+		                            title: 'generación de facturas en contratos off habilitada',
+		                            showConfirmButton: false,
+		                            timer: 5000
+		                        })
+		                        $("#factura_contrato_off").val(1);
+		                    } else {
+		                        Swal.fire({
+		                            type: 'success',
+		                            title: 'generación de facturas en contratos off deshabilitada',
+		                            showConfirmButton: false,
+		                            timer: 5000
+		                        })
+		                        $("#factura_contrato_off").val(0);
 		                    }
 		                    setTimeout(function(){
 		                    	var a = document.createElement("a");
