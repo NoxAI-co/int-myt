@@ -117,9 +117,9 @@ class CronController extends Controller
             $horaActual = date('H:i');
 
             $grupos_corte = GrupoCorte::
-            // where('fecha_factura', $date)
-            // ->where('hora_creacion_factura','<=',$horaActual)
-            where('status', 1)->get();
+            where('fecha_factura', $date)
+            ->where('hora_creacion_factura','<=',$horaActual)
+            ->where('status', 1)->get();
 
             $fecha = Carbon::now()->format('Y-m-d');
 
@@ -130,7 +130,7 @@ class CronController extends Controller
 
             foreach($grupos_corte as $grupo_corte){
 
-                return $contratos = Contrato::join('contactos as c', 'c.id', '=', 'contracts.client_id')->
+                $contratos = Contrato::join('contactos as c', 'c.id', '=', 'contracts.client_id')->
                 join('empresas as e', 'e.id', '=', 'contracts.empresa')
                 ->select('contracts.id', 'contracts.iva_factura', 'contracts.public_id', 'c.id as cliente',
                 'contracts.state', 'contracts.fecha_corte', 'contracts.fecha_suspension', 'contracts.facturacion',
@@ -156,6 +156,9 @@ class CronController extends Controller
                 $y = Carbon::now()->format('Y');
                 $m = Carbon::now()->format('m');
                 $d = substr(str_repeat(0, 2).$grupo_corte->fecha_pago, - 2);
+                if($d == 0){
+                    $d = 30;
+                }
 
                 if($grupo_corte->fecha_factura > $grupo_corte->fecha_pago && $m!=12){
                     $m=$m+1;
@@ -180,12 +183,11 @@ class CronController extends Controller
 
                 if($m == 12){
                     if($da > $grupo_corte->fecha_suspension){
+
                         if(Carbon::now()->format('m') != 11){
                             $m = 01;
+                            $y = $y+1;
                         }
-                    }
-                    if(Carbon::now()->format('m') != 11){
-                    $y = $y+1;
                     }
                 }
                 $date_suspension = $y . "-" . $m . "-" . $ds;
@@ -199,7 +201,14 @@ class CronController extends Controller
                     ->orderBy('factura.fecha', 'desc')
                     ->first();
 
-                    if(!isset($ultimaFactura->fecha) || isset($ultimaFactura->fecha) && $ultimaFactura->fecha != $fecha)
+                    $mesUltimaFactura = false;
+                    if($ultimaFactura){
+                        $mesUltimaFactura = date('Y-m',strtotime($ultimaFactura->fecha));
+                        $mesActualFactura = date('Y-m',strtotime($fecha));
+                    }
+
+                    if(!isset($ultimaFactura->fecha) || isset($ultimaFactura->fecha)
+                        && $mesActualFactura != $mesUltimaFactura)
                     {
 
                     ## Verificamos que el cliente no posea la ultima factura automática abierta, de tenerla no se le genera la nueva factura
@@ -226,7 +235,7 @@ class CronController extends Controller
                                 if(is_null($nro)){
                                 }else{ //aca empieza la verdadera creacion de la factura despues de pasar las validaciones.
 
-                                    $hoy = Carbon::now()->toDateString();
+                                    $hoy = $fecha;
 
                                     if(!DB::table('facturas_contratos')
                                     ->whereDate('created_at',$hoy)
@@ -556,7 +565,7 @@ class CronController extends Controller
     public static function pagoFacturaAutomatico($factura){
 
             $empresa = $factura->empresa;
-            $precio = $factura->totalAPI($empresa->id)->total;
+            $precio = $factura->totalAPI($empresa)->total;
 
             //obtencion de numeración de el recibo de caja.
             $nro = Numeracion::where('empresa', $empresa)->first();
@@ -601,6 +610,11 @@ class CronController extends Controller
             $factura->estatus = 0;
             $factura->save();
 
+            //Descontamos el saldo a favor del cliente
+            $contacto = Contacto::Find($factura->cliente);
+            $contacto->saldo_favor-=$precio;
+            $contacto->save();
+
             //No vamos a regisrtrar por el momento un movimiento del puc ya que no sabemos esta informacion.
             // $ingreso->puc_banco = $request->forma_pago; //cuenta de forma de pago genérico del ingreso. (en memoria)
             // PucMovimiento::ingreso($ingreso,1,2,$request);
@@ -634,8 +648,11 @@ class CronController extends Controller
 
             //Estamos tomando la ultima factura siempre del cliente con el orderby y el groupby, despues analizamos si esta ultima ya vencio
             $contactos = Contacto::join('factura as f','f.cliente','=','contactos.id')->
-                join('facturas_contratos as fcs','fcs.factura_id','=','f.id')->
-                join('contracts as cs','cs.nro','=','fcs.contrato_nro')->
+                leftJoin('facturas_contratos as fcs', 'fcs.factura_id', '=', 'f.id')
+                ->leftJoin('contracts as cs', function ($join) {
+                    $join->on('cs.nro', '=', 'fcs.contrato_nro')
+                         ->orOn('cs.id', '=', 'f.contrato_id');
+                })->
                 select('contactos.id', 'contactos.nombre', 'contactos.nit', 'f.id as factura', 'f.estatus', 'f.suspension', 'cs.state', 'f.contrato_id')->
                 where('f.estatus',1)->
                 whereIn('f.tipo', [1,2])->
