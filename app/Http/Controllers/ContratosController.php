@@ -75,6 +75,7 @@ class ContratosController extends Controller
         $this->getAllPermissions(Auth::user()->id);
         $clientes = (Auth::user()->oficina && Auth::user()->empresa()->oficina) ? Contacto::whereIn('tipo_contacto', [0,2])->where('status', 1)->where('empresa', Auth::user()->empresa)->where('oficina', Auth::user()->oficina)->orderBy('nombre', 'ASC')->get() : Contacto::whereIn('tipo_contacto', [0,2])->where('status', 1)->where('empresa', Auth::user()->empresa)->orderBy('nombre', 'ASC')->get();
         $planes = PlanesVelocidad::where('status', 1)->where('empresa', Auth::user()->empresa)->get();
+        $planestv = Inventario::where('type', 'like', '%TV%')->get();
         $servidores = Mikrotik::where('status',1)->where('empresa', Auth::user()->empresa)->get();
         $grupos = GrupoCorte::where('status',1)->where('empresa', Auth::user()->empresa)->get();
         view()->share(['title' => 'Contratos', 'invert' => true]);
@@ -84,7 +85,7 @@ class ContratosController extends Controller
         $aps = AP::where('status',1)->where('empresa', Auth::user()->empresa)->get();
         $vendedores = Vendedor::where('empresa',Auth::user()->empresa)->where('estado',1)->get();
         $canales = Canal::where('empresa',Auth::user()->empresa)->where('status', 1)->get();
-        return view('contratos.indexnew', compact('clientes','planes','servidores','grupos','tipo','tabla','nodos','aps', 'vendedores', 'canales'));
+        return view('contratos.indexnew', compact('clientes','planes','planestv','servidores','grupos','tipo','tabla','nodos','aps', 'vendedores', 'canales'));
     }
 
     public function disabled(Request $request){
@@ -180,6 +181,12 @@ class ContratosController extends Controller
             if($request->nodo){
                 $contratos->where(function ($query) use ($request) {
                     $query->orWhere('contracts.nodo', $request->nodo);
+                });
+            }
+            if($request->plan_tv){
+
+                $contratos->where(function ($query) use ($request) {
+                    $query->orWhere('contracts.servicio_tv', $request->plan_tv);
                 });
             }
             if($request->ap){
