@@ -728,7 +728,7 @@ class CronController extends Controller
                         ->where('contrato_id',$factura->contrato_id)
                         ->orderBy('created_at', 'desc')
                         ->value('id');
-                }
+                } 
 
                 //** Validacion nueva: 
                 ///** validamos que segun el grupo_corte la cantidad de facturas vencidas si sea igual
