@@ -694,7 +694,7 @@ class CronController extends Controller
                     $cant_fac_grupo_corte = $grupo_corte->nro_factura_vencida;
                 }
 
-                if($grupo_corte->nro_factura_vencida > 1){
+                if(isset($grupo_corte->nro_factura_vencida) && $grupo_corte->nro_factura_vencida > 1){
                     $contrato = Contrato::Find($contacto->contrato_id);
                     $cantFacturasVencidas = $contrato->cantidadFacturasVencidas();
                 }
@@ -938,7 +938,7 @@ class CronController extends Controller
                         $cant_fac_grupo_corte = $grupo_corte->nro_factura_vencida;
                     }
 
-                    if($grupo_corte->nro_factura_vencida > 1){
+                    if(isset($grupo_corte->nro_factura_vencida) && $grupo_corte->nro_factura_vencida > 1){
                         $contrato = Contrato::Find($contacto->contrato_id);
                         $cantFacturasVencidas = $contrato->cantidadFacturasVencidas();
                     }
