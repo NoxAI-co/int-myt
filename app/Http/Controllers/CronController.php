@@ -761,7 +761,7 @@ class CronController extends Controller
 
                             if($contrato->state != 'enabled'){
 
-                                if(isset($contrato->server_configuration_id) && $factura->estatus != 0){
+                                if(isset($contrato->server_configuration_id) && $factura->estatus != 0 && $contrato->server_configuration_id !=null){
 
                                     $mikrotik = Mikrotik::where('id', $contrato->server_configuration_id)->first();
                                     $API = new RouterosAPI();
@@ -816,7 +816,7 @@ class CronController extends Controller
                         }
 
                         if($diasHabilesNocobro == 0){
-                            if(isset($contrato->server_configuration_id) || $promesaExtendida == 0){
+                            if($contrato->server_configuration_id != null && $promesaExtendida == 0){
 
                                 $mikrotik = Mikrotik::where('id', $contrato->server_configuration_id)->first();
                                 $API = new RouterosAPI();
