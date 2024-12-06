@@ -566,9 +566,9 @@
         });
 
         if (window.location.pathname.split("/")[1] === "software") {
-            var url: '/software/empresa/nominadian/proceso-habilitacion',
+            var url: '/software/empresa/nominadian/proceso-habilitacion';
             }else{
-            var url: '/empresa/nominadian/proceso-habilitacion',
+            var url: '/empresa/nominadian/proceso-habilitacion';
         }
 
         $.ajax({
