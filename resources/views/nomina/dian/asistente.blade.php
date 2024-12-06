@@ -572,7 +572,7 @@
         }
 
         $.ajax({
-            url: '/empresa/nominadian/proceso-habilitacion',
+            url: url,
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
