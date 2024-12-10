@@ -1,0 +1,1 @@
+<p>Se ha cargado un nuevo comprobante de pago. Por favor, revíselo.</p>
