@@ -689,67 +689,14 @@
                 @if(Auth::check() && Auth::user()->empresaObj && isset(Auth::user()->empresaObj->is_subscription_active) && !Auth::user()->empresaObj->is_subscription_active)
                 Swal.fire({
                     title: 'Suscripción Expirada',
+                    text: 'Su suscripción ha expirado. Por favor, pague su mensualidad para continuar.',
                     icon: 'warning',
-                    html: `
-                <p>Su suscripción ha expirado. Por favor, pague su mensualidad para continuar.</p>
-                <div style="margin-bottom: 15px;">
-                    <label for="paymentProof" class="swal2-label" style="display: block;">Suba el comprobante de pago:</label>
-                    <input type="file" id="paymentProof" name="paymentProof" class="swal2-input" style="padding: 5px; height: auto;" accept="image/*">
-                </div>
-            `,
+                    confirmButtonText: 'Pagar ahora',
                     showCancelButton: true,
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonText: 'Cargar Comprobante',
-                    preConfirm: () => {
-                        const fileInput = Swal.getPopup().querySelector('#paymentProof');
-                        if (!fileInput.files.length) {
-                            Swal.showValidationMessage('Por favor, seleccione un archivo.');
-                            return false;
-                        }
-                        return fileInput.files[0]; // Retornamos el archivo seleccionado
-                    }
-                }).then(async (result) => {
-                    if (result.value) { // Cambiamos de result.isConfirmed a result.value
-                        console.log(result.value); // Archivo seleccionado
-                        const file = result.value;
-                        const formData = new FormData();
-                        formData.append('paymentProof', file);
-
-                        try {
-                            const response = await fetch('{{ route('upload.payment.proof') }}', {
-                                method: 'POST',
-                                body: formData,
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                },
-                            });
-
-                            if (response.ok) {
-                                Swal.fire({
-                                    title: '¡Comprobante cargado!',
-                                    text: 'El comprobante de pago ha sido enviado correctamente.',
-                                    icon: 'success',
-                                    confirmButtonText: 'Aceptar',
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'Error',
-                                    text: 'No se pudo enviar el comprobante. Inténtelo nuevamente.',
-                                    icon: 'error',
-                                    confirmButtonText: 'Aceptar',
-                                });
-                            }
-                        } catch (error) {
-                            Swal.fire({
-                                title: 'Error',
-                                text: 'Ocurrió un error inesperado. Inténtelo más tarde.',
-                                icon: 'error',
-                                confirmButtonText: 'Aceptar',
-                            });
-                        }
-                    } else {
-                        console.log("No se seleccionó ningún archivo.");
-                    }
+                    cancelButtonText: 'Más tarde',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    allowEnterKey: false,
                 });
                 @endif
             });
