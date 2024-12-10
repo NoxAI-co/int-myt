@@ -1670,18 +1670,4 @@ Route::get('spliter', 'SpliterController@spliter');
 Route::get('/caja-naps/', 'CajaNapController@index')->name('caja.naps.index');
 Route::get('/caja-naps/create', 'CajaNapController@create')->name('caja.naps.create');
 Route::post('/caja-naps/store', 'CajaNapController@store')->name('caja.naps.store');
-Route::post('/upload/payment-proof', function (Request $request)
-{
-    \Illuminate\Support\Facades\Log::info("sadsad");
-    $request->validate([
-        'paymentProof' => 'required|image|max:2048', // Validar que sea una imagen y no supere los 2 MB
-    ]);
-
-    // Guardar el archivo
-    $filePath = $request->file('paymentProof')->store('payment_proofs', 'public');
-
-    // Enviar correo
-    Mail::to('johancar991@gmail.com')->send(new PaymentProofUploaded($filePath));
-
-    return response()->json(['message' => 'Comprobante cargado correctamente.']);
-})->name('upload.payment.proof');
+Route::post('/upload/payment-proof', [\App\Http\Controllers\SubscriptionActiveController::class,'sendNotificationEmail'])->name('upload.payment.proof');
