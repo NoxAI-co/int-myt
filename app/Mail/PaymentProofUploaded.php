@@ -24,7 +24,7 @@ class PaymentProofUploaded extends Mailable
     public function build()
     {
         return $this->subject('Nuevo Comprobante de Pago')
-            ->view('emails.payment_proof')
-            ->attachFromStorageDisk('public', $this->filePath);
+            ->view('emails.payment_proof');
+            //->attachFromStorageDisk('public', $this->filePath);
     }
 }
