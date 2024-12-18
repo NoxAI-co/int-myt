@@ -470,4 +470,21 @@ class OltController extends Controller
         }
   
     }
+
+    public function viewOnu(Request $request){
+
+        $sn = $request->sn;
+
+        $ethernetPorts = [
+            ['name' => 'eth_0/1', 'adminState' => 'Enabled', 'mode' => 'LAN', 'dhcp' => 'No control'],
+            ['name' => 'eth_0/2', 'adminState' => 'Enabled', 'mode' => 'LAN', 'dhcp' => 'No control'],
+            ['name' => 'eth_0/3', 'adminState' => 'Enabled', 'mode' => 'LAN', 'dhcp' => 'No control'],
+            ['name' => 'eth_0/4', 'adminState' => 'Enabled', 'mode' => 'LAN', 'dhcp' => 'No control'],
+        ];
+
+
+        $this->getAllPermissions(Auth::user()->id);
+        view()->share(['title' => $sn , 'icon' => '', 'seccion'=>'']);
+        return view('olt.view-onu',compact('sn','ethernetPorts'));
+    }
 }

@@ -874,7 +874,7 @@ class ExportarReportesController extends Controller
             $ides[] = $factura->id;
             $cells = [
                 WriterEntityFactory::createCell($factura->codigo, $styleL),
-                WriterEntityFactory::createCell("te", $style),
+                WriterEntityFactory::createCell($factura->cliente()->nombre.' '.$factura->cliente()->apellidos(), $style),
                 WriterEntityFactory::createCell(date('d-m-Y', strtotime($factura->fecha)), $style),
                 WriterEntityFactory::createCell(date('d-m-Y', strtotime($factura->vencimiento)), $style),
                 WriterEntityFactory::createCell(Auth::user()->empresa()->moneda ." ". Funcion::Parsear($factura->total()->subsub), $style),

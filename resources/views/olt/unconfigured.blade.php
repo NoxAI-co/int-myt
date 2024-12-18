@@ -160,7 +160,12 @@
 <script>
 
     function viewOnu(index){
-        alert("ver onu");
+
+        let row = document.getElementById('olt_' + index);
+        let sn = row.cells[4].innerText;
+
+        let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
+        window.location.href = url;
     }
 
     function resync_config(index){
