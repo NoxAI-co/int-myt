@@ -339,6 +339,10 @@ class ContactosController extends Controller
 
         $this->getAllPermissions(Auth::user()->id);
 
+        if(strtolower(Auth()->user()->roles->rol) == 'punto de venta'){
+            return back()->with('error', 'No tienes permiso de ingresar a esta acción.');
+        }
+
         $contacto = Contacto::join('tipos_identificacion AS I', 'I.id', '=', 'contactos.tip_iden')->where('contactos.id', $id)->where('contactos.empresa', Auth::user()->empresa)->select('contactos.*', 'I.identificacion')->first();
 
         if ($contacto) {
