@@ -1473,6 +1473,10 @@ class FacturasController extends Controller{
   */
     public function show($id){
         $this->getAllPermissions(Auth::user()->id);
+        if(strtolower(Auth()->user->roles->rol) == 'punto de venta'){
+            return back()->with('error', 'No tienes permiso de ingresar a esta acción.');
+        }
+        
         $factura = Factura::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
 
         $contrato = Contrato::where('client_id',$factura->cliente)->first();

@@ -471,9 +471,147 @@ class OltController extends Controller
   
     }
 
+    public function onu_type_image($onu_type_id){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/system/get_onu_type_image/'.$onu_type_id,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        return $response;
+    }
+
+    public function getOnuDetailsBySn($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/get_onus_details_by_sn/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $response = json_decode($response,true);
+
+        curl_close($curl);
+
+        return $response;
+    }
+
+    public function onu_traffic_image($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/get_onu_traffic_graph/'.$sn.'/daily',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        return $response;
+    }
+
+    public function onu_signal_image($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/get_onu_signal_graph/'.$sn.'/daily',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        return $response;
+    }
+
     public function viewOnu(Request $request){
 
         $sn = $request->sn;
+        $this->getAllPermissions(Auth::user()->id);
+        view()->share(['title' => $sn , 'icon' => '', 'seccion'=>'']);
+        
+        if($sn){
+            $details = $this->getOnuDetailsBySn($sn);
+            if($details['status'] != true){
+                return redirect('Olt/unconfigured-onus')->with('error', 'Error al mirar la informacion de la onu');
+            }
+        }else{
+            return redirect('Olt/unconfigured-onus')->with('error', 'No hay una sn seleccionada');
+        }
+
+        $details = $details['onus'][0];
+
+        $image_onu_type = null;
+        if(isset($details['onu_type_id'])){
+            $image_onu_type = $this->onu_type_image($details['onu_type_id']);
+            $imagenBase64 = base64_encode($image_onu_type);
+            $image_onu_type = 'data:image/png;base64,' . $imagenBase64;
+
+        }
+
+        $onu_traffic_graph = null;
+        if(isset($details['onu_type_id'])){
+            $onu_traffic_graph = $this->onu_traffic_image($details['sn']);
+            $imagenBase64 = base64_encode($onu_traffic_graph);
+            $onu_traffic_graph = 'data:image/png;base64,' . $imagenBase64;
+
+        }
+        $onu_signal_graph = null;
+        if(isset($details['onu_type_id'])){
+            $onu_signal_graph = $this->onu_signal_image($details['sn']);
+            $imagenBase64 = base64_encode($onu_signal_graph);
+            $onu_signal_graph = 'data:image/png;base64,' . $imagenBase64;
+
+        }
 
         $ethernetPorts = [
             ['name' => 'eth_0/1', 'adminState' => 'Enabled', 'mode' => 'LAN', 'dhcp' => 'No control'],
@@ -482,9 +620,6 @@ class OltController extends Controller
             ['name' => 'eth_0/4', 'adminState' => 'Enabled', 'mode' => 'LAN', 'dhcp' => 'No control'],
         ];
 
-
-        $this->getAllPermissions(Auth::user()->id);
-        view()->share(['title' => $sn , 'icon' => '', 'seccion'=>'']);
-        return view('olt.view-onu',compact('sn','ethernetPorts'));
+        return view('olt.view-onu',compact('details','image_onu_type','ethernetPorts','onu_traffic_graph','onu_signal_graph'));
     }
 }
