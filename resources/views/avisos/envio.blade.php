@@ -127,6 +127,18 @@
         	    </span>
 			</div>
 
+			<div class="col-md-3 form-group">
+				<label class="control-label">PLANES</label>
+				<select name="item" id="item" class="form-control selectpicker" onchange="refreshClient()" title="Seleccione" data-live-search="true" data-size="5">
+					@foreach($items as $item)
+					<option {{old('item')==$item->id?'selected':''}} value="{{ $item->id }}">{{ $item->producto }}</option>
+					@endforeach
+				</select>
+				<span class="help-block error">
+        	        <strong>{{ $errors->first('item') }}</strong>
+        	    </span>
+			</div>
+
         	<div class="col-md-3 form-group" id="seleccion_manual">
 	            <label class="control-label">Selección manual de clientes</label>
         	    <select name="contrato[]" id="contrato_sms" class="form-control selectpicker" title="Seleccione" data-live-search="true" data-size="5" required multiple data-actions-box="true" data-select-all-text="Todos" data-deselect-all-text="Ninguno">
@@ -136,14 +148,17 @@
         	            @foreach($contratos as $contrato)
         	                @if($contrato->state==$estado['state'])
         	                    <option class="{{$contrato->state}} 
-									grupo-{{ $contrato->grupo_corte()->id ?? 'no' }}
 									servidor-{{ $contrato->servidor()->id ?? 'no' }}
-									factura-{{ $contrato->factura_id != null ?  'si' : 'no'}}"
+									factura-{{ $contrato->factura_id != null ?  'si' : 'no'}}
+									{{$contrato->plan_id != null ? "plan-" . $contrato->plan_id : 'plan-no'}}
+									"
 									value="{{$contrato->id}}" {{$contrato->client_id==$id?'selected':''}}
-										data-saldo="<?php echo e($contrato->factura_total); ?>">
+										data-saldo="<?php echo e($contrato->factura_total); ?>"
+										>
+
 									{{$contrato->c_nombre}} {{ $contrato->c_apellido1 }}
 									{{ $contrato->c_apellido2 }} - {{$contrato->c_nit}}
-									(contrato: {{ $contrato->nro }})
+									(contrato: {{ $contrato->nro }}) {{$contrato->plan_id != null ? "plan-" . $contrato->plan_id : 'plan-no' }}
 								</option>
         	                
         	                @endif
@@ -155,7 +170,6 @@
         	        <strong>{{ $errors->first('cliente') }}</strong>
         	    </span>
         	</div>
-
 
 			<div class="col-md-3">
 				<div class="form-check form-check-inline d-flex p-3">
@@ -274,11 +288,12 @@
 		let factAbierta = $('#isAbierta').is(":checked");
 		let tipoSaldo = $('#opciones_saldo').val();
 		let valorSaldo = parseFloat($('#valor_saldo').val());
+		let plan = $('#item').val();
 
-		let options;
+		// let options = '';
 
 		if(estadoCliente){
-
+			
 			if(grupoCorte && servidor){
 				options = $(`.servidor-${servidor}.grupo-${grupoCorte}.${estadoCliente}`);
 			}else{
@@ -287,6 +302,9 @@
 				}
 				if(grupoCorte){
 					options = $(`.grupo-${servidor}.${estadoCliente}`);
+				}
+				if(plan){
+					options = $(`.plan-${plan}`);
 				}
 			}
 
@@ -310,6 +328,9 @@
 				}
 				if(grupoCorte){
 					 options = $(`#contrato_sms option[class*="grupo-${grupoCorte}"]`);
+				}
+				if(plan){
+					options = $(`.plan-${plan}`);
 				}
 			}
 

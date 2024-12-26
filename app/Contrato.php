@@ -57,9 +57,11 @@ class Contrato extends Model
     }
 
 	public function plan($tv = false){
+
         if($tv){
             return Inventario::find($this->servicio_tv);
         }
+    
 		return PlanesVelocidad::where('id', $this->plan_id)->first();
 	}
 

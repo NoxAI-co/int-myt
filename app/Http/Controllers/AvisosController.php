@@ -20,6 +20,7 @@ use App\Contacto;
 use App\Mikrotik;
 use App\GrupoCorte;
 use App\Instance;
+use App\Model\Inventario\Inventario;
 use App\Services\WapiService;
 use Illuminate\Support\Facades\Auth as Auth;
 use Illuminate\Support\Facades\Log;
@@ -176,6 +177,8 @@ class AvisosController extends Controller
         $contratos = $contratos->get();
 
         foreach ($contratos as $contrato) {
+
+            // return $contrato->plan();
             // Buscar factura en la tabla intermedia facturas_contratos
             $facturaContrato = Factura::join('facturas_contratos as fc', 'fc.factura_id', 'factura.id')
                 ->where('fc.contrato_nro', $contrato->nro)
@@ -209,7 +212,9 @@ class AvisosController extends Controller
         $servidores = Mikrotik::where('empresa', auth()->user()->empresa)->get();
         $gruposCorte = GrupoCorte::where('empresa', Auth::user()->empresa)->get();
 
-        return view('avisos.envio')->with(compact('plantillas','contratos','opcion','id', 'servidores', 'gruposCorte'));
+        $items = Inventario::where('status',1)->where('type','PLAN')->get();
+
+        return view('avisos.envio')->with(compact('plantillas','contratos','opcion','id', 'servidores', 'gruposCorte','items'));
     }
 
 

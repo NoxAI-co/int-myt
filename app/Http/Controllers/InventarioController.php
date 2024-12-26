@@ -1425,8 +1425,8 @@ class InventarioController extends Controller{
             'archivo.mimes' => 'El archivo debe ser de extensión xlsx'
         ]);
 
-        return $this->importarFacturasXlsx($request);
-        return "";
+        // return $this->importarFacturasXlsx($request);
+        // return "";
         if(isset($request->publico)){
             $publico=$request->publico;
         }

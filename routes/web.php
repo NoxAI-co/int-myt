@@ -983,7 +983,6 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
 	Route::resource('ordenes', 'OrdenesController');
 
 	//BANCOS
-
 	Route::get('/bancos/datatable/{id}', 'BancosController@datatable_movimientos')->name('bancos.movimientos.cuenta');
 	Route::get('/bancos/datatable/cliente/{cliente}', 'BancosController@datatable_movimientos_cliente')->name('bancos.cliente.movimientos.cuenta');
 	Route::get('/bancos/transferencia/{id}', 'BancosController@create_transferencia')->name('bancos.transferencia');
@@ -992,6 +991,7 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
 	Route::get('/bancos/ocultar/{id}', 'BancosController@ocultar')->name('bancos.ocultar');
     Route::get('bancos/{bancos}/destroy_lote', 'BancosController@destroy_lote')->name('bancos.destroy_lote');
 	Route::resource('bancos', 'BancosController');
+	Route::get('bancos/{bancos?}', 'BancosController@show')->name('bancos.show');
 
     //PAGOS RECURRENTES
 
