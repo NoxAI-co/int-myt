@@ -212,7 +212,7 @@ class AvisosController extends Controller
         $servidores = Mikrotik::where('empresa', auth()->user()->empresa)->get();
         $gruposCorte = GrupoCorte::where('empresa', Auth::user()->empresa)->get();
 
-        $items = Inventario::where('status',1)->where('type','PLAN')->get();
+        $items = Inventario::where('status',1)->whereIn('type',['PLAN','TV'])->get();
 
         return view('avisos.envio')->with(compact('plantillas','contratos','opcion','id', 'servidores', 'gruposCorte','items'));
     }
