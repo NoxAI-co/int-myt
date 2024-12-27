@@ -158,7 +158,7 @@
 
 									{{$contrato->c_nombre}} {{ $contrato->c_apellido1 }}
 									{{ $contrato->c_apellido2 }} - {{$contrato->c_nit}}
-									(contrato: {{ $contrato->nro }}) {{$contrato->plan_id != null ? "plan-" . $contrato->plan_id : 'plan-no' }}
+									(contrato: {{ $contrato->nro }})
 								</option>
         	                
         	                @endif
