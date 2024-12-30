@@ -197,13 +197,14 @@ class CronController extends Controller
 
                     $ultimaFactura = DB::table('facturas_contratos')
                     ->join('factura', 'facturas_contratos.factura_id', '=', 'factura.id')
+                    ->select('factura.*')
                     ->where('facturas_contratos.contrato_nro', $contrato->nro)
                     ->orderBy('factura.fecha', 'desc')
                     ->first();
 
                     $mesUltimaFactura = false;
                     if($ultimaFactura){
-                        $mesUltimaFactura = date('Y-m',strtotime($ultimaFactura->fecha));
+                        $mesUltimaFactura = date('Y-m',strtotime($ultimaFactura->created_at));
                         $mesActualFactura = date('Y-m',strtotime($fecha));
                     }
 
