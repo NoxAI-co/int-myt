@@ -195,6 +195,29 @@ class CronController extends Controller
 
                 foreach ($contratos as $contrato) {
 
+                    //validacion primer factura del contrato
+                    $creacion_contrato = Carbon::parse($contrato->created_at); //validacion nueva de created_at y no por fecha
+                    $dia_creacion_contrato = $creacion_contrato->day;
+                    $dia_creacion_factura = $grupo_corte->fecha_factura;
+
+                    // Determinar el mes y año para la primera factura
+                    if ($dia_creacion_contrato <= $dia_creacion_factura) {
+                        // Si el contrato se creó antes o el mismo día del corte, la factura es en el mismo mes
+                        $primer_fecha_factura = $creacion_contrato->copy()->day($dia_creacion_factura);
+                        $primer_fecha_factura = Carbon::parse($primer_fecha_factura)->format("Y-m-d");
+                    } else {
+                        // Si el contrato se creó después del corte, la factura es en el siguiente mes
+                        $primer_fecha_factura = $creacion_contrato->copy()->addMonth()->day($dia_creacion_factura);
+                        $primer_fecha_factura = Carbon::parse($primer_fecha_factura)->format("Y-m-d");
+                    }
+
+                    if(isset($primer_fecha_factura) &&
+                    Carbon::parse($fecha)->format("Y-m-d") == $primer_fecha_factura &&
+                    $contrato->fact_primer_mes == 0){
+                        continue;
+                    }
+                    //Fin validacion primer factura del contrato
+                    
                     $ultimaFactura = DB::table('facturas_contratos')
                     ->join('factura', 'facturas_contratos.factura_id', '=', 'factura.id')
                     ->select('factura.*')
@@ -204,7 +227,7 @@ class CronController extends Controller
 
                     $mesUltimaFactura = false;
                     if($ultimaFactura){
-                        $mesUltimaFactura = date('Y-m',strtotime($ultimaFactura->created_at));
+                        $mesUltimaFactura = date('Y-m',strtotime($ultimaFactura->created_at)); 
                         $mesActualFactura = date('Y-m',strtotime($fecha));
                     }
 
