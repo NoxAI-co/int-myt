@@ -137,10 +137,11 @@
                             <span class="value">{{ $details['contact'] }}</span>
                         </li>
                         <li><span class="title">Authorization Date:</span> 
-                            <span class="value"><a href="#">History</a></span>
+                            {{-- <span class="value"><a href="#">History</a></span> --}}
                         </li>
                         <li><span class="title">ONU External ID:</span> 
-                            <span class="value"><a href="#">{{ $details['unique_external_id'] }}</a></span>
+                            {{-- <span class="value"><a href="#">{{ $details['unique_external_id'] }}</a></span> --}}
+                            <span class="value">{{ $details['unique_external_id'] }}</span>
                         </li>
                     </ul>
                 </div>
@@ -167,7 +168,7 @@
                             <span class="value">{{ $details['mgmt_ip_mode'] }}</span>
                         </li>
                         <li><span class="title">WAN Setup Mode:</span> 
-                            <span class="value"><a href="#">Setup via ONU webpage</a></span> 
+                            {{-- <span class="value"><a href="#">Setup via ONU webpage</a></span>  --}}
                         </li>
                     </ul>
                 </div>
@@ -179,11 +180,14 @@
                     <ul class="list-unstyled">
                         <li>
                           <span class="title-2">Status:</span>
-                           <span class="value">
+                          {{-- segunda version --}}
+                          <span class="value">
+                            <span class="badge badge-info ml-1">Prontamente!</span></a>
+                            {{--
                                 <button class="btn btn-primary">Get Status</button>
                                 <button class="btn btn-primary">Show Running-Config</button>
                                 <button class="btn btn-primary">SW Info</button>
-                                <button class="btn btn-success">LIVE!</button>
+                                <button class="btn btn-success">LIVE!</button> --}}
                            </span>
                           
                         </li>
@@ -209,7 +213,8 @@
                 <li>                
                     <span class="title-2">Speed Profiles:</span>
                     <span class="value">
-                        <table>
+                        <span class="badge badge-info ml-1">Prontamente!</span></a>
+                        {{-- <table>
                             <thead>
                                 <tr>
                                     <th>Service-port ID</th>
@@ -228,7 +233,7 @@
                                     <td><a href="#">+ Configure</a></td>
                                 </tr>
                             </tbody>
-                        </table>
+                        </table> --}}
                     </span>
                 </li>
             </ul>
@@ -257,7 +262,10 @@
                                         <td>{{ $port['adminState'] }}</td>
                                         <td>{{ $port['mode'] }}</td>
                                         <td>{{ $port['dhcp'] }}</td>
-                                        <td><a href="#">+ Configure</a></td>
+                                        <td>
+                                            <span class="badge badge-info ml-1">Prontamente!</span></a>
+                                            {{-- <a href="#">+ Configure</a> --}}
+                                        </td>
                                     </tr>
                                     @endforeach
                                 </tbody>
