@@ -291,7 +291,7 @@
                     <span class="title-2"></span>
                     <span class="value">
                         <div class="buttons text-left">
-                            <button class="btn-reboot">Reboot</button>
+                            <button class="btn-reboot" onclick="">Reboot</button>
                             <button class="btn-resync">Resync config</button>
                             <button class="btn-restore">Restore defaults</button>
                             <button class="btn-disable">Disable ONU</button>

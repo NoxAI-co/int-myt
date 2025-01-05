@@ -1242,7 +1242,7 @@ public function forma_pago()
     }
 
     public function periodoCobradoTexto($tirilla=false){
-
+        Carbon::setLocale('es');
         $grupo = Contrato::join('grupos_corte as gc', 'gc.id', '=', 'contracts.grupo_corte')->
         where('contracts.id',$this->contrato_id)
         ->select('gc.*')->first();
@@ -1350,8 +1350,8 @@ public function forma_pago()
             //se comenta por que etsaba creando conflicto
 
             /* Validacion de mes anticipado o mes vencido */
-            $finCorte = Carbon::parse($finCorte)->toFormattedDateString();
-            $inicioCorte = Carbon::parse($inicioCorte)->toFormattedDateString();
+            $finCorte = Carbon::parse($finCorte)->translatedFormat('d F Y'); // Ejemplo: 02 enero 2025
+            $inicioCorte = Carbon::parse($inicioCorte)->translatedFormat('d F Y');
 
             $mensaje = ($tirilla) ? $inicioCorte." - ".$finCorte : "Periodo cobrado del " . $inicioCorte . " Al " . $finCorte;
 
