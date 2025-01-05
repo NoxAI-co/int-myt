@@ -291,11 +291,11 @@
                     <span class="title-2"></span>
                     <span class="value">
                         <div class="buttons text-left">
-                            <button class="btn-reboot" onclick="">Reboot</button>
-                            <button class="btn-resync">Resync config</button>
-                            <button class="btn-restore">Restore defaults</button>
-                            <button class="btn-disable">Disable ONU</button>
-                            <button class="btn-delete">Delete</button>
+                            <button class="btn-reboot" onclick="reboot_onu(`{{ $details['sn'] }}`)">Reboot</button>
+                            <button class="btn-resync" onclick="resync_config(`{{ $details['sn'] }}`)">Resync config</button>
+                            <button class="btn-restore" onclick="restore_factory_defaults(`{{ $details['sn'] }}`)">Restore defaults</button>
+                            <button class="btn-disable" onclick="disable_onu(`{{ $details['sn'] }}`)">Disable ONU</button>
+                            <button class="btn-delete" onclick="delete_onu(`{{$details['sn']}},{{$details['olt_id']}}`)">Delete</button>
                         </div>
                     </span>
                 </li>
@@ -309,5 +309,249 @@
 @endsection
 
 @section('scripts')
+<script>
+    function reboot_onu(sn){
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/reboot-onu';
+        }else{
+            var url = '/Olt/reboot-onu';
+        }
 
+        Swal.fire({
+        title: '¿Reiniciar dispositivo?',
+        text: "Se reiniciará este dispositivo",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Si, reiniciar'
+        }).then((result) => {
+            if (result.value) {
+
+                //procesando solicitud
+                msg_procesando();
+        
+            $.ajax({
+                url: url,
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                method: 'post',
+                data: {sn},
+                success: function (data) {	
+                    if(data.status == 200){
+                        Swal.fire({
+                            title: 'Dispositivo reiniciado correctamente!',
+                            type: 'success', 
+                            showConfirmButton: false,
+                            allowOutsideClick: false, 
+                        });
+                        let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
+                        window.location.href = url;
+                    }else{
+                        Swal.close();
+                        alert("Hubo un error comuniquese con soporte.")
+                    }
+                }
+            });
+            }
+        })
+    }
+
+    function resync_config(sn){
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/resync-config-onu';
+        }else{
+            var url = '/Olt/resync-config-onu';
+        }
+
+        Swal.fire({
+        title: '¿Resincronizar la onu?',
+        text: "La ONU será resincronizada",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Si, resincronizar'
+        }).then((result) => {
+            if (result.value) {
+
+                msg_procesando();
+        
+            $.ajax({
+                url: url,
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                method: 'post',
+                data: {sn},
+                success: function (data) {	
+                    if(data.status == 200){
+                        Swal.fire({
+                            title: 'ONU resincronizada correctamente!',
+                            type: 'success', 
+                            showConfirmButton: false,
+                            allowOutsideClick: false, 
+                        });
+                        let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
+                        window.location.href = url;
+                    }else{
+                        Swal.close();
+                        alert("Hubo un error comuniquese con soporte.")
+                    }
+                }
+            });
+            }
+        })
+    }
+
+    function restore_factory_defaults(sn){
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/restore-defaults';
+        }else{
+            var url = '/Olt/restore-defaults';
+        }
+
+        Swal.fire({
+        title: '¿Restaurar a los valores predeterminados de fábrica?',
+        text: "Esto borrará la configuración realizada por el usuario, incluido el SSID y la contraseña de WiFi, el reenvío de puertos, etc. Después de restaurar el estado predeterminado, la ONU aplicará automáticamente la configuración configurada en esta aplicación.",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Si, restaurar de fábrica'
+        }).then((result) => {
+            if (result.value) {
+
+                msg_procesando();
+        
+            $.ajax({
+                url: url,
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                method: 'post',
+                data: {sn},
+                success: function (data) {	
+                    if(data.status == 200){
+                        Swal.fire({
+                            title: 'ONU restaurada correctamente!',
+                            type: 'success', 
+                            showConfirmButton: false,
+                            allowOutsideClick: false, 
+                        });
+                        let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
+                        window.location.href = url;
+                    }else{
+                        Swal.close();
+                        alert("Hubo un error comuniquese con soporte.")
+                    }
+                }
+            });
+            }
+        })
+    }
+
+    function disable_onu(sn){
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/disable-onu';
+        }else{
+            var url = '/Olt/disable-onu';
+        }
+
+        Swal.fire({
+        title: '¿Desactivar ONU?',
+        text: "Esto cerrará administrativamente todos los servicios en esta ONU. ¿Continuar?",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Si, desactivar ONU'
+        }).then((result) => {
+            if (result.value) {
+
+                msg_procesando();
+        
+            $.ajax({
+                url: url,
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                method: 'post',
+                data: {sn},
+                success: function (data) {	
+                    if(data.status == 200){
+                        Swal.fire({
+                            title: 'ONU desactivada correctamente!',
+                            type: 'success', 
+                            showConfirmButton: false,
+                            allowOutsideClick: false, 
+                        });
+                        let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
+                        window.location.href = url;
+                    }else{
+                        Swal.close();
+                        alert("Hubo un error comuniquese con soporte.")
+                    }
+                }
+            });
+            }
+        })
+    }
+
+    function delete_onu(sn, olt_id){
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/delete-onu';
+        }else{
+            var url = '/Olt/delete-onu';
+        }
+
+        Swal.fire({
+        title: '¿Eliminar ONU?',
+        text: "¿Estás seguro de que quieres eliminar este dispositivo?",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Si, eliminar ONU'
+        }).then((result) => {
+            if (result.value) {
+
+                msg_procesando();
+        
+            $.ajax({
+                url: url,
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                method: 'post',
+                data: {sn},
+                success: function (data) {	
+                    if(data.status == 200){
+                        Swal.fire({
+                            title: 'ONU eliminada correctamente!',
+                            type: 'success', 
+                            showConfirmButton: false,
+                            allowOutsideClick: false, 
+                        });
+                        let url = `{{ route('olt.unconfigured') }}?olt=${olt_id}`;
+                        window.location.href = url;
+                    }else{
+                        Swal.close();
+                        alert("Hubo un error comuniquese con soporte.")
+                    }
+                }
+            });
+            }
+        })
+    }
+
+    function msg_procesando(){
+        Swal.fire({
+            title: 'Cargando...',
+            text: 'Por favor espera mientras se procesa la solicitud.',
+            type: 'info', 
+            showConfirmButton: false,
+            allowOutsideClick: false, 
+            didOpen: () => {
+                Swal.showLoading(); // Muestra el preloader de carga
+            }
+        });
+    }
+ </script>
 @endsection

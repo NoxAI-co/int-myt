@@ -184,7 +184,7 @@
         let sn = row.cells[4].innerText;
 
         Swal.fire({
-        title: 'Resincronizar la onu?',
+        title: '¿Resincronizar la onu?',
         text: "La onu será resincronizada",
         type: 'warning',
         showCancelButton: true,
@@ -247,7 +247,7 @@
         let sn = row.cells[4].innerText;
 
         Swal.fire({
-        title: 'Mover onu a el puerto correcto?',
+        title: '¿Mover onu a el puerto correcto?',
         text: "La onu se moverá al puerto " + port,
         type: 'warning',
         showCancelButton: true,

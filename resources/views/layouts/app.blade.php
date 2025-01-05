@@ -699,7 +699,7 @@
                 //     allowEnterKey: false,
                 // });
                 // @endif
-            });
+            })
         </script>
 
         <!-- End custom js for this page-->

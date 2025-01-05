@@ -456,6 +456,62 @@ class OltController extends Controller
         return $response;
     }
 
+    public function rebootOnu($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/reboot/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $response = json_decode($response,true);
+
+        curl_close($curl);
+
+        return $response;
+    }
+
+    public function restoreFactory($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/restore_factory_defaults/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $response = json_decode($response,true);
+
+        curl_close($curl);
+
+        return $response;
+    }
+
     public function resyncConfig(Request $request){
         $response = $this->resyncOnuConfig($request->sn);
 
@@ -469,6 +525,132 @@ class OltController extends Controller
             ]);
         }
   
+    }
+
+    public function disableOnu($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/disable/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $response = json_decode($response,true);
+
+        curl_close($curl);
+
+        return $response;
+    }
+
+    public function deleteOnu($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/delete/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $response = json_decode($response,true);
+
+        curl_close($curl);
+
+        return $response;
+    }
+
+    public function rebootOnuResponse(Request $request){
+        $response = $this->rebootOnu($request->sn);
+
+        if(isset($response['response']) && $response['status'] == true){
+            return response()->json([
+                'status' => 200
+            ]);
+        }else{
+            return response()->json([
+                'status' => 400
+            ]);
+        }
+    }
+
+    public function restoreFactoryResponse(Request $request){
+        $response = $this->restoreFactory($request->sn);
+
+        if(isset($response['response']) && $response['status'] == true){
+            return response()->json([
+                'status' => 200
+            ]);
+        }else{
+            return response()->json([
+                'status' => 400
+            ]);
+        }
+    }
+
+    public function restoreDefaultResponse(Request $request){
+        $response = $this->restoreDefault($request->sn);
+
+        if(isset($response['response']) && $response['status'] == true){
+            return response()->json([
+                'status' => 200
+            ]);
+        }else{
+            return response()->json([
+                'status' => 400
+            ]);
+        }
+    }
+
+    public function disableOnuResponse(Request $request){
+        $response = $this->disableOnu($request->sn);
+
+        if(isset($response['response']) && $response['status'] == true){
+            return response()->json([
+                'status' => 200
+            ]);
+        }else{
+            return response()->json([
+                'status' => 400
+            ]);
+        }
+    }
+
+    public function deleteOnuResponse(Request $request){
+        $response = $this->deleteOnu($request->sn);
+
+        if(isset($response['response']) && $response['status'] == true){
+            return response()->json([
+                'status' => 200
+            ]);
+        }else{
+            return response()->json([
+                'status' => 400
+            ]);
+        }
     }
 
     public function onu_type_image($onu_type_id){
@@ -587,7 +769,7 @@ class OltController extends Controller
         }else{
             return redirect('Olt/unconfigured-onus')->with('error', 'No hay una sn seleccionada');
         }
-
+        
         $details = $details['onus'][0];
 
         $image_onu_type = null;
