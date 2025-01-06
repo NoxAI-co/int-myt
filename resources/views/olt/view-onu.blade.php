@@ -151,10 +151,17 @@
                     <img src="{{ $image_onu_type }}" alt="wifi modem" class="img-fluid mb-4">
                     <ul class="list-unstyled">
                         <li><span class="title">Status:</span> 
-                            <span class="value">Power fail <i>(1 week ago)</i></span> 
+                            @if($diferenciaDias != null)
+                            <span class="value">Online <i class="fas fa-globe-americas" style="color:#4db14b"></i> hace {{ $diferenciaDias }} </span> 
+                            @else
+                            <span class="value">Power fail <i class="fas fa-globe-americas" style="color:red"></i></span> 
+                            @endif
                         </li>
                         <li><span class="title">ONU/OLT Rx Signal:</span> 
-                            <span class="value">-</span>
+                            <span class="value">{{ isset($signalOnu['Optical status']['OLT Rx']) ? $signalOnu['Optical status']['OLT Rx'] . "/" . $signalOnu['Optical status']['OLT Tx'] ."(" . $signalOnu['ONU details']['ONU Distance'] . ")"
+                            : 'none' }} 
+                            {{-- <i class="fas fa-signal"></i> --}}
+                            </span>
                         </li>
                         <li><span class="title">Attached VLANs:</span> 
                             <span class="value"><a href="#">{{ $details['vlan'] }}</a></span>

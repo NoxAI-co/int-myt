@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Empresa;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -456,6 +457,34 @@ class OltController extends Controller
         return $response;
     }
 
+    public function getFullOnuSignal($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/get_onu_full_status_info/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $response = json_decode($response,true);
+
+        curl_close($curl);
+
+        return $response;
+    }
+
     public function rebootOnu($sn){
         $empresa = Empresa::Find(Auth::user()->empresa);
 
@@ -795,6 +824,36 @@ class OltController extends Controller
 
         }
 
+        $signalOnu = $this->getFullOnuSignal($sn);
+        $signalOnu = $signalOnu['full_status_json'];
+
+        if(isset($signalOnu['ONU details']['Online Duration'])){
+            // Extrae solo las horas
+            preg_match('/(\d+)h/', $signalOnu['ONU details']['Online Duration'], $matches);
+
+            // Extrae solo las horas
+            preg_match('/(\d+)h/', $signalOnu['ONU details']['Online Duration'], $matches);
+
+            if (!empty($matches[1])) {
+                $hours = (int) $matches[1]; // Convierte a entero
+                $days = floor($hours / 24); // Calcula los días completos
+                $remainingHours = $hours % 24; // Horas restantes después de contar los días
+
+                $diferenciaDias= $days . ' dias ' . $remainingHours . ' horas';
+            } else {
+                echo "Formato de duración no reconocido.";
+            }
+
+            if (!empty($matches[1])) {
+                $hours = (int) $matches[1]; // Convierte a entero
+                echo "Horas: " . $hours;
+            } else {
+                $diferenciaDias = null;
+            }
+        }else{
+            $diferenciaDias = null;
+        }
+
         $ethernetPorts = [
             ['name' => 'eth_0/1', 'adminState' => 'Enabled', 'mode' => 'LAN', 'dhcp' => 'No control'],
             ['name' => 'eth_0/2', 'adminState' => 'Enabled', 'mode' => 'LAN', 'dhcp' => 'No control'],
@@ -802,6 +861,7 @@ class OltController extends Controller
             ['name' => 'eth_0/4', 'adminState' => 'Enabled', 'mode' => 'LAN', 'dhcp' => 'No control'],
         ];
 
-        return view('olt.view-onu',compact('details','image_onu_type','ethernetPorts','onu_traffic_graph','onu_signal_graph'));
+        return view('olt.view-onu',compact('details','image_onu_type','ethernetPorts','onu_traffic_graph',
+        'onu_signal_graph','signalOnu','diferenciaDias'));
     }
 }
