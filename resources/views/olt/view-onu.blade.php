@@ -158,7 +158,7 @@
                             @endif
                         </li>
                         <li><span class="title">ONU/OLT Rx Signal:</span> 
-                            <span class="value">{{ isset($signalOnu['Optical status']['OLT Rx']) ? $signalOnu['Optical status']['OLT Rx'] . "/" . $signalOnu['Optical status']['OLT Tx'] ."(" . $signalOnu['ONU details']['ONU Distance'] . ")"
+                            <span class="value">{{ isset($signalOnu['Optical status']['OLT Rx']) ? $signalOnu['Optical status']['ONU Rx'] . "/" . $signalOnu['Optical status']['OLT Rx'] ."(" . $signalOnu['ONU details']['ONU Distance'] . ")"
                             : 'none' }} 
                             {{-- <i class="fas fa-signal"></i> --}}
                             </span>
