@@ -404,12 +404,12 @@ class IngresosController extends Controller
             $nro = Numeracion::where('empresa', $user->empresa)->first();
             $caja = $nro->caja;
 
-            while (true) {
-                $numero = Ingreso::where('empresa', $user->empresa)->where('nro', $caja)->count();
-                if ($numero == 0) {
-                    break;
-                }
-                $caja++;
+             // Validacion para que solo asigne numero consecutivo si no existe.
+             while (Ingreso::where('empresa', $user->empresa)->where('nro', $caja)->first()) {
+                $nro = $nro->fresh();
+                $caja=$nro->caja;
+                $nro->caja += 1;
+                $nro->save();
             }
 
             if(isset($request->uso_saldo) && $request->uso_saldo){

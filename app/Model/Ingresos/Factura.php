@@ -1343,6 +1343,17 @@ public function forma_pago()
             }
             else{
                 if($empresa->periodo_facturacion == 1){
+
+                    //validacion 29 de febrero para que tome 28
+                    $diafinValidar = Carbon::parse($finCorte)->format('d');
+                    $mesfinValidar = Carbon::parse($finCorte)->format('m');
+                    $yearfinValidar = Carbon::parse($finCorte)->format('Y');
+                    
+                    if($diafinValidar == 29 && $mesfinValidar==1){
+                        $finCorte = $diafinValidar-1  ."-" . $mesfinValidar . "-" . $yearfinValidar;
+                    }
+                    
+
                     $finCorte = Carbon::parse($finCorte)->addMonth();
                     $inicioCorte =  $inicioCorte->addMonth();
                 }
