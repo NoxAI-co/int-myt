@@ -288,6 +288,7 @@
 			</div>
 		</div>
     	<div class="col-md-12">
+            @if(isset($_SESSION['permisos']['860']))
     		<table class="table table-striped table-hover w-100" id="tabla-contratos">
     			<thead class="thead-dark">
     				<tr>
@@ -298,6 +299,7 @@
     				</tr>
     			</thead>
     		</table>
+            @endif
     	</div>
     </div>
 
