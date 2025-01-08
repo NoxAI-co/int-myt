@@ -235,7 +235,9 @@
 
                     <div class="row">
         				<div class="col-md-12 pl-1 pt-1 text-center">
+                            @if(isset($_SESSION['permisos']['860']))
         					<a href="javascript:cerrarFiltrador()" class="btn btn-icons ml-1 btn-outline-danger rounded btn-sm p-1" title="Limpiar parámetros de busqueda"><i class="fas fa-times"></i></a>
+                            @endif
         					<a href="javascript:void(0)" id="filtrar" class="btn btn-icons btn-outline-info rounded btn-sm p-1" title="Iniciar busqueda avanzada"><i class="fas fa-search"></i></a>
         					@if(isset($_SESSION['permisos']['799']))
         					<a href="javascript:exportar()" class="btn btn-icons mr-1 btn-outline-success rounded btn-sm p-1" title="Exportar"><i class="fas fa-file-excel"></i></a>
@@ -288,7 +290,6 @@
 			</div>
 		</div>
     	<div class="col-md-12">
-            @if(isset($_SESSION['permisos']['860']))
     		<table class="table table-striped table-hover w-100" id="tabla-contratos">
     			<thead class="thead-dark">
     				<tr>
@@ -299,7 +300,6 @@
     				</tr>
     			</thead>
     		</table>
-            @endif
     	</div>
     </div>
 
@@ -395,10 +395,16 @@
             var nro_orden = {{ $campo->orden }};
         @endif
     @endforeach
+    
     var tabla = null;
+    var isDataTableInitialized = false;  // Nueva variable para controlar la inicialización
+    var tienePermiso860 = @json(isset($_SESSION['permisos']['860']));
+    
     window.addEventListener('load',
     function() {
-		var tabla = $('#tabla-contratos').DataTable({
+
+        if (tienePermiso860) {
+            tabla = $('#tabla-contratos').DataTable({
 			responsive: true,
 			serverSide: true,
 			processing: true,
@@ -449,38 +455,39 @@
             @endif
 		});
 
-        tabla.on('preXhr.dt', function(e, settings, data) {
-            data.nro = $('#nro').val();
-			data.cliente_id = $('#client_id').val();
-            data.plan = $('#plan').val();
-            data.plan_tv = $('#plan_tv').val();
-            data.state = $('#state').val();
-			data.grupo_corte = $('#grupo_cort').val();
-			data.ip = $('#ip').val();
-			data.mac = $('#mac').val();
-            data.conexion = $("#conexion_s").val();
-            data.server_configuration_id = $("#server_configuration_id_s").val();
-            data.interfaz = $("#interfaz_s").val();
-            data.nodo = $("#nodo_s").val();
-            data.ap = $("#ap_s").val();
-            data.c_barrio = $("#barrio").val();
-            data.c_direccion = $("#direccion").val();
-            data.c_direccion_precisa = $("#direccion_precisa").val();
-            data.c_celular = $("#celular").val();
-            data.c_email = $("#email").val();
-            data.vendedor = $("#vendedor").val();
-            data.canal = $("#canal").val();
-            data.tecnologia = $("#tecnologia_s").val();
-            data.facturacion = $("#facturacion_s").val();
-            data.desde = $("#desde").val();
-            data.hasta = $("#hasta").val();
-            data.tipo_contrato = $("#tipo_contrato").val();
-            data.otra_opcion = $("#otra_opcion").val();
-            data.fecha_corte = $("#fecha-corte").val();
-            data.sin_facturas_check = $('#sin_facturas_check').is(':checked');
-            data.fecha_sin_facturas = $('#fecha_sin_facturas').val();
-            data.filtro = true;
-        });
+            tabla.on('preXhr.dt', function(e, settings, data) {
+                data.nro = $('#nro').val();
+                data.cliente_id = $('#client_id').val();
+                data.plan = $('#plan').val();
+                data.plan_tv = $('#plan_tv').val();
+                data.state = $('#state').val();
+                data.grupo_corte = $('#grupo_cort').val();
+                data.ip = $('#ip').val();
+                data.mac = $('#mac').val();
+                data.conexion = $("#conexion_s").val();
+                data.server_configuration_id = $("#server_configuration_id_s").val();
+                data.interfaz = $("#interfaz_s").val();
+                data.nodo = $("#nodo_s").val();
+                data.ap = $("#ap_s").val();
+                data.c_barrio = $("#barrio").val();
+                data.c_direccion = $("#direccion").val();
+                data.c_direccion_precisa = $("#direccion_precisa").val();
+                data.c_celular = $("#celular").val();
+                data.c_email = $("#email").val();
+                data.vendedor = $("#vendedor").val();
+                data.canal = $("#canal").val();
+                data.tecnologia = $("#tecnologia_s").val();
+                data.facturacion = $("#facturacion_s").val();
+                data.desde = $("#desde").val();
+                data.hasta = $("#hasta").val();
+                data.tipo_contrato = $("#tipo_contrato").val();
+                data.otra_opcion = $("#otra_opcion").val();
+                data.fecha_corte = $("#fecha-corte").val();
+                data.sin_facturas_check = $('#sin_facturas_check').is(':checked');
+                data.fecha_sin_facturas = $('#fecha_sin_facturas').val();
+                data.filtro = true;
+            });
+        }
 
         $('#filtrar').on('click', function(e) {
 			getDataTable();
@@ -542,8 +549,11 @@
     });
 
     function getDataTable() {
-        $('#tabla-contratos').DataTable().ajax.reload();
-	}
+    tablaValidateData();
+    if (isDataTableInitialized) {
+        tabla.ajax.reload();  // Recarga solo si ya se ha inicializado
+    }
+}
 
 	function abrirFiltrador() {
 		if ($('#form-filter').hasClass('d-none')) {
@@ -896,6 +906,91 @@
         $('#form-dinamic-action').submit();
         $('#form-dinamic-action').attr('action', '');
     }
+
+    function tablaValidateData() {
+        if (!isDataTableInitialized) {  // Solo inicializa si no está ya creado
+        tabla = $('#tabla-contratos').DataTable({
+            responsive: true,
+            serverSide: true,
+            processing: true,
+            searching: false,
+            language: {
+                'url': '/vendors/DataTables/es.json'
+            },
+            ordering: true,
+            order: [
+                [0, "desc"]
+            ],
+            "pageLength": {{ Auth::user()->empresa()->pageLength }},
+            ajax: '{{url("/contratos/0")}}',
+            headers: {
+                'X-CSRF-TOKEN': '{{csrf_token()}}'
+            },
+            columns: [
+                @foreach($tabla as $campo)
+                { data: '{{$campo->campo}}' },
+                @endforeach
+                { data: 'acciones' }
+            ],
+            columnDefs: [{
+                type: 'ip-address', targets: 'nro_orden'
+            }],
+            @if(isset($_SESSION['permisos']['778']))
+            select: true,
+            select: {
+                style: 'multi',
+            },
+            dom: 'Blfrtip',
+            buttons: [{
+                text: '<i class="fas fa-check"></i> Seleccionar todos',
+                action: function() {
+                    tabla.rows({ page: 'current' }).select();
+                }
+            },
+            {
+                text: '<i class="fas fa-times"></i> Deseleccionar todos',
+                action: function() {
+                    tabla.rows({ page: 'current' }).deselect();
+                }
+            }]
+            @endif
+        });
+
+        tabla.on('preXhr.dt', function(e, settings, data) {
+                data.nro = $('#nro').val();
+                data.cliente_id = $('#client_id').val();
+                data.plan = $('#plan').val();
+                data.plan_tv = $('#plan_tv').val();
+                data.state = $('#state').val();
+                data.grupo_corte = $('#grupo_cort').val();
+                data.ip = $('#ip').val();
+                data.mac = $('#mac').val();
+                data.conexion = $("#conexion_s").val();
+                data.server_configuration_id = $("#server_configuration_id_s").val();
+                data.interfaz = $("#interfaz_s").val();
+                data.nodo = $("#nodo_s").val();
+                data.ap = $("#ap_s").val();
+                data.c_barrio = $("#barrio").val();
+                data.c_direccion = $("#direccion").val();
+                data.c_direccion_precisa = $("#direccion_precisa").val();
+                data.c_celular = $("#celular").val();
+                data.c_email = $("#email").val();
+                data.vendedor = $("#vendedor").val();
+                data.canal = $("#canal").val();
+                data.tecnologia = $("#tecnologia_s").val();
+                data.facturacion = $("#facturacion_s").val();
+                data.desde = $("#desde").val();
+                data.hasta = $("#hasta").val();
+                data.tipo_contrato = $("#tipo_contrato").val();
+                data.otra_opcion = $("#otra_opcion").val();
+                data.fecha_corte = $("#fecha-corte").val();
+                data.sin_facturas_check = $('#sin_facturas_check').is(':checked');
+                data.fecha_sin_facturas = $('#fecha_sin_facturas').val();
+                data.filtro = true;
+            });
+        isDataTableInitialized = true;  // Marca como inicializado
+    }
+}
 
 </script>
 @endsection
