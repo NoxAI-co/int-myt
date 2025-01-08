@@ -128,8 +128,8 @@ class CronController extends Controller
                 $state[] = 'disabled';
             }
 
-            foreach($grupos_corte as $grupo_corte){
-
+            foreach($grupos_corte as $grupo_corte){ 
+ 
                 $contratos = Contrato::join('contactos as c', 'c.id', '=', 'contracts.client_id')->
                 join('empresas as e', 'e.id', '=', 'contracts.empresa')
                 ->select('contracts.id', 'contracts.iva_factura', 'contracts.public_id', 'c.id as cliente',
