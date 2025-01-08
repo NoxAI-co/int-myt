@@ -487,6 +487,7 @@
                 data.fecha_sin_facturas = $('#fecha_sin_facturas').val();
                 data.filtro = true;
             });
+            isDataTableInitialized = true;
         }
 
         $('#filtrar').on('click', function(e) {
@@ -549,9 +550,10 @@
     });
 
     function getDataTable() {
-    tablaValidateData();
     if (isDataTableInitialized) {
         tabla.ajax.reload();  // Recarga solo si ya se ha inicializado
+    }else{
+    tablaValidateData();
     }
 }
 
