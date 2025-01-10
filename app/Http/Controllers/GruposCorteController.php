@@ -440,15 +440,21 @@ class GruposCorteController extends Controller
                 array_push($grupos_corte_array,$grupo->id);
             }
 
-            $contactos = Contacto::join('factura as f','f.cliente','=','contactos.id')->
-                join('contracts as cs','cs.client_id','=','contactos.id')->
+            $contactos = $contactos = Contacto::join('factura as f','f.cliente','=','contactos.id')->
+                leftJoin('facturas_contratos as fcs', 'fcs.factura_id', '=', 'f.id')
+                ->leftJoin('contracts as cs', function ($join) {
+                    $join->on('cs.nro', '=', 'fcs.contrato_nro')
+                         ->orOn('cs.id', '=', 'f.contrato_id');
+                })->
                 join('grupos_corte as gp', 'gp.id', '=', 'cs.grupo_corte')->
-                select('gp.nombre as grupo', 'gp.id as idGrupo', 'contactos.id', 'contactos.nombre', 'contactos.nit', 'f.id as factura', 'f.codigo', 'f.estatus', 'f.suspension', 'cs.state', 'f.contrato_id')->
+                select('gp.nombre as grupo', 'gp.id as idGrupo', 'contactos.id', 'contactos.nombre', 'contactos.nit', 
+                'f.id as factura', 'f.codigo', 'f.estatus', 'f.suspension', 'cs.state', 'f.contrato_id')->
                 where('f.estatus',1)->
                 whereIn('f.tipo', [1,2])->
                 where('f.vencimiento', $fecha)->
                 where('contactos.status',1)->
                 where('cs.state','enabled')->
+                where('cs.server_configuration_id','!=',null)-> 
                 whereIn('cs.grupo_corte',$grupos_corte_array)->
                 where('cs.fecha_suspension', null);
 
@@ -459,16 +465,26 @@ class GruposCorteController extends Controller
                 $contactos = $contactos->get()->all();
                 $swGrupo = 1; //masivo
         }else{
-            $contactos = Contacto::join('factura as f','f.cliente','=','contactos.id')->
-            join('contracts as cs','cs.client_id','=','contactos.id')->
-            join('grupos_corte as gp', 'gp.id', '=', 'cs.grupo_corte')->
-            select('gp.nombre as grupo', 'gp.id as idGrupo', 'contactos.id', 'contactos.nombre', 'contactos.nit', 'f.id as factura', 'f.estatus', 'f.suspension', 'f.codigo', 'cs.state', 'f.contrato_id')->
-            where('f.estatus',1)->
-            whereIn('f.tipo', [1,2])->
-            where('f.vencimiento', $fecha)->
-            where('contactos.status',1)->
-            where('cs.state','enabled')->
-            where('cs.fecha_suspension', null);
+            $contactos = Contacto::join('factura as f', function($join) {
+                    $join->on('f.cliente', '=', 'contactos.id')
+                         ->whereRaw('f.id = (SELECT MAX(f1.id) FROM factura f1 WHERE f1.cliente = contactos.id)');
+                })
+                ->leftJoin('facturas_contratos as fcs', 'fcs.factura_id', '=', 'f.id')
+                ->leftJoin('contracts as cs', function ($join) {
+                    $join->on('cs.nro', '=', 'fcs.contrato_nro')
+                         ->orOn('cs.id', '=', 'f.contrato_id');
+                })
+                ->join('grupos_corte as gp', 'gp.id', '=', 'cs.grupo_corte')
+                ->select('gp.nombre as grupo', 'gp.id as idGrupo', 'contactos.id', 'contactos.nombre', 'contactos.nit', 
+                    'f.id as factura', 'f.estatus', 'f.suspension', 'f.codigo', 'cs.state', 'f.contrato_id'
+                )
+                ->where('f.estatus', 1)
+                ->whereIn('f.tipo', [1, 2])
+                ->where('f.vencimiento', $fecha)
+                ->where('contactos.status', 1)
+                ->where('cs.state', 'enabled')
+                ->where('cs.server_configuration_id','!=',null)
+                ->where('cs.fecha_suspension', null);
 
             if($grupo){
                 $contactos->where('gp.id', $grupo);
@@ -476,7 +492,6 @@ class GruposCorteController extends Controller
 
 
             $contactos = $contactos->get()->all();
-           // dd($contactos);
             $swGrupo = 0; // personalizado
         }
 
@@ -534,8 +549,6 @@ class GruposCorteController extends Controller
         $facturasGeneradas =  $facturasGeneradas->groupBy('factura.id')->
                                      orderby('id', 'desc')->
                                      get();
-
-
 
         $request = request();
 
