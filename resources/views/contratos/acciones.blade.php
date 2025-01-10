@@ -54,3 +54,9 @@ onclick="confirmar('cambiar-statecatv{{$id}}',
 </a>
 @endif
 @endif
+
+@if($serial_onu != null && isset($_SESSION['permisos']['859']))
+<a class="btn btn-icons btn-outline-primary" title="ver configuracion olt" href="{{ route('olt.view-onu',$serial_onu) }}">
+    <i class="fas fa-wrench"></i>
+</a>
+@endif
