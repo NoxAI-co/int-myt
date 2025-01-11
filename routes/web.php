@@ -1412,6 +1412,7 @@ Route::get('/GoogleAnalytics', 'GoogleAnalyticsController@index')->name('Google.
         Route::post('opciones_dian', 'ContratosController@opcion_dian');
 
 		Route::get('registro-crm/{contrato}', 'ContratosController@forzarCrm')->name('contratos.crm.forzar');
+		Route::get('/cambiar-etiqueta/{etiqueta}/{contrato}', 'ContratosController@cambiarEtiqueta')->name('contratos.cambiar.etiqueta');
 
 	});
 
