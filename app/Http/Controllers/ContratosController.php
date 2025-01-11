@@ -74,6 +74,7 @@ class ContratosController extends Controller
     public function index(Request $request){
 
         $this->getAllPermissions(Auth::user()->id);
+        $etiquetas = Etiqueta::where('empresa_id', auth()->user()->empresa)->get();
         $clientes = (Auth::user()->oficina && Auth::user()->empresa()->oficina) ? Contacto::whereIn('tipo_contacto', [0,2])->where('status', 1)->where('empresa', Auth::user()->empresa)->where('oficina', Auth::user()->oficina)->orderBy('nombre', 'ASC')->get() : Contacto::whereIn('tipo_contacto', [0,2])->where('status', 1)->where('empresa', Auth::user()->empresa)->orderBy('nombre', 'ASC')->get();
         $planes = PlanesVelocidad::where('status', 1)->where('empresa', Auth::user()->empresa)->get();
         $planestv = Inventario::where('type', 'like', '%TV%')->get();
@@ -86,7 +87,7 @@ class ContratosController extends Controller
         $aps = AP::where('status',1)->where('empresa', Auth::user()->empresa)->get();
         $vendedores = Vendedor::where('empresa',Auth::user()->empresa)->where('estado',1)->get();
         $canales = Canal::where('empresa',Auth::user()->empresa)->where('status', 1)->get();
-        return view('contratos.indexnew', compact('clientes','planes','planestv','servidores','grupos','tipo','tabla','nodos','aps', 'vendedores', 'canales'));
+        return view('contratos.indexnew', compact('etiquetas','clientes','planes','planestv','servidores','grupos','tipo','tabla','nodos','aps', 'vendedores', 'canales'));
     }
 
     public function disabled(Request $request){
@@ -4524,6 +4525,17 @@ class ContratosController extends Controller
             return view('contratos.show')->with(compact('contrato', 'inventario'));
         }
         return redirect('empresa/contratos')->with('danger', 'EL CONTRATO DE SERVICIOS NO HA ENCONTRADO');
+    }
+
+    public function cambiarEtiqueta($etiqueta, $contrato){
+
+        $contrato =  Contrato::where('id', $contrato)->where('empresa', Auth::user()->empresa)->first();
+
+        $contrato->etiqueta_id = $etiqueta;
+
+        $contrato->update();
+
+        return $contrato->etiqueta;
     }
 
 }
