@@ -65,6 +65,10 @@ class Contrato extends Model
 		return PlanesVelocidad::where('id', $this->plan_id)->first();
 	}
 
+    public function etiqueta(){
+        return $this->belongsTo(Etiqueta::class);
+    }
+
     public function usado(){
         $tmp        = 0;
         $tmp        += Factura::where('cliente', $this->id)->count();
