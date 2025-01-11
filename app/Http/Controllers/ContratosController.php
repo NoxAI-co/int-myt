@@ -45,6 +45,7 @@ use App\Campos;
 use App\Puerto;
 use App\Oficina;
 use App\CRM;
+use App\Etiqueta;
 use App\Model\Ingresos\Factura;
 use App\Model\Ingresos\ItemsFactura;
 use Illuminate\Support\Facades\Auth as Auth;
@@ -122,6 +123,8 @@ class ContratosController extends Controller
 
     public function contratos(Request $request, $nodo){
         $this->getAllPermissions(Auth::user()->id);
+        
+        $etiquetas = Etiqueta::where('empresa_id', auth()->user()->empresa)->get();
         $modoLectura = auth()->user()->modo_lectura();
         $contratosql = $contratos = Contrato::query()
 			->select('contracts.*', 'contactos.id as c_id', 'contactos.nombre as c_nombre',
@@ -298,6 +301,12 @@ class ContratosController extends Controller
                     $query->orWhere('contactos.estrato', 'like', "%{$request->c_estrato}%");
                 });
             }
+
+            if($request->etiqueta_id){
+                $contratos->where(function ($query) use ($request) {
+                    $query->orWhere('contracts.etiqueta_id', $request->etiqueta_id);
+                });
+            }
             // ... otros filtros
 
             if ($request->sin_facturas_check && $request->fecha_sin_facturas) {
@@ -385,6 +394,9 @@ class ContratosController extends Controller
             })
             ->editColumn('nit', function (Contrato $contrato) {
                 return '('.$contrato->cliente()->tip_iden('mini').') '.$contrato->c_nit;
+            })
+            ->addColumn('etiqueta', function(Contrato $contrato)use ($etiquetas){
+                return view('contratos.etiqueta', compact('etiquetas','contrato'));
             })
             ->editColumn('telefono', function (Contrato $contrato) {
                 return $contrato->c_telefono;
@@ -492,6 +504,9 @@ class ContratosController extends Controller
             })
             ->editColumn('observaciones', function (Contrato $contrato) {
                 return ($contrato->observaciones) ? $contrato->observaciones : 'N/A';
+            })
+            ->addColumn('etiqueta', function(Contacto $contacto)use ($etiquetas){
+                return view('contactos.etiqueta', compact('etiquetas','contacto'));
             })
             ->editColumn('acciones', $modoLectura ?  "" : "contratos.acciones")
             ->rawColumns(['nro', 'client_id', 'nit', 'telefono', 'email', 'barrio', 'plan', 'mac', 'ipformat', 'grupo_corte', 'state', 'pago', 'servicio', 'factura', 'servicio_tv', 'acciones', 'vendedor', 'canal', 'tecnologia', 'observaciones', 'created_at'])
