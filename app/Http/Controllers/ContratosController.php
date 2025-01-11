@@ -380,7 +380,7 @@ class ContratosController extends Controller
             ->join('contactos', 'contracts.client_id', '=', 'contactos.id')
             ->join('municipios', 'contactos.fk_idmunicipio', '=', 'municipios.id')
             ->whereIn('contracts.id',$arrayContratos);
-        }
+        } 
 
         return datatables()->eloquent($contratos)
             ->editColumn('nro', function (Contrato $contrato) {
