@@ -1588,11 +1588,8 @@ class ContratosController extends Controller
                     $contrato->contrasena_wifi         = $request->contrasena_wifi;
                     $contrato->ip_receptora            = $request->ip_receptora;
                     $contrato->puerto_receptor         = $request->puerto_receptor;
-                    
-                    if(isset($request->olt_sn_mac)){
-                        $contrato->olt_sn_mac              = $request->olt_sn_mac;
-                        $contrato->state_olt_catv          = $request->state_olt_catv;
-                    }
+                    $contrato->olt_sn_mac              = isset($request->olt_sn_mac) ? $request->olt_sn_mac : null;
+                    $contrato->state_olt_catv          = isset($request->state_olt_catv) ? $request->state_olt_catv : 0;
 
                     if($request->olt_sn_mac && $empresa->adminOLT != null && isset($request->state_olt_catv)){
 
