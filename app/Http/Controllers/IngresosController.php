@@ -407,8 +407,8 @@ class IngresosController extends Controller
              // Validacion para que solo asigne numero consecutivo si no existe.
              while (Ingreso::where('empresa', $user->empresa)->where('nro', $caja)->first()) {
                 $nro = $nro->fresh();
+                $nro->caja+= 1;
                 $caja=$nro->caja;
-                $nro->caja += 1;
                 $nro->save();
             }
 

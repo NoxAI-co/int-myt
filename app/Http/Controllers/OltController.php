@@ -784,6 +784,32 @@ class OltController extends Controller
         return $response;
     }
 
+
+    public function onu_signal($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/get_onu_signal/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        return $response;
+    }
+
     public function viewOnu(Request $request){
 
         $sn = $request->sn;
@@ -825,6 +851,7 @@ class OltController extends Controller
         }
 
         $signalOnu = $this->getFullOnuSignal($sn);
+        $onlySignal = $this->onu_signal($sn);
         $signalOnu = $signalOnu['full_status_json'];
 
         if(isset($signalOnu['ONU details']['Online Duration'])){
@@ -862,6 +889,6 @@ class OltController extends Controller
         ];
 
         return view('olt.view-onu',compact('details','image_onu_type','ethernetPorts','onu_traffic_graph',
-        'onu_signal_graph','signalOnu','diferenciaDias'));
+        'onu_signal_graph','signalOnu','diferenciaDias','onlySignal'));
     }
 }
