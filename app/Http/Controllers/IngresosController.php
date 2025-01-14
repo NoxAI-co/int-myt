@@ -1105,7 +1105,10 @@ class IngresosController extends Controller
     public function show($id){
         
         $this->getAllPermissions(Auth::user()->id);
+
         $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+        $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
+        
         if ($ingreso) {
             if ($ingreso->tipo==1) {
                 $titulo='Pago a facturas de venta';
@@ -1397,7 +1400,7 @@ class IngresosController extends Controller
     }
 
     public function imprimirTirilla($id, $tipo='original'){
-        
+
         view()->share(['title' => 'Imprimir Ingreso']);
         $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
         $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
