@@ -10,8 +10,12 @@ use Illuminate\Support\Facades\Auth;
 class OltController extends Controller
 {
     public function unConfiguredOnus_view(Request $request){
-
-        $this->getAllPermissions(Auth::user()->id);
+        
+        if(Auth::user()){
+            $this->getAllPermissions(Auth::user()->id);
+        }else{
+            return redirect()->back()->with('error','No hay un usuario autenticado.');
+        }
 
         view()->share(['title' => 'Olt - Onu Unconfigured', 'icon' => '', 'seccion'=>'']);
 
@@ -818,7 +822,7 @@ class OltController extends Controller
         
         if($sn){
             $details = $this->getOnuDetailsBySn($sn);
-            if($details['status'] != true){
+            if($details['status'] != true || !isset($details['onus'][0])){
                 return redirect('Olt/unconfigured-onus')->with('error', 'Error al mirar la informacion de la onu');
             }
         }else{
@@ -852,7 +856,9 @@ class OltController extends Controller
 
         $signalOnu = $this->getFullOnuSignal($sn);
         $onlySignal = $this->onu_signal($sn);
-        $signalOnu = $signalOnu['full_status_json'];
+        if(isset($signalOnu['full_status_json'])){
+            $signalOnu = $signalOnu['full_status_json'];
+        }
 
         if(isset($signalOnu['ONU details']['Online Duration'])){
             // Extrae solo las horas
