@@ -1087,7 +1087,9 @@ class IngresosController extends Controller
 
     public function showMovimiento($id){
         $this->getAllPermissions(Auth::user()->id);
+
         $ingreso = Ingreso::find($id);
+        $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
         /*
         obtenemos los movimiento sque ha tenido este documento
         sabemos que se trata de un tipo de movimiento 03
@@ -1124,7 +1126,8 @@ class IngresosController extends Controller
 
     public function edit($id){
         $this->getAllPermissions(Auth::user()->id);
-        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('nro', $id)->first();
+        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+        $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
 
         //tomamos las formas de pago cuando no es un recibo de caja por anticipo
         $formas = FormaPago::where('relacion',1)->orWhere('relacion',3)->get();
@@ -1372,7 +1375,9 @@ class IngresosController extends Controller
 
     public function Imprimir($id){
         view()->share(['title' => 'Imprimir Ingreso']);
-        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('nro', $id)->first();
+        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+        $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
+
         if ($ingreso) {
             if ($ingreso->tipo==1) {
                 $itemscount=IngresosFactura::where('ingreso',$ingreso->id)->count();
@@ -1392,8 +1397,11 @@ class IngresosController extends Controller
     }
 
     public function imprimirTirilla($id, $tipo='original'){
+        
         view()->share(['title' => 'Imprimir Ingreso']);
-        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('nro', $id)->first();
+        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+        $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
+
         if ($ingreso) {
             if ($ingreso->tipo==1) {
                 $itemscount=IngresosFactura::where('ingreso',$ingreso->id)->count();
@@ -1479,7 +1487,10 @@ class IngresosController extends Controller
     }
 
     public function anular($id){
-        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('nro', $id)->first();
+
+        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+        $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
+
         if ($ingreso) {
             $ingreso->updated_by = Auth::user()->id;
             if ($ingreso->tipo==3) {
@@ -1526,7 +1537,10 @@ class IngresosController extends Controller
     }
 
     public function destroy($id){
-        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('nro', $id)->first();
+
+        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+        $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
+
         if ($ingreso) {
             if ($ingreso->tipo==3) {
                 return redirect('empresa/pagos')->with('error', 'No puede editar un pago de nota de débito');
@@ -1956,7 +1970,10 @@ class IngresosController extends Controller
     }
 
     function tirillaWpp($nro, WapiService $wapiService){
-        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('nro', $nro)->first();
+
+        $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('id', $nro)->first();
+        $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
+
         if ($ingreso) {
             if ($ingreso->tipo==1) {
                 $itemscount=IngresosFactura::where('ingreso',$ingreso->id)->count();
