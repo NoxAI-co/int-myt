@@ -1651,8 +1651,9 @@ Route::get('/GoogleAnalytics', 'GoogleAnalyticsController@index')->name('Google.
             Route::get('contratos', 'AuditoriaController@contratos')->name('auditoria.contratos');
         });
         Route::resource('auditoria', 'AuditoriaController');
+		Route::resource('barrios','BarriosController');
+        Route::post('/delete-barrio/{id}','BarriosController@delete');
 });
-
 
 Route::get('/graficos/{id?}', 'GraficosController@index');
 Route::get('/data-grafica/', 'GraficosController@data');

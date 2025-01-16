@@ -2142,16 +2142,18 @@ class ReportesController extends Controller
             $orderby=$campos[$request->orderby];
             $order=$request->order==1?'DESC':'ASC';
 
-            $facturas = Factura::join('contactos as c', 'factura.cliente', '=', 'c.id')
+            $facturas = Factura::with('itemsFactura')->join('contactos as c', 'factura.cliente', '=', 'c.id')
                 ->leftjoin('contracts', 'contracts.id', '=', 'factura.contrato_id')
                 ->leftjoin('mikrotik', 'mikrotik.id', '=', 'contracts.server_configuration_id')
                 ->select('factura.id', 'factura.codigo', 'factura.nro','factura.cot_nro', DB::raw('c.nombre as nombrecliente'),
-                    'factura.cliente', 'factura.fecha', 'factura.vencimiento', 'factura.estatus', 'factura.empresa','c.status')
+                    'factura.cliente', 'factura.fecha', 'factura.vencimiento', 'factura.estatus', 'factura.empresa','c.status',
+                )
                 // ->where('factura.tipo','<>',2)
                 ->where('factura.empresa',Auth::user()->empresa)
                 ->where('factura.estatus',1)
                 ->where('c.status',1)
                 ->groupBy('factura.id');
+
             $example = $facturas->get()->last();
 
             $dates = $this->setDateRequest($request);
@@ -2159,6 +2161,14 @@ class ReportesController extends Controller
             if($request->input('fechas') != 8 || (!$request->has('fechas'))){
                 $facturas=$facturas->where('factura.fecha','>=', $dates['inicio'])->where('factura.fecha','<=', $dates['fin']);
             }
+
+            if ($request->plan_tv) {
+                $planTvId = (int)$request->plan_tv; // Asegúrate de que sea un entero
+                $facturas = $facturas->whereHas('itemsFactura', function($query) use ($planTvId) {
+                $query->where('producto', $planTvId);
+                });
+            }
+
             if($request->servidor){
                 $facturas=$facturas->where('mikrotik.id', $request->servidor);
             }
@@ -2209,8 +2219,10 @@ class ReportesController extends Controller
 
             $mikrotiks = Mikrotik::all();
             $gruposCorte = GrupoCorte::where('empresa', Auth::user()->empresa)->get();
+            $planesTV = Inventario::where('type','TV')->where('status',1)->get();
 
-            return view('reportes.facturasImpagas.index')->with(compact('facturas', 'numeraciones', 'subtotal', 'total', 'request', 'example', 'mikrotiks', 'gruposCorte'));
+            return view('reportes.facturasImpagas.index')->with(compact('facturas', 'numeraciones', 'subtotal', 'total',
+             'request', 'example', 'mikrotiks', 'gruposCorte','planesTV'));
 
         }
 

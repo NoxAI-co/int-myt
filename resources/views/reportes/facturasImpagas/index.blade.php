@@ -74,6 +74,15 @@
 
 			</div>
 	  	</div>
+		<div class="form-group col-md-4">
+			  <label>Planes TV</label>
+			  <select class="form-control selectpicker" name="plan_tv" id="plan_tv" data-live-search="true" data-size="5">
+				  @foreach($planesTV as $tv)
+					  <option value="{{$tv->id}}" {{$tv->id == $request->plan_tv ? 'selected' : ''}}> {{$tv->producto}} </option>
+				  @endforeach
+				  <option {{ !$request->plan_tv ? 'selected' : ''}} value="">TODOS</option>
+			  </select>
+		</div>
 	  	<div class="form-group col-md-4" style=" padding-top: 24px;">
         	<button type="button" id="generar" class="btn btn-outline-primary">Generar Reporte</button>
         	<button type="button" id="exportar" class="btn btn-outline-success">Exportar a Excel</button>
