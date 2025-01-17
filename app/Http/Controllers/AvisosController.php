@@ -397,7 +397,7 @@ class AvisosController extends Controller
         }
 
         if($request->type == 'whatsapp'){
-            return redirect('empresa/avisos')->with('success', 'Proceso de envío realizado con exito notificaciones de whatsapp');
+            return redirect('empresa/avisos')->with('success', 'Proceso de envío realizado con exito notificaciones de email');
         }
 
         if($request->type == 'EMAIL'){
