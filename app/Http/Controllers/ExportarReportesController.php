@@ -680,7 +680,7 @@ class ExportarReportesController extends Controller
                     'municipio.nombre as municipioNombre', 'c.vereda',
                     'factura.empresa', 'i.fecha as pagada', 'i.cuenta', 'ig.pago as pagadoTotal')
             ->whereIn('factura.tipo', [1,2])
-            ->where('factura.estatus','<>',2);
+            ->where('factura.estatus',0);
             $dates = $this->setDateRequest($request);
 
             /*if ($request->nro>0) {
