@@ -161,7 +161,6 @@
         }, function(resul) {
             cargando(false);
             resul = JSON.parse(resul);
-            console.log(resul);
             $("#ex5-tab-1").click();
             $('#edit_ingresos_id').val(resul.id);
             $('#adicionalesUpdate').trigger("reset");
@@ -173,12 +172,11 @@
             cat2 = $('#categorias2').val();
             cat2 = JSON.parse(cat2);
 
-
             // <select class="form-control form-control-sm selectpicker" name="constitutivos_id[]" id="constitutivo_`+resul.constitutivos[i]['id']+`" title="Selecciona un concepto" data-live-search="true" data-size="5">
             // </select>
 
             //CONSTITUTIVOS
-            if (resul.constitutivos.length > 0) {
+            if (resul.constitutivos && resul.constitutivos.length > 0) {
                 for (var i = 0; i < resul.constitutivos.length; i++) {
                     $('#div_constitutivos').append(`
                             <div class="row mt-2 w-100 ml-2" id="` + resul.constitutivos[i]['id'] + `">

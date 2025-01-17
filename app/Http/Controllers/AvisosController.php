@@ -130,7 +130,7 @@ class AvisosController extends Controller
         view()->share(['title' => 'Envío de Notificaciones por '.$opcion, 'icon' => 'fas fa-paper-plane']);
         $plantillas = Plantilla::where('status', 1)->where('tipo', 2)->get();
 
-        $contratos = Contrato::select('contracts.*', 'contactos.id as c_id', 
+        $contratos = Contrato::select('contracts.client_id','contracts.nro','contactos.id as c_id', 
         'contactos.nombre as c_nombre', 'contactos.apellido1 as c_apellido1', 
         'contactos.apellido2 as c_apellido2', 'contactos.nit as c_nit', 
         'contactos.telefono1 as c_telefono', 'contactos.email as c_email', 
@@ -147,14 +147,23 @@ class AvisosController extends Controller
             // Construimos la primera consulta con el modelo Contrato
             $contratos = Contrato::leftJoin('facturas_contratos as fc', 'fc.contrato_nro', 'contracts.nro')
                 ->leftJoin('factura', 'factura.id', '=', 'fc.factura_id')
+                ->leftJoin('contactos', 'contactos.id', '=', 'contracts.client_id')
+                ->select('contracts.*', 
+                         'contactos.id as c_id', 
+                         'contactos.nombre as c_nombre', 
+                         'contactos.apellido1 as c_apellido1', 
+                         'contactos.apellido2 as c_apellido2', 
+                         'contactos.nit as c_nit', 
+                         'contactos.telefono1 as c_telefono', 
+                         'contactos.email as c_email', 
+                         'contactos.barrio as c_barrio')
                 ->where('factura.vencimiento', date('Y-m-d', strtotime(request()->vencimiento)))
                 ->where('factura.estatus', 1)
                 ->orderBy('fc.id', 'desc')
                 ->groupBy('contracts.id');
         
             // Verificamos si la primera consulta no retorna resultados
-            if($contratos->get()->isEmpty()) {
-
+            if($contratos->count() == 0) {
                 // Si no hay resultados, redefinimos la variable $contratos con la segunda consulta
                 $contratos = Contrato::leftJoin('factura as f', 'f.contrato_id', '=', 'contracts.id')
                 ->leftJoin('contactos', 'contactos.id', '=', 'contracts.client_id') // Asegúrate que existe la relación entre contratos y contactos
@@ -388,7 +397,7 @@ class AvisosController extends Controller
         }
 
         if($request->type == 'whatsapp'){
-            return redirect('empresa/avisos')->with('success', 'Proceso de envío realizado con exito notificaciones de email');
+            return redirect('empresa/avisos')->with('success', 'Proceso de envío realizado con exito notificaciones de whatsapp');
         }
 
         if($request->type == 'EMAIL'){

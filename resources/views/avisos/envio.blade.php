@@ -155,10 +155,8 @@
 									value="{{$contrato->id}}" {{$contrato->client_id==$id?'selected':''}}
 										data-saldo="<?php echo e($contrato->factura_total); ?>"
 										>
-
-									{{$contrato->c_nombre}} {{ $contrato->c_apellido1 }}
-									{{ $contrato->c_apellido2 }} - {{$contrato->c_nit}}
-									(contrato: {{ $contrato->nro }})
+									    {{$contrato->c_nombre}} {{ $contrato->c_apellido1 }} - {{$contrato->c_nit}}
+									    {{isset($request->vencimiento) ? $contrato->codigo : ''}}
 								</option>
         	                
         	                @endif
