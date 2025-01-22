@@ -844,7 +844,7 @@ class OltController extends Controller
     public function viewOnu(Request $request){
 
         $sn = $request->sn;
-        // $sn = "DC806A4E142E";
+        $sn = "DC806A4E142E";
         $this->getAllPermissions(Auth::user()->id);
         view()->share(['title' => $sn , 'icon' => '', 'seccion'=>'']);
         

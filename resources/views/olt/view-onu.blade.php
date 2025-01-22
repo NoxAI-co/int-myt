@@ -392,16 +392,32 @@
                     // $('#distance').hide();
                 },
                 success: function(response) {
-                    if (response && response['full_status_json']['ONU details']['ONT distance(m)']) {
-                        $('#distance').text('(' + response['full_status_json']['ONU details']['ONT distance(m)'] + ' m)');
-                        $('#onu_signal_value').text(response['full_status_json']['Optical status']['Rx optical power(dBm)'] + " / " + response['full_status_json']['Optical status']['OLT Rx ONT optical power(dBm)'])
-                    } else if(response && response['full_status_json']['ONU details']['ONU Distance']){
-                        $('#distance').text('(' + response['full_status_json']['ONU details']['ONU Distance'] + ' m)');
-                        $('#onu_signal_value').text(response['full_status_json']['Optical status']['Rx optical power(dBm)'] + " / " + response['full_status_json']['Optical status']['OLT Rx ONT optical power(dBm)'])
+
+                    let rx = "undefined";
+                    let ry = "undefined";
+                    let distance = "-";
+
+                    if(response && response['full_status_json']['ONU details']['ONT distance(m)']){
+                        distance = response['full_status_json']['ONU details']['ONT distance(m)'];
                     }
-                    else {
-                        $('#distance').text('No disponible');
+
+                    if(response && response['full_status_json']['Optical status']['Rx optical power(dBm)']){
+                        rx = response['full_status_json']['Optical status']['Rx optical power(dBm)'];
+                        ry = response['full_status_json']['Optical status']['OLT Rx ONT optical power(dBm)'];
                     }
+
+                    if(response && response['full_status_json']['ONU details']['ONU Distance']){
+                        distance = response['full_status_json']['ONU details']['ONU Distance'];
+                    }
+
+                    if(response && response['full_status_json']['Optical status']['ONU Rx']){
+                        rx = response['full_status_json']['Optical status']['ONU Rx'];
+                        ry = response['full_status_json']['Optical status']['OLT Rx'];
+                    }
+                   
+                    $('#distance').text("(" + distance + "m)");
+                    $('#onu_signal_value').text(rx + " / " + ry);
+
                 },
                 error: function(xhr, status, error) {
                     $('#distance').text('Error al obtener datos');
