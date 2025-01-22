@@ -809,6 +809,33 @@ class OltController extends Controller
         ));
 
         $response = curl_exec($curl);
+        $response = json_decode($response,true);
+        curl_close($curl);
+
+        return $response;
+    }
+
+    public function onu_status($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/get_onu_status/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $response = json_decode($response,true);
         curl_close($curl);
 
         return $response;
@@ -816,7 +843,8 @@ class OltController extends Controller
 
     public function viewOnu(Request $request){
 
-        $sn = $request->sn;
+        // $sn = $request->sn;
+        $sn = "DC806A4E142E";
         $this->getAllPermissions(Auth::user()->id);
         view()->share(['title' => $sn , 'icon' => '', 'seccion'=>'']);
         
@@ -854,37 +882,27 @@ class OltController extends Controller
 
         }
 
-        $signalOnu = $this->getFullOnuSignal($sn);
+        // $signalOnu = $this->getFullOnuSignal($sn);
         $onlySignal = $this->onu_signal($sn);
-        if(isset($signalOnu['full_status_json'])){
-            $signalOnu = $signalOnu['full_status_json'];
-        }
 
-        if(isset($signalOnu['ONU details']['Online Duration'])){
-            // Extrae solo las horas
-            preg_match('/(\d+)h/', $signalOnu['ONU details']['Online Duration'], $matches);
+        $onuStatus = $this->onu_status($sn);
+        $diferenciaHoras = "-";
 
-            // Extrae solo las horas
-            preg_match('/(\d+)h/', $signalOnu['ONU details']['Online Duration'], $matches);
+        if(isset($onuStatus['last_status_change'])){
+            $lastStatusDate = Carbon::createFromFormat('Y-m-d H:i:s', $onuStatus['last_status_change']);
+            $now = Carbon::now();
+            $diferenciaHoras = $now->diffInHours($lastStatusDate);
 
-            if (!empty($matches[1])) {
-                $hours = (int) $matches[1]; // Convierte a entero
-                $days = floor($hours / 24); // Calcula los días completos
-                $remainingHours = $hours % 24; // Horas restantes después de contar los días
+            // Calcular los días completos y las horas restantes
+            $dias = floor($diferenciaHoras / 24); // Días completos
+            $horas = $diferenciaHoras % 24; // Horas restantes
 
-                $diferenciaDias= $days . ' dias ' . $remainingHours . ' horas';
+            // Crear el mensaje
+            if ($dias > 0) {
+                $diferenciaHoras = "Hace $dias días y $horas horas";
             } else {
-                echo "Formato de duración no reconocido.";
+                $diferenciaHoras = "Hace $horas horas";
             }
-
-            if (!empty($matches[1])) {
-                $hours = (int) $matches[1]; // Convierte a entero
-                echo "Horas: " . $hours;
-            } else {
-                $diferenciaDias = null;
-            }
-        }else{
-            $diferenciaDias = null;
         }
 
         $ethernetPorts = [
@@ -895,6 +913,6 @@ class OltController extends Controller
         ];
 
         return view('olt.view-onu',compact('details','image_onu_type','ethernetPorts','onu_traffic_graph',
-        'onu_signal_graph','signalOnu','diferenciaDias','onlySignal'));
+        'onu_signal_graph','onlySignal','diferenciaHoras', 'onuStatus'));
     }
 }

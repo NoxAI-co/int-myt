@@ -152,17 +152,61 @@
                     <ul class="list-unstyled">
                         <li><span class="title">Status:</span> 
 
-                            @if($only_signal['onu_signal'] == "-")
-                            <span class="value">Offline <i class="fas fa-globe-americas" style="color:gray"></i> </span> 
-                            @elseif($only_signal['onu_signal'] == "Warning")
-                            <span class="value">Sync Mib <i class="fas fa-globe-americas" style="color:gray"></i></span> 
-                            @elseif($only_signal['onu_signal'] == "Very good")
-                            <span class="value">Online <i class="fas fa-globe-americas" style="color:#4db14b"></i> hace {{ $diferenciaDias }} </span> 
-                            @endif
+                            <span class="value">
+                                {{ $onuStatus['onu_status'] }} 
+
+                                @switch($onuStatus['onu_status'])
+                                    @case('Online')
+                                        <i class="fas fa-globe-americas" style="color:#4db14b"></i> 
+                                        @break
+                                    @case('Power fail')
+                                        <i class="fas fa-plug" style="color:#6e7175"></i> 
+                                        @break
+                                    @case('LOS')
+                                        <i class="fas fa-unlink" style="color:#ff0000"></i> 
+                                        @break
+                                    @case('Offline')
+                                        <i class="fas fa-globe-americas" style="color:gray"></i> 
+                                        @break
+                                    @case('Admin Disabled')
+                                        <i class="fas fa-ban" style="color:gray"></i> 
+                                        @break
+                                
+                                    @default
+                                        
+                                @endswitch
+
+                                ({{ $diferenciaHoras }})
+                                
+                            </span> 
+            
                         </li>
+
                         <li><span class="title">ONU/OLT Rx Signal:</span> 
-                            <span class="value">{{ $only_signal['onu_signal_value'] }} {{ "(" . $signalOnu['ONU details']['ONU Distance'] . ")" }} >
-                            {{-- <i class="fas fa-signal"></i> --}}
+                            <span class="value" style="display:inline-flex">
+                                <span id="onu_signal_value">{{ $onlySignal['onu_signal_value'] }}</span>
+                                @switch($onlySignal['onu_signal'])
+                                    @case('Very good')
+                                    @case('Good')
+                                        <i class="fas fa-signal" style="color:#4db14b; margin-left:4px;margin-top:2px"></i>
+                                        @break
+                                    
+                                        @case('Warning')
+                                        <i class="fas fa-signal" style="color:darkorange; margin-left:4px;margin-top:2px"></i>
+                                        @break
+                                        
+                                        @case('Critical')
+                                        <i class="fas fa-signal" style="color:red; margin-left:4px;margin-top:2px"></i>
+                                        @break
+                                    @default
+                                        
+                                @endswitch
+
+                                <span id="distance" style="margin-left:5px;margin-top:0px">
+                                    <div id="preloader" style="display: block;">
+                                        <img src="https://i.gifer.com/ZZ5H.gif" alt="Cargando..." style="width:10px;" />
+                                    </div>
+                                </span>
                             </span>
                         </li>
                         <li><span class="title">Attached VLANs:</span> 
@@ -327,6 +371,51 @@
 
 @section('scripts')
 <script>
+
+    $(document).ready(function() {
+        // Función que realiza la petición AJAX cada 30 segundos
+        function refreshDistance() {
+
+            let sn = `{{ $details['sn'] }}`
+            if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/get-full-status/' + sn;
+            }else{
+                var url = '/Olt/get-full-status/' + sn;
+            }
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                beforeSend: function() {
+                    $('#preloader').show();
+                    // $('#distance').hide();
+                },
+                success: function(response) {
+                    if (response && response['full_status_json']['ONU details']['ONT distance(m)']) {
+                        $('#distance').text('(' + response['full_status_json']['ONU details']['ONT distance(m)'] + ' m)');
+                        $('#onu_signal_value').text(response['full_status_json']['Optical status']['Rx optical power(dBm)'] + " / " + response['full_status_json']['Optical status']['OLT Rx ONT optical power(dBm)'])
+                    } else {
+                        $('#distance').text('No disponible');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#distance').text('Error al obtener datos');
+                },
+                complete: function() {
+                    $('#preloader').hide();
+                    $('#distance').show();
+                }
+            });
+        }
+
+        setTimeout(function() {
+            refreshDistance();  // Primer refresco después de 2 segundos
+        }, 2000); // 2000 ms = 2 segundos
+
+        setInterval(refreshDistance, 30000);
+    });
+
     function reboot_onu(sn){
         if (window.location.pathname.split("/")[1] === "software") {
             var url='/software/Olt/reboot-onu';
