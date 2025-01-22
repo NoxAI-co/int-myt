@@ -395,7 +395,11 @@
                     if (response && response['full_status_json']['ONU details']['ONT distance(m)']) {
                         $('#distance').text('(' + response['full_status_json']['ONU details']['ONT distance(m)'] + ' m)');
                         $('#onu_signal_value').text(response['full_status_json']['Optical status']['Rx optical power(dBm)'] + " / " + response['full_status_json']['Optical status']['OLT Rx ONT optical power(dBm)'])
-                    } else {
+                    } else if(response && response['full_status_json']['ONU details']['ONU distance']){
+                        $('#distance').text('(' + response['full_status_json']['ONU details']['ONU distance'] + ' m)');
+                        $('#onu_signal_value').text(response['full_status_json']['Optical status']['Rx optical power(dBm)'] + " / " + response['full_status_json']['Optical status']['OLT Rx ONT optical power(dBm)'])
+                    }
+                    else {
                         $('#distance').text('No disponible');
                     }
                 },
