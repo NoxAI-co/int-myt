@@ -815,6 +815,33 @@ class OltController extends Controller
         return $response;
     }
 
+
+    public function runningConfig($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/get_running_config/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $response = json_decode($response,true);
+        curl_close($curl);
+
+        return $response;
+    }
+
     public function onu_status($sn){
         $empresa = Empresa::Find(Auth::user()->empresa);
 
@@ -844,7 +871,7 @@ class OltController extends Controller
     public function viewOnu(Request $request){
 
         $sn = $request->sn;
-        // $sn = "DC806A4E142E";
+        // $sn = "CIOT096B956C";
         $this->getAllPermissions(Auth::user()->id);
         view()->share(['title' => $sn , 'icon' => '', 'seccion'=>'']);
         
@@ -882,7 +909,7 @@ class OltController extends Controller
 
         }
 
-        // $signalOnu = $this->getFullOnuSignal($sn);
+        // $fullStatusInfo = $this->getFullOnuSignal($sn);
         $onlySignal = $this->onu_signal($sn);
 
         $onuStatus = $this->onu_status($sn);

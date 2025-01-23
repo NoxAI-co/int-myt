@@ -336,6 +336,7 @@ Route::group(['prefix' => 'Olt'], function(){
     Route::post('delete-onu','OltController@deleteOnuResponse')->name('olt.delete-onu');
     Route::get('view-onu/{sn?}','OltController@viewOnu')->name('olt.view-onu');
     Route::get('get-full-status/{sn?}','OltController@getFullOnuSignal')->name('olt.fullstatus');
+    Route::get('show-running-config/{sn?}','OltController@runningConfig')->name('olt.running-config');
 });
 
 Route::group(['prefix' => 'siigo'], function(){

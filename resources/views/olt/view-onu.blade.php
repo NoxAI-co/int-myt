@@ -89,6 +89,14 @@
             margin-left: 10px;
         }
 
+        pre{
+            padding: 0px;
+            font-size: 14px;
+            line-height: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
 </style>
 @section('content')
 <div class="mt-0 font-pair">
@@ -235,12 +243,30 @@
                           <span class="title-2">Status:</span>
                           {{-- segunda version --}}
                           <span class="value">
-                            <span class="badge badge-info ml-1">Prontamente!</span></a>
-                            {{--
-                                <button class="btn btn-primary">Get Status</button>
-                                <button class="btn btn-primary">Show Running-Config</button>
-                                <button class="btn btn-primary">SW Info</button>
+                            {{-- <span class="badge badge-info ml-1">Prontamente!</span></a> --}}
+                            
+                                <button class="btn btn-primary" onclick="getFullstatus()">Get Status
+                                    <div id="preloader-status" style="display: none;width: 19px;">
+                                        <img src="https://i.gifer.com/ZZ5H.gif" alt="Cargando..." style="width:18px;" />
+                                    </div>
+                                </button>
+                                <button class="btn btn-primary" onclick="showRunningConfig()">Show Running-Config
+                                    <div id="preloader-show-running" style="display: none;width: 19px;">
+                                        <img src="https://i.gifer.com/ZZ5H.gif" alt="Cargando..." style="width:18px;" />
+                                    </div>
+                                </button>
+                                {{-- <button class="btn btn-primary">SW Info</button>
                                 <button class="btn btn-success">LIVE!</button> --}}
+
+                                <div class="container" id="full-status-div" style="display:none;">
+                                    
+                                    <pre id="pre-text"></pre>
+                                </div>
+
+                                <div class="container" id="show-running-div" style="display:none;">
+                                   
+                                    <pre id="pre-text-running"></pre>
+                                </div>
                            </span>
                           
                         </li>
@@ -435,6 +461,77 @@
 
         setInterval(refreshDistance, 30000);
     });
+
+    function getFullstatus(){
+
+        let sn = `{{ $details['sn'] }}`
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/get-full-status/' + sn;
+        }else{
+            var url = '/Olt/get-full-status/' + sn;
+        }
+
+        $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                beforeSend: function() {
+
+                    $("#full-status-div").show();
+                    $("#preloader-status").css('display','inline');
+                    $('#preloader-status').show();
+
+                },
+                success: function(response) {
+
+                    var text = response.full_status_info;
+                    var formattedText = text.replace(/\n/g, "<br>");
+                    $("#pre-text").html(formattedText);
+
+                },
+                error: function(xhr, status, error) {
+                    $('#full-status-div').text('Error al obtener datos');
+                },
+                complete: function() {
+                    $('#preloader-status').hide();
+                }
+            });
+    }
+
+    function showRunningConfig(){
+        let sn = `{{ $details['sn'] }}`
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/show-running-config/' + sn;
+        }else{
+            var url = '/Olt/show-running-config/' + sn;
+        }
+
+        $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                beforeSend: function() {
+
+                    // $("#full-status-div").style('display','block');
+                    $("#show-running-div").show();
+                    $('#preloader-show-running').show();
+                    $("#preloader-show-running").css('display','inline')
+
+                },
+                success: function(response) {
+                    var text = response.running_config;
+                    var formattedText = text.replace(/\n/g, "<br>");
+                    $("#pre-text-running").html(formattedText);
+                },
+                error: function(xhr, status, error) {
+                    $('#show-running-div').text('Error al obtener datos');
+                },
+                complete: function() {
+                    $('#preloader-show-running').hide();
+                }
+            });
+
+    }
 
     function reboot_onu(sn){
         if (window.location.pathname.split("/")[1] === "software") {
