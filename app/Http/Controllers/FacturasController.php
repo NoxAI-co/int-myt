@@ -2491,6 +2491,7 @@ class FacturasController extends Controller{
 
     public function xmlFacturaVenta($id){
         $FacturaVenta = Factura::find($id);
+        $FacturaVenta->fecha = Carbon::now()->format('Y-m-d');
         if (!$FacturaVenta) {
             return redirect('/empresa/facturas/facturas_electronica')->with('error', "No se ha encontrado la factura de venta, comuniquese con soporte.");
         }
@@ -4302,6 +4303,7 @@ class FacturasController extends Controller{
                 $factura = Factura::where('empresa', $empresa)->where('emitida', 0)->where('tipo',2)->where('id', $facturas[$i])->first();
                 if(isset($factura) && Factura::where('codigo',$factura->codigo)->count() <= 1){
                     $factura->modificado = 1;
+                    $factura->fecha = Carbon::now()->format('Y-m-d');
                     $factura->save();
 
                     $this->xmlFacturaVentaMasivo($factura->id, $empresa);
