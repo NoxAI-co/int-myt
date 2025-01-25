@@ -116,12 +116,15 @@ class CronController extends Controller
             $bulk = '';
             $horaActual = date('H:i');
 
+            $date =14;
+
             $grupos_corte = GrupoCorte::
             where('fecha_factura', $date)
             ->where('hora_creacion_factura','<=',$horaActual)
             ->where('status', 1)->get();
 
             $fecha = Carbon::now()->format('Y-m-d');
+            $fecha = "2025-01-14";
 
             $state = ['enabled'];
             if ($empresa->factura_contrato_off == 1) {
@@ -142,7 +145,7 @@ class CronController extends Controller
                 // whereIn('contracts.id',[1944])->
                 // where('c.saldo_favor','>',80000)->//rc
                 whereIn('contracts.state',$state)
-                // ->limit(1)->skip(7)
+                ->limit(1)->skip(1)
                 ->get();
 
                 $num = Factura::where('empresa',1)->orderby('id','asc')->get()->last();
