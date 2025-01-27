@@ -37,6 +37,9 @@ use App\Integracion;
 use App\CRMLOG;
 use App\Instance;
 use App\PromesaPago;
+use App\Services\WapiService;
+use GuzzleHttp\Exception\ClientException;
+
 include_once(app_path() .'/../public/routeros_api.class.php');
 use RouterosAPI;
 
@@ -242,20 +245,25 @@ class CRMController extends Controller
         
         return [$chats,$users];
     }
-    public function whatsapp(Request $request){
-        $this->getAllPermissions(Auth::user()->id);
-        $instance = Instance::first();
-       
-        if(is_null($instance) || empty($instance)){
-            return view("crm.whatsapp")->with(compact("instance"));
+
+    public function whatsapp(Request $request, WapiService $wapiService)
+    {
+        $this->getAllPermissions(auth()->user()->id);
+        $instance = Instance::where('company_id', auth()->user()->empresa)->first();
+        if(!$instance) {
+            return view('crm.whatsapp')->with(compact('instance'));
         }
-        if($instance->status!=0){
-            $info = $this->getInfo();
-            return view("crm.whatsapp")->with(compact("instance","info"));
+        try {
+            $response = $wapiService->getInstance($instance->uuid);
+        } catch (ClientException $e) {
+            if($e->getResponse()->getStatusCode() === 404) {
+                return back()->withErrors([
+                    'instance_id' => 'Esta instancia no existe, valida el identificador con tu proveedor.'
+                ])->withInput($request->input());
+            }
         }
-        return view("crm.whatsapp")->with(compact("instance"));
-        
     }
+
    /* public function whatsappActions(Request $request){
         $unique = uniqid();
         DB::table("instancia")

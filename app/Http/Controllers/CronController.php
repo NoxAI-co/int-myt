@@ -116,15 +116,12 @@ class CronController extends Controller
             $bulk = '';
             $horaActual = date('H:i');
 
-            $date =14;
-
             $grupos_corte = GrupoCorte::
             where('fecha_factura', $date)
             ->where('hora_creacion_factura','<=',$horaActual)
             ->where('status', 1)->get();
 
             $fecha = Carbon::now()->format('Y-m-d');
-            $fecha = "2025-01-14";
 
             $state = ['enabled'];
             if ($empresa->factura_contrato_off == 1) {

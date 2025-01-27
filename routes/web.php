@@ -11,13 +11,13 @@
 |
 */
 
-use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\TecnicoController;
-use App\Mail\PaymentProofUploaded;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cache;
+
 
 Route::get('sendmail','Controller@sendmail');
 
@@ -32,6 +32,26 @@ Route::get('clear', function () {
 
     return redirect()->back();
 });
+
+Route::get('borrar-cache', function () {
+
+    $cacheFiles = [
+        base_path('bootstrap/cache/config.php'),
+        base_path('bootstrap/cache/packages.php')
+    ];
+
+   foreach ($cacheFiles as $file) {
+        if (file_exists($file)) {
+            unlink($file);
+        }
+    }
+
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:cache');
+
+    return redirect()->back()->with('success', 'Cache borrado correctamente y recargada la vista.');
+})->name('borrar-cache');
 
 Route::get('contact/newcam','ContactosController@indexcampos')->name('contact.new');
 Route::post('contact/campos','ContactosController@newcampos')->name('contact.new.campos');

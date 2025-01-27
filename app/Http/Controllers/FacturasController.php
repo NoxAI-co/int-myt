@@ -1063,6 +1063,7 @@ class FacturasController extends Controller{
         $factura->ordencompra    = $request->ordencompra;
         $factura->periodo_facturacion = $request->periodo_facturacion;
         $factura->created_by = $user->id;
+        $factura->factura_mes_manual = isset($request->factura_mes_manual) ? $request->factura_mes_manual : 0;
 
         if($contrato){
             $factura->contrato_id = $contrato->id;
@@ -1326,6 +1327,7 @@ class FacturasController extends Controller{
                 $factura->tipo_operacion = $request->tipo_operacion;
                 $factura->ordencompra    = $request->ordencompra;
                 $factura->periodo_facturacion = $request->periodo_facturacion;
+                $factura->factura_mes_manual = isset($request->factura_mes_manual) ? $request->factura_mes_manual : 0;
                 $factura->pago_oportuno = date('Y-m-d', strtotime("+".($request->plazo-1)." days", strtotime($request->fecha)));
                 $factura->save();
 
@@ -1334,6 +1336,7 @@ class FacturasController extends Controller{
                 $contratoAntiguo = DB::table('facturas_contratos')->where('factura_id',$id)->where('contrato_nro',$request->contratos)->first();
                 //Si no hay contrato antiguo es por que seleccionaron un nuevo contrato y toca elminar las relaciones existentes.
                 if(!$contratoAntiguo){
+                    if(isset($request->contratos_json) && $request->contratos_json ==null)
                     DB::table('facturas_contratos')->where('factura_id',$id)->delete();
                 }
 
