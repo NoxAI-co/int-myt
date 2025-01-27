@@ -46,10 +46,6 @@ Route::get('borrar-cache', function () {
         }
     }
 
-    Artisan::call('config:clear');
-    Artisan::call('cache:clear');
-    Artisan::call('config:cache');
-
     return redirect()->back()->with('success', 'Cache borrado correctamente y recargada la vista.');
 })->name('borrar-cache');
 
