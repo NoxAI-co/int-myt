@@ -262,8 +262,12 @@ class CRMController extends Controller
                 ])->withInput($request->input());
             }
         }
-    }
 
+        $getResponse = json_decode($response);
+        $instance->status = $getResponse->data->status == "PAIRED" ? "PAIRED" : "UNPAIRED";
+        $instance->save();
+        return view('crm.whatsapp')->with(compact('instance'));
+    }
    /* public function whatsappActions(Request $request){
         $unique = uniqid();
         DB::table("instancia")
