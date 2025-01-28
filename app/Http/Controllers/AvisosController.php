@@ -132,7 +132,7 @@ class AvisosController extends Controller
 
         $contratos = Contrato::select('contracts.client_id','contracts.nro','contactos.id as c_id', 
         'contactos.nombre as c_nombre', 'contactos.apellido1 as c_apellido1', 
-        'contactos.apellido2 as c_apellido2', 'contactos.nit as c_nit', 
+        'contactos.apellido2 as c_apellido2', 'contactos.nit as c_nit', 'contracts.state' ,
         'contactos.telefono1 as c_telefono', 'contactos.email as c_email', 
         'contactos.barrio as c_barrio')
 			->join('contactos', 'contracts.client_id', '=', 'contactos.id')
