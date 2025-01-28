@@ -1296,6 +1296,11 @@ class FacturasController extends Controller{
 
         $desc=0;
         $factura =Factura::find($id);
+        
+        if($factura->facturacion_automatica == 1 && $factura->contratos_json == null){
+            return back()->with('error', 'Debe escoger un contrato asociado a la factura.');
+       }
+
         $user = Auth::user();
         if ($factura) {
             if ($factura->estatus==1) {
