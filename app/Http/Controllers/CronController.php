@@ -220,19 +220,32 @@ class CronController extends Controller
                     
                     $ultimaFactura = DB::table('facturas_contratos')
                     ->join('factura', 'facturas_contratos.factura_id', '=', 'factura.id')
-                    ->select('factura.*')
                     ->where('facturas_contratos.contrato_nro', $contrato->nro)
+                    ->select('factura.*')
                     ->orderBy('factura.fecha', 'desc')
                     ->first();
 
                     $mesUltimaFactura = false;
+                    $mesActualFactura = date('Y-m',strtotime($fecha));
+
                     if($ultimaFactura){
-                        $mesUltimaFactura = date('Y-m',strtotime($ultimaFactura->created_at)); 
-                        $mesActualFactura = date('Y-m',strtotime($fecha));
+
+                        //Validamos que solo vamos a evaluar por created_at a las f. electronicas, por que las pudieron emitir despues.
+                        if($ultimaFactura->tipo == 2){
+                            $mesUltimaFactura = date('Y-m',strtotime($ultimaFactura->created_at));
+                        }else{
+                            $mesUltimaFactura = date('Y-m',strtotime($ultimaFactura->fecha));
+                        }
+
+                        //Validacion nueva: mirar si la ultima factura generada tiene la opcion de factura del mes actual.
+                        if($mesActualFactura == $mesUltimaFactura){
+                            if($ultimaFactura->factura_mes_manual == 1){
+                                continue; //salte esta iteracion entonces por que es la factura del mes manual.
+                            }
+                        }
                     }
 
-                    if(!isset($ultimaFactura->fecha) || isset($ultimaFactura->fecha)
-                        && $mesActualFactura != $mesUltimaFactura)
+                    if($mesActualFactura != $mesUltimaFactura)
                     {
 
                     ## Verificamos que el cliente no posea la ultima factura automática abierta, de tenerla no se le genera la nueva factura
