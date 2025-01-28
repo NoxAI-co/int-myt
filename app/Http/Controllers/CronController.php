@@ -142,7 +142,6 @@ class CronController extends Controller
                 // whereIn('contracts.id',[1944])->
                 // where('c.saldo_favor','>',80000)->//rc
                 whereIn('contracts.state',$state)
-                ->limit(1)->skip(1)
                 ->get();
 
                 $num = Factura::where('empresa',1)->orderby('id','asc')->get()->last();
