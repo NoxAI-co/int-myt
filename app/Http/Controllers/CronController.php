@@ -210,11 +210,15 @@ class CronController extends Controller
                         $primer_fecha_factura = Carbon::parse($primer_fecha_factura)->format("Y-m-d");
                     }
 
-                    if(isset($primer_fecha_factura) &&
-                    Carbon::parse($fecha)->format("Y-m-d") == $primer_fecha_factura &&
-                    $contrato->fact_primer_mes == 0){
-                        continue;
+                    //** Si no existe ninguna factura en esa tabla es por que es la primer fac y entra a la validacion*
+                    if(!DB::table('facturas_contratos as fc')->where('contrato_nro',$contrato->nro)->first()){
+                        if(isset($primer_fecha_factura) &&
+                        Carbon::parse($fecha)->format("Y-m-d") == $primer_fecha_factura &&
+                        $contrato->fact_primer_mes == 0){
+                            continue; //este continue salta la actual iteracion
+                        }
                     }
+                    
                     //Fin validacion primer factura del contrato
                     
                     $ultimaFactura = DB::table('facturas_contratos')
