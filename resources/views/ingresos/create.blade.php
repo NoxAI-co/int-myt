@@ -513,7 +513,7 @@
   		<div class="row mt-2">
         <div class="col-sm-12" style="text-align: right;  padding-top: 1%;">
           <a href="{{route('ingresos.index')}}" class="btn btn-outline-secondary">Cancelar</a>
-          <button type="submit" id="submitcheck" onclick="submitLimit(this.id)" class="btn btn-success" id="button-guardar">Pagar</button>
+          <button type="button" id="submitcheck" onclick="submitLimit(this.id)" class="btn btn-success" id="button-guardar">Pagar</button>
         </div>
   		</div>
   	</form>
@@ -565,6 +565,16 @@
       if(opcion == 0){
         $("#form-ingresos-electronica").addClass('d-none');
       }
+
+      $("#submitcheck").click(function (e){
+         e.preventDefault();
+         var btn = document.getElementById('button-guardar');
+        setTimeout(function() { btn.setAttribute('disabled', 'disabled'); }, 1);
+        setTimeout(function() { btn.removeAttribute('disabled'); }, 15000);
+         $("#submitcheck").submit();
+
+      })
+      
   })
 </script>
 @endsection
