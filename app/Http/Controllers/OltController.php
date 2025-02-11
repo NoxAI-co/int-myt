@@ -560,6 +560,34 @@ class OltController extends Controller
   
     }
 
+    public function enableOnu($sn){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $empresa->adminOLT.'/api/onu/enable/'.$sn,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => array(),
+        CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $empresa->smartOLT
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $response = json_decode($response,true);
+
+        curl_close($curl);
+
+        return $response;
+    }
+
     public function disableOnu($sn){
         $empresa = Empresa::Find(Auth::user()->empresa);
 
@@ -660,6 +688,20 @@ class OltController extends Controller
 
     public function disableOnuResponse(Request $request){
         $response = $this->disableOnu($request->sn);
+
+        if(isset($response['response']) && $response['status'] == true){
+            return response()->json([
+                'status' => 200
+            ]);
+        }else{
+            return response()->json([
+                'status' => 400
+            ]);
+        }
+    }
+
+    public function enableOnuResponse(Request $request){
+        $response = $this->enableOnu($request->sn);
 
         if(isset($response['response']) && $response['status'] == true){
             return response()->json([

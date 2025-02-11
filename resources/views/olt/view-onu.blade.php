@@ -381,7 +381,11 @@
                             <button class="btn-reboot" onclick="reboot_onu(`{{ $details['sn'] }}`)">Reboot</button>
                             <button class="btn-resync" onclick="resync_config(`{{ $details['sn'] }}`)">Resync config</button>
                             <button class="btn-restore" onclick="restore_factory_defaults(`{{ $details['sn'] }}`)">Restore defaults</button>
+                            @if($onuStatus['onu_status'] == "Offline")
+                            <button class="btn-disable" onclick="enable_onu(`{{ $details['sn'] }}`)">Enable ONU</button>
+                            @else
                             <button class="btn-disable" onclick="disable_onu(`{{ $details['sn'] }}`)">Disable ONU</button>
+                            @endif
                             <button class="btn-delete" onclick="delete_onu(`{{$details['sn']}},{{$details['olt_id']}}`)">Delete</button>
                         </div>
                     </span>
@@ -675,6 +679,52 @@
     function disable_onu(sn){
         if (window.location.pathname.split("/")[1] === "software") {
             var url='/software/Olt/disable-onu';
+        }else{
+            var url = '/Olt/disable-onu';
+        }
+
+        Swal.fire({
+        title: '¿Desactivar ONU?',
+        text: "Esto cerrará administrativamente todos los servicios en esta ONU. ¿Continuar?",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Si, desactivar ONU'
+        }).then((result) => {
+            if (result.value) {
+
+                msg_procesando();
+        
+            $.ajax({
+                url: url,
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                method: 'post',
+                data: {sn},
+                success: function (data) {	
+                    if(data.status == 200){
+                        Swal.fire({
+                            title: 'ONU desactivada correctamente!',
+                            type: 'success', 
+                            showConfirmButton: false,
+                            allowOutsideClick: false, 
+                        });
+                        let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
+                        window.location.href = url;
+                    }else{
+                        Swal.close();
+                        alert("Hubo un error comuniquese con soporte.")
+                    }
+                }
+            });
+            }
+        })
+    }
+
+    function enable_onu(sn){
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/enable-onu';
         }else{
             var url = '/Olt/disable-onu';
         }

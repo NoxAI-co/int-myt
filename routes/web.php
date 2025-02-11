@@ -349,6 +349,7 @@ Route::group(['prefix' => 'Olt'], function(){
     Route::post('reboot-onu','OltController@rebootOnuResponse')->name('olt.reboot-onu');
     Route::post('restore-factory','OltController@restoreFactoryResponse')->name('olt.restore-factory');
     Route::post('disable-onu','OltController@disableOnuResponse')->name('olt.disable-onu');
+    Route::post('enable-onu','OltController@enableOnuResponse')->name('olt.enable-onu');
     Route::post('delete-onu','OltController@deleteOnuResponse')->name('olt.delete-onu');
     Route::get('view-onu/{sn?}','OltController@viewOnu')->name('olt.view-onu');
     Route::get('get-full-status/{sn?}','OltController@getFullOnuSignal')->name('olt.fullstatus');
