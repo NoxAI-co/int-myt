@@ -730,14 +730,14 @@
         }
 
         Swal.fire({
-        title: '¿Desactivar ONU?',
-        text: "Esto cerrará administrativamente todos los servicios en esta ONU. ¿Continuar?",
+        title: 'Activar ONU?',
+        text: "Esto habilitará los servicios en esta ONU. ¿Continuar?",
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         cancelButtonText: 'Cancelar',
-        confirmButtonText: 'Si, desactivar ONU'
+        confirmButtonText: 'Si, activar ONU'
         }).then((result) => {
             if (result.value) {
 
@@ -751,7 +751,7 @@
                 success: function (data) {	
                     if(data.status == 200){
                         Swal.fire({
-                            title: 'ONU desactivada correctamente!',
+                            title: 'ONU activada correctamente!',
                             type: 'success', 
                             showConfirmButton: false,
                             allowOutsideClick: false, 
