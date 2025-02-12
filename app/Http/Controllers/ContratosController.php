@@ -360,7 +360,6 @@ class ContratosController extends Controller
                 $facturaContratos = DB::table('facturas_contratos')
                     ->join('factura as f','f.id','=','facturas_contratos.factura_id')
                     ->where('contrato_nro',$contrato->nro)
-                    ->where('f.estatus',1)
                     ->orderBy('f.fecha','DESC')->first();
 
                 if($facturaContratos){
