@@ -358,7 +358,7 @@ class ContratosController extends Controller
                 foreach($contratos as $contrato){
 
                 $facturaContratos = DB::table('facturas_contratos')
-                    ->join('facturas as f','f.id','=','facturas_contratos.factura_id')
+                    ->join('factura as f','f.id','=','facturas_contratos.factura_id')
                     ->where('contrato_nro',$contrato->nro)
                     ->where('factura.estatus',1)
                     ->orderBy('factura.fecha','DESC')->first();
