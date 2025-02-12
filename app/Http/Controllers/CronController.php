@@ -1116,7 +1116,7 @@ class CronController extends Controller
                             }//FIN DESHABILITACION MK CON PLANES COMBO
                             
                             $contrato->state = 'disabled';
-                            $contrato->observaciones = $contrato->observaciones. " - Contrato deshabilitado automaticamente";
+                            $contrato->observaciones = $contrato->observaciones. " - Contrato deshabilitado automaticamente por tv";
                             $contrato->save();
                             
                         }
