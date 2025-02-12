@@ -1118,6 +1118,15 @@ class CronController extends Controller
                             $contrato->state = 'disabled';
                             $contrato->observaciones = $contrato->observaciones. " - Contrato deshabilitado automaticamente por tv";
                             $contrato->save();
+
+                            $descripcion = '<i class="fas fa-check text-success"></i> <b>Cambio de Status</b> de habilitado a deshabilitado por cronjo de tvb<br>';
+                            $movimiento = new MovimientoLOG();
+                            $movimiento->contrato    = $contrato->id;
+                            $movimiento->modulo      = 5;
+                            $movimiento->descripcion = $descripcion;
+                            $movimiento->created_by  = 1;
+                            $movimiento->empresa     = $contrato->empresa;
+                            $movimiento->save();
                             
                         }
                     }
@@ -1195,6 +1204,15 @@ class CronController extends Controller
                     }
                     $API->disconnect();
                     $contrato->save();
+
+                    $descripcion = '<i class="fas fa-check text-success"></i> <b>Cambio de Status</b> de habilitado a deshabilitado por cronjob de promesas <br>';
+                    $movimiento = new MovimientoLOG();
+                    $movimiento->contrato    = $contrato->id;
+                    $movimiento->modulo      = 5;
+                    $movimiento->descripcion = $descripcion;
+                    $movimiento->created_by  = 1;
+                    $movimiento->empresa     = $contrato->empresa;
+                    $movimiento->save();
                 }
             }
         }
@@ -3001,6 +3019,15 @@ class CronController extends Controller
                 $contrato = Contrato::find($item->contrato_id);
                 $contrato->state = 'disabled';
                 $contrato->save();
+
+                $descripcion = '<i class="fas fa-check text-success"></i> <b>Cambio de Status</b> de habilitado a deshabilitado por cronjob de CRM<br>';
+                $movimiento = new MovimientoLOG();
+                $movimiento->contrato    = $contrato->id;
+                $movimiento->modulo      = 5;
+                $movimiento->descripcion = $descripcion;
+                $movimiento->created_by  = 1;
+                $movimiento->empresa     = $contrato->empresa;
+                $movimiento->save();
 
                 if($j==0){
                     $crm = CRM::where('cliente', $item->id)->whereIn('estado', [0, 3])->delete();
