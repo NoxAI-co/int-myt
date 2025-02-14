@@ -1556,6 +1556,22 @@ class ContactosController extends Controller
         return response()->json($contratos);
     }
 
+    public function asociarBarrio(Request $request){
+        $name = $request->nombre;
+        $id = "";
+        $user = Auth::user()->id;
+
+        if(!DB::table('barrios')->where('nombre',strtolower($name))->first()){
+
+            $id = DB::table('barrios')->insertGetId([
+                'nombre' => strtolower($name),
+                'created_by' => $user
+            ]);
+        }
+
+        return response()->json(['nombre' => $request->nombre, 'id' => $id]);
+    }
+
     public function cambiarEtiqueta($etiqueta, $contacto){
 
         $contacto =  Contacto::where('id', $contacto)->where('empresa', Auth::user()->empresa)->first();

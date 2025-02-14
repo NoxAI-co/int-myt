@@ -387,6 +387,7 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
 		Route::get('/editsaldo/{contactoid}', 'ContactosController@editSaldo');
 		Route::get('/historialsaldo/{contactoid}', 'ContactosController@historialSaldo');
 		Route::post('/storesaldo', 'ContactosController@storeSaldo');
+		Route::post('/asociarbarrio', 'ContactosController@asociarBarrio');
 	});
 	Route::resource('contactos', 'ContactosController');
 
@@ -1483,6 +1484,8 @@ Route::get('/GoogleAnalytics', 'GoogleAnalyticsController@index')->name('Google.
 	    Route::resource('wifi', 'WifiController');
 	//AUDITORIA
 	Route::resource('auditorias', 'AuditoriasController');
+	Route::resource('barrios','BarriosController');
+	Route::post('/delete-barrio/{id}','BarriosController@delete');
 
 	//PQRS
 		Route::resource('pqrs', 'PqrsController');
@@ -1670,8 +1673,6 @@ Route::get('/GoogleAnalytics', 'GoogleAnalyticsController@index')->name('Google.
             Route::get('contratos', 'AuditoriaController@contratos')->name('auditoria.contratos');
         });
         Route::resource('auditoria', 'AuditoriaController');
-		Route::resource('barrios','BarriosController');
-        Route::post('/delete-barrio/{id}','BarriosController@delete');
 });
 
 Route::get('/graficos/{id?}', 'GraficosController@index');
