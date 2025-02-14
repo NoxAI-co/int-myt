@@ -54,10 +54,10 @@ class ContactosController extends Controller
         // return 'ok';
         $this->getAllPermissions(Auth::user()->id);
         $tabla = Campos::join('campos_usuarios', 'campos_usuarios.id_campo', '=', 'campos.id')->where('campos_usuarios.id_modulo', 1)->where('campos_usuarios.id_usuario', Auth::user()->id)->where('campos_usuarios.estado', 1)->orderBy('campos_usuarios.orden', 'ASC')->get();
-
+        $barrios = DB::table('barrios')->where('status',1)->get();
         view()->share(['invert' => true]);
 
-        return view('contactos.indexnew');
+        return view('contactos.indexnew',compact('barrios'));
     }
 
     public function contactos(Request $request, $tipo_usuario)
@@ -449,7 +449,7 @@ class ContactosController extends Controller
         $contacto->apellido1 = $request->apellido1;
         $contacto->apellido2 = $request->apellido2;
         $contacto->ciudad = ucwords(mb_strtolower($request->ciudad));
-        $contacto->barrio = $request->barrio;
+        $contacto->barrio_id = $request->barrio_id;
         $contacto->vereda = $request->vereda;
         $contacto->direccion = $request->direccion;
         $contacto->email = mb_strtolower($request->email);
@@ -492,6 +492,7 @@ class ContactosController extends Controller
         $contacto->lista_precio = $request->lista_precio;
         $contacto->vendedor = $request->vendedor;
         $contacto->oficina = $request->oficina;
+
 
         $contacto->save();
 
@@ -588,6 +589,7 @@ class ContactosController extends Controller
             $listas = ListaPrecios::where('empresa', Auth::user()->empresa)->where('status', 1)->get();
             $tipos_empresa = TipoEmpresa::where('empresa', Auth::user()->empresa)->get();
             $oficinas = (Auth::user()->oficina && Auth::user()->empresa()->oficina) ? Oficina::where('id', Auth::user()->oficina)->get() : Oficina::where('empresa', Auth::user()->empresa)->where('status', 1)->get();
+            $barrios = DB::table('barrios')->where('status',1)->get();
 
             session(['url_search' => url()->previous()]);
 
@@ -597,7 +599,7 @@ class ContactosController extends Controller
                 view()->share(['title' => 'Editar: '.$contacto->nombre.' '.$contacto->apellidos(), 'subseccion' => 'proveedores', 'middel' => true, 'icon' => '']);
             }
 
-            return view('contactos.edit')->with(compact('contacto', 'identificaciones', 'paises', 'departamentos', 'vendedores', 'listas', 'tipos_empresa', 'oficinas'));
+            return view('contactos.edit')->with(compact('contacto', 'identificaciones', 'paises', 'departamentos', 'vendedores', 'listas', 'tipos_empresa', 'oficinas','barrios'));
         }
 
         return redirect('empresa/contactos')->with('danger', 'CLIENTE NO ENCONTRADO, INTENTE NUEVAMENTE');
@@ -631,7 +633,7 @@ class ContactosController extends Controller
             $contacto->nombre = $request->nombre;
             $contacto->apellido1 = $request->apellido1;
             $contacto->apellido2 = $request->apellido2;
-            $contacto->barrio = $request->barrio;
+            $contacto->barrio_id = $request->barrio_id;
             $contacto->vereda = $request->vereda;
             $contacto->direccion = $request->direccion;
             $contacto->email = mb_strtolower($request->email);
