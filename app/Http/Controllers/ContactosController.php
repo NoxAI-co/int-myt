@@ -54,10 +54,9 @@ class ContactosController extends Controller
         // return 'ok';
         $this->getAllPermissions(Auth::user()->id);
         $tabla = Campos::join('campos_usuarios', 'campos_usuarios.id_campo', '=', 'campos.id')->where('campos_usuarios.id_modulo', 1)->where('campos_usuarios.id_usuario', Auth::user()->id)->where('campos_usuarios.estado', 1)->orderBy('campos_usuarios.orden', 'ASC')->get();
-        $barrios = DB::table('barrios')->where('status',1)->get();
         view()->share(['invert' => true]);
 
-        return view('contactos.indexnew',compact('barrios'));
+        return view('contactos.indexnew');
     }
 
     public function contactos(Request $request, $tipo_usuario)
@@ -369,10 +368,10 @@ class ContactosController extends Controller
         $paises = DB::table('pais')->where('codigo', 'CO')->get();
         $departamentos = DB::table('departamentos')->get();
         $oficinas = (Auth::user()->oficina && Auth::user()->empresa()->oficina) ? Oficina::where('id', Auth::user()->oficina)->get() : Oficina::where('empresa', Auth::user()->empresa)->where('status', 1)->get();
-
+        $barrios = DB::table('barrios')->where('status',1)->get();
         view()->share(['icon' => '', 'title' => 'Nuevo Contacto', 'subseccion' => 'clientes', 'middel' => true]);
 
-        return view('contactos.create')->with(compact('identificaciones', 'paises', 'departamentos', 'oficinas'));
+        return view('contactos.create')->with(compact('identificaciones', 'paises', 'departamentos', 'oficinas','barrios'));
     }
 
     public function createp()
