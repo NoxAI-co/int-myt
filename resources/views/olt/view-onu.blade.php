@@ -386,7 +386,7 @@
                             @else
                             <button class="btn-disable" onclick="disable_onu(`{{ $details['sn'] }}`)">Disable ONU</button>
                             @endif
-                            <button class="btn-delete" onclick="delete_onu(`{{$details['sn']}},{{$details['olt_id']}}`)">Delete</button>
+                            <button class="btn-delete" onclick="delete_onu(`{{$details['sn']}}`,`{{$details['olt_id']}}`)">Delete</button>
                         </div>
                     </span>
                 </li>
