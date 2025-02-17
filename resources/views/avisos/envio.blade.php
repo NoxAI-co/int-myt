@@ -148,6 +148,7 @@
         	            @foreach($contratos as $contrato)
         	                @if($contrato->state==$estado['state'])
         	                    <option class="{{$contrato->state}} 
+									grupo-{{ $contrato->grupo_corte()->id ?? 'no' }}
 									servidor-{{ $contrato->servidor()->id ?? 'no' }}
 									factura-{{ $contrato->factura_id != null ?  'si' : 'no'}}
 									{{$contrato->plan_id != null ? "plan-" . $contrato->plan_id : 'plan-no'}}
