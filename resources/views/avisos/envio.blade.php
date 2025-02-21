@@ -151,7 +151,8 @@
 									grupo-{{ $contrato->grupo_corte()->id ?? 'no' }}
 									servidor-{{ $contrato->servidor()->id ?? 'no' }}
 									factura-{{ $contrato->factura_id != null ?  'si' : 'no'}}
-									{{$contrato->plan_id != null ? "plan-" . $contrato->plan_id : 'plan-no'}}
+									{{$contrato->plan_id != null ? "plan-" . $contrato->itemId : 'plan-no'}}
+									{{$contrato->servicio_tv != null ? "plan-" . $contrato->itemTvId : 'plan-no'}}
 									"
 									value="{{$contrato->id}}" {{$contrato->client_id==$id?'selected':''}}
 										data-saldo="<?php echo e($contrato->factura_total); ?>"

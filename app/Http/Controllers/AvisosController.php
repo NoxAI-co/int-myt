@@ -134,9 +134,11 @@ class AvisosController extends Controller
         'contactos.nombre as c_nombre', 'contactos.apellido1 as c_apellido1',
         'contactos.apellido2 as c_apellido2', 'contactos.nit as c_nit',
         'contactos.telefono1 as c_telefono', 'contactos.email as c_email',
-        'contactos.barrio as c_barrio', DB::raw('COALESCE(planes_velocidad.price, 0) + COALESCE(tv.precio + (tv.precio * tv.impuesto / 100), 0) as factura_total'))
+        'plan.id as itemId', 'tv.id as itemTvId',
+        'contactos.barrio as c_barrio', DB::raw('COALESCE(pv.price, 0) + COALESCE(tv.precio + (tv.precio * tv.impuesto / 100), 0) as factura_total'))
 			->join('contactos', 'contracts.client_id', '=', 'contactos.id')
-            ->leftJoin('planes_velocidad', 'contracts.plan_id', '=', 'planes_velocidad.id')
+            ->leftJoin('planes_velocidad as pv', 'contracts.plan_id', '=', 'pv.id')
+            ->leftJoin('inventario as plan', 'pv.item', '=', 'plan.id') // Relación con inventario (servicio de TV)
             ->leftJoin('inventario as tv', 'contracts.servicio_tv', '=', 'tv.id') // Relación con inventario (servicio de TV)
             ->where('contracts.empresa', Auth::user()->empresa)
             ->whereNotNull('contactos.celular');
@@ -223,7 +225,7 @@ class AvisosController extends Controller
         $servidores = Mikrotik::where('empresa', auth()->user()->empresa)->get();
         $gruposCorte = GrupoCorte::where('empresa', Auth::user()->empresa)->get();
 
-        $items = Inventario::where('status',1)->whereIn('type',['PLAN','TV'])->get();
+        $items = Inventario::where('status',1)->whereIn('type',['PLAN','TV', ''])->get();
 
         return view('avisos.envio')->with(compact('plantillas','contratos','opcion','id', 'servidores', 'gruposCorte','items'));
     }
