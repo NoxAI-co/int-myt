@@ -87,7 +87,7 @@
                             <a class="nav-link" href="{{route('contratos.index')}}">Lista contratos</a>
                         </li>
                     @endif
-                    @if(isset($_SESSION['permisos']['858']))
+                    @if(isset($_SESSION['permisos']['858']) && Auth::user()->empresa()->eatado_olt == 1)
                         <li class="nav-item" id="proveedores">
                             <a class="nav-link" href="{{ route('olt.unconfigured') }}">Onus desconfiguradas</a>
                         </li>

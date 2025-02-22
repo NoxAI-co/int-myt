@@ -5,14 +5,22 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use App\Empresa; use App\Banco;
-use App\TerminosPago; use App\Numeracion;
-use App\NumeracionFactura; use App\TipoIdentificacion;
-use Carbon\Carbon; use DB;
-use App\User;  use Illuminate\Support\Facades\Hash;
+use App\Empresa;
+use App\Banco;
+use App\TerminosPago;
+use App\Numeracion;
+use App\NumeracionFactura;
+use App\TipoIdentificacion;
+use Carbon\Carbon;
+use DB;
+use App\User;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Validator;  use Illuminate\Validation\Rule;  use Auth;
-use Session; use App\Rules\guion;
+use Validator;
+use Illuminate\Validation\Rule;
+use Auth;
+use Session;
+use App\Rules\guion;
 use App\Contacto;
 use App\SuscripcionPago;
 use App\Servicio;
@@ -28,8 +36,8 @@ use App\Model\Nomina\NominaConfiguracionCalculos;
 use App\Model\Nomina\Persona;
 use App\Http\Controllers\Nomina\PersonasController;
 
-include_once(app_path() .'/../public/routeros_api.class.php');
-include_once(app_path() .'/../public/api_mt_include2.php');
+include_once(app_path() . '/../public/routeros_api.class.php');
+include_once(app_path() . '/../public/api_mt_include2.php');
 
 use routeros_api;
 use RouterosAPI;
@@ -45,216 +53,220 @@ class ConfiguracionController extends Controller
   public function __construct()
   {
     $this->middleware('auth');
-    view()->share(['seccion' => 'configuracion', 'title' => 'Configuración', 'icon' =>'fas fa-cogs']);
+    view()->share(['seccion' => 'configuracion', 'title' => 'Configuración', 'icon' => 'fas fa-cogs']);
   }
 
-  public function index(){
-      $this->getAllPermissions(Auth::user()->id);
-      $personalPlan = Empresa::find(Auth::user()->empresa);
-      $personalPlan = $personalPlan->p_personalizado;
-      if($personalPlan > 0){
-          $personalPlan = true;
-      }else{
-        $personalPlan = false;
-      }
-      $empresa = auth()->user()->empresaObj;
- 	  return view('configuracion.index')->with(compact('personalPlan','empresa'));
- 	}
+  public function index()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    $personalPlan = Empresa::find(Auth::user()->empresa);
+    $personalPlan = $personalPlan->p_personalizado;
+    if ($personalPlan > 0) {
+      $personalPlan = true;
+    } else {
+      $personalPlan = false;
+    }
+    $empresa = auth()->user()->empresaObj;
+    return view('configuracion.index')->with(compact('personalPlan', 'empresa'));
+  }
 
   /**
-  * Vita para ver las numeraciones
-  */
-  public function numeraciones(){
+   * Vita para ver las numeraciones
+   */
+  public function numeraciones()
+  {
     $this->getAllPermissions(Auth::user()->id);
-    view()->share(['title' => 'Numeraciones de Documentos', 'icon' =>'']);
-    $numeracion = Numeracion::where('empresa',Auth::user()->empresa)->first();
-    $numeraciones=NumeracionFactura::where('empresa',Auth::user()->empresa)->where('tipo',1)->get();
+    view()->share(['title' => 'Numeraciones de Documentos', 'icon' => '']);
+    $numeracion = Numeracion::where('empresa', Auth::user()->empresa)->first();
+    $numeraciones = NumeracionFactura::where('empresa', Auth::user()->empresa)->where('tipo', 1)->get();
     return view('configuracion.numeraciones')->with(compact('numeracion', 'numeraciones'));
-
   }
 
-  public function numeraciones_dian(){
+  public function numeraciones_dian()
+  {
     $this->getAllPermissions(Auth::user()->id);
-    view()->share(['title' => 'Numeraciones de Documentos DIAN', 'icon' =>'']);
-    $numeracion = Numeracion::where('empresa',Auth::user()->empresa)->first();
-    $numeraciones=NumeracionFactura::where('empresa',Auth::user()->empresa)->where('tipo',2)->get();
+    view()->share(['title' => 'Numeraciones de Documentos DIAN', 'icon' => '']);
+    $numeracion = Numeracion::where('empresa', Auth::user()->empresa)->first();
+    $numeraciones = NumeracionFactura::where('empresa', Auth::user()->empresa)->where('tipo', 2)->get();
     return view('configuracion.numeraciones-dian')->with(compact('numeracion', 'numeraciones'));
   }
 
   /**
-  * Vita para ver la empresa
-    */
-  public function create(){
-      $this->getAllPermissions(Auth::user()->id);
-    view()->share(['title' => 'Modificar Información de la Empresa', 'icon' =>'']);
-    $identificaciones=TipoIdentificacion::all();
+   * Vita para ver la empresa
+   */
+  public function create()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Modificar Información de la Empresa', 'icon' => '']);
+    $identificaciones = TipoIdentificacion::all();
     $empresa = Empresa::find(Auth::user()->empresa);
     $responsabilidades = DB::table('responsabilidades_facturacion')
-    ->where('id', 5)->orWhere('id', 7)->orWhere('id', 12)->orWhere('id', 20)->orWhere('id', 29)->get();
-    $prefijos=DB::table('prefijos_telefonicos')->get();
-    $paises  =DB::table('pais')->get();
+      ->where('id', 5)->orWhere('id', 7)->orWhere('id', 12)->orWhere('id', 20)->orWhere('id', 29)->get();
+    $prefijos = DB::table('prefijos_telefonicos')->get();
+    $paises  = DB::table('pais')->get();
     $departamentos = DB::table('departamentos')->get();
-    $empresa_resp = DB::table('empresa_responsabilidad')->where('id_empresa','=',$empresa->id)->get();
+    $empresa_resp = DB::table('empresa_responsabilidad')->where('id_empresa', '=', $empresa->id)->get();
     Log::debug($empresa_resp);
 
-    return view('configuracion.empresa')->with(compact('empresa', 'identificaciones', 'prefijos','responsabilidades','paises','departamentos','empresa_resp'));
-
+    return view('configuracion.empresa')->with(compact('empresa', 'identificaciones', 'prefijos', 'responsabilidades', 'paises', 'departamentos', 'empresa_resp'));
   }
   /**
-  * Modificar los datos de la empresa
-  * @param Request $request
-  * @return redirect
-  */
-  public function store(Request $request){
-    $empresa =Empresa::find(Auth::user()->empresa);
+   * Modificar los datos de la empresa
+   * @param Request $request
+   * @return redirect
+   */
+  public function store(Request $request)
+  {
+    $empresa = Empresa::find(Auth::user()->empresa);
     $FeTest  = $empresa->fe_resolucion;
     $request->validate([
-        'nombre' => 'required',
-        'nit' => 'required|numeric',
-        'telefono' => 'required',
-        'email' => 'required|email',
-        'direccion' => 'required',
-        'tip_iden' => 'required|exists:tipos_identificacion,id',
-        'tipo_persona'=>'required',
-         'sep_dec'=> new guion,
+      'nombre' => 'required',
+      'nit' => 'required|numeric',
+      'telefono' => 'required',
+      'email' => 'required|email',
+      'direccion' => 'required',
+      'tip_iden' => 'required|exists:tipos_identificacion,id',
+      'tipo_persona' => 'required',
+      'sep_dec' => new guion,
     ]);
-      $errors= (object) array();
-      $error =Empresa::where('nombre', $request->nombre)->where('id', '<>', $empresa->id)->get();
-      if (count($error)>0) {
-        $errors->nombre='El nombre de la empresa ya se encuentra registrado en otra empresa';
-        return back()->withErrors($errors)->withInput();
-      }
+    $errors = (object) array();
+    $error = Empresa::where('nombre', $request->nombre)->where('id', '<>', $empresa->id)->get();
+    if (count($error) > 0) {
+      $errors->nombre = 'El nombre de la empresa ya se encuentra registrado en otra empresa';
+      return back()->withErrors($errors)->withInput();
+    }
 
-      if ($request->logo) {
-        $request->validate([
-            'logo'=>'mimes:jpeg,jpg,png| max:200'
-        ],['logo.mimes' => 'La extensión del logo debe ser jpeg, jpg, png',
-          'logo.max' => 'El peso máximo para el logo es de 200KB',
-        ]);
+    if ($request->logo) {
+      $request->validate([
+        'logo' => 'mimes:jpeg,jpg,png| max:200'
+      ], [
+        'logo.mimes' => 'La extensión del logo debe ser jpeg, jpg, png',
+        'logo.max' => 'El peso máximo para el logo es de 200KB',
+      ]);
 
-        if ($empresa->logo) {
-          $path = public_path() .'/images/Empresas/Empresa'.$empresa->id."/".$empresa->logo;
-          if (file_exists($path) ) {
-            unlink($path);
-          }
+      if ($empresa->logo) {
+        $path = public_path() . '/images/Empresas/Empresa' . $empresa->id . "/" . $empresa->logo;
+        if (file_exists($path)) {
+          unlink($path);
         }
-        $imagen = $request->file('logo');
-        $nombre_imagen = 'logo.'.$imagen->getClientOriginalExtension();
-        $empresa->logo=$nombre_imagen;
-        $path = public_path() .'/images/Empresas/Empresa'.$empresa->id;
-        $imagen->move($path,$nombre_imagen);
       }
+      $imagen = $request->file('logo');
+      $nombre_imagen = 'logo.' . $imagen->getClientOriginalExtension();
+      $empresa->logo = $nombre_imagen;
+      $path = public_path() . '/images/Empresas/Empresa' . $empresa->id;
+      $imagen->move($path, $nombre_imagen);
+    }
 
-      if ($request->img_default) {
-        if ($empresa->img_default) {
-          $path = public_path() .'/images/Empresas/Empresa'.$empresa->id."/".$empresa->img_default;
-          if (file_exists($path) ) {
-            unlink($path);
-          }
+    if ($request->img_default) {
+      if ($empresa->img_default) {
+        $path = public_path() . '/images/Empresas/Empresa' . $empresa->id . "/" . $empresa->img_default;
+        if (file_exists($path)) {
+          unlink($path);
         }
-        $imagen = $request->file('img_default');
-        $nombre_imagen = 'imagen_default.jpg';
-        $empresa->img_default=$nombre_imagen;
-        $path = public_path() .'/images/Empresas/Empresa'.$empresa->id;
-        $imagen->move($path,$nombre_imagen);
       }
+      $imagen = $request->file('img_default');
+      $nombre_imagen = 'imagen_default.jpg';
+      $empresa->img_default = $nombre_imagen;
+      $path = public_path() . '/images/Empresas/Empresa' . $empresa->id;
+      $imagen->move($path, $nombre_imagen);
+    }
 
 
-      $empresa->nombre = $request->nombre = $request->nombre;
-      $empresa->nit = $request->nit;
-      $empresa->telefono=$request->telefono?$request->pref." ".$request->telefono:$request->telefono;
-      $empresa->moneda = $request->moneda;
-      $empresa->codigo = $request->codigo;
-      $empresa->web = $request->web;
-      $empresa->precision = $request->precision;
-      //$empresa->sep_dec = $request->sep_dec;
-      $empresa->tipo_persona = $request->tipo_persona;
-      $empresa->tip_iden = $request->tip_iden;
-      $empresa->direccion = $request->direccion;
-      $empresa->email = $request->email=strtolower($request->email);
-      $empresa->sms_gateway = $request->sms_gateway;
-      $empresa->device_id = $request->device_id;
-      $empresa->whatsapp=$request->whatsapp?$request->pref_w." ".$request->whatsapp:$request->whatsapp;
-      $empresa->soporte=$request->soporte?$request->pref_s." ".$request->soporte:$request->soporte;
-      $empresa->ventas=$request->ventas?$request->pref_v." ".$request->ventas:$request->ventas;
-      $empresa->finanzas=$request->finanzas?$request->pref_f." ".$request->finanzas:$request->finanzas;
-      $empresa->updated_at  = Carbon::now();
+    $empresa->nombre = $request->nombre = $request->nombre;
+    $empresa->nit = $request->nit;
+    $empresa->telefono = $request->telefono ? $request->pref . " " . $request->telefono : $request->telefono;
+    $empresa->moneda = $request->moneda;
+    $empresa->codigo = $request->codigo;
+    $empresa->web = $request->web;
+    $empresa->precision = $request->precision;
+    //$empresa->sep_dec = $request->sep_dec;
+    $empresa->tipo_persona = $request->tipo_persona;
+    $empresa->tip_iden = $request->tip_iden;
+    $empresa->direccion = $request->direccion;
+    $empresa->email = $request->email = strtolower($request->email);
+    $empresa->sms_gateway = $request->sms_gateway;
+    $empresa->device_id = $request->device_id;
+    $empresa->whatsapp = $request->whatsapp ? $request->pref_w . " " . $request->whatsapp : $request->whatsapp;
+    $empresa->soporte = $request->soporte ? $request->pref_s . " " . $request->soporte : $request->soporte;
+    $empresa->ventas = $request->ventas ? $request->pref_v . " " . $request->ventas : $request->ventas;
+    $empresa->finanzas = $request->finanzas ? $request->pref_f . " " . $request->finanzas : $request->finanzas;
+    $empresa->updated_at  = Carbon::now();
 
-      $empresa->dv = $request->dvoriginal;
-      $empresa->fe_resolucion = $request->test_resolucion;
+    $empresa->dv = $request->dvoriginal;
+    $empresa->fe_resolucion = $request->test_resolucion;
 
-      $empresa->fk_idpais = $request->pais;
-      $empresa->fk_iddepartamento = $request->departamento;
-      $empresa->fk_idmunicipio    = $request->municipio;
-      $empresa->cod_postal        = $request->cod_postal;
-      $empresa->tipo_fac = ($request->tipofactura) ? $request->tipofactura : '';
+    $empresa->fk_idpais = $request->pais;
+    $empresa->fk_iddepartamento = $request->departamento;
+    $empresa->fk_idmunicipio    = $request->municipio;
+    $empresa->cod_postal        = $request->cod_postal;
+    $empresa->tipo_fac = ($request->tipofactura) ? $request->tipofactura : '';
 
-      //Comprobacion de activación factura electronica
-      //En caso que no hayan datos dentro del campo fe_resolucion de la BD
-      //Se le asignará el valor del formulario y se emitirá la notificación
-      $modalFe = false;
-      if(isset($request->test_resolucion)){
-          if(empty($FeTest)){
-              $this->enviar($request->test_resolucion);
-              $modalFe = true;
-          }
+    //Comprobacion de activación factura electronica
+    //En caso que no hayan datos dentro del campo fe_resolucion de la BD
+    //Se le asignará el valor del formulario y se emitirá la notificación
+    $modalFe = false;
+    if (isset($request->test_resolucion)) {
+      if (empty($FeTest)) {
+        $this->enviar($request->test_resolucion);
+        $modalFe = true;
       }
+    }
 
-      $resp_empresa = DB::table('empresa_responsabilidad')->where('id_empresa','=',$empresa->id)->get();
-              if(count($resp_empresa) >= 1){
-                DB::table('empresa_responsabilidad')->where('id_empresa','=',$empresa->id)->delete();
-              }
+    $resp_empresa = DB::table('empresa_responsabilidad')->where('id_empresa', '=', $empresa->id)->get();
+    if (count($resp_empresa) >= 1) {
+      DB::table('empresa_responsabilidad')->where('id_empresa', '=', $empresa->id)->delete();
+    }
 
-      if($request->tip_responsabilidad){
-        Log::debug('RESPON');
-        Log::debug($request->tip_responsabilidad);
-          foreach($request->tip_responsabilidad as $key => $valor){
+    if ($request->tip_responsabilidad) {
+      Log::debug('RESPON');
+      Log::debug($request->tip_responsabilidad);
+      foreach ($request->tip_responsabilidad as $key => $valor) {
 
-                Log::debug($valor);
-               DB::table('empresa_responsabilidad')->insert(
-                   [
-                   'id_empresa' => $empresa->id,
-                   'id_responsabilidad' => $valor
-                   ]
-               );
-          }
-
+        Log::debug($valor);
+        DB::table('empresa_responsabilidad')->insert(
+          [
+            'id_empresa' => $empresa->id,
+            'id_responsabilidad' => $valor
+          ]
+        );
       }
+    }
 
 
-      $empresa->save();
-      Log::debug($empresa);
+    $empresa->save();
+    Log::debug($empresa);
 
-   if ($empresa->estado_dian == 0) {
-        $this->getGenerarValidacion();
-        //$this->generateCreditNote();
-        //$this->generateDebitNote();
-   }
+    if ($empresa->estado_dian == 0) {
+      $this->getGenerarValidacion();
+      //$this->generateCreditNote();
+      //$this->generateDebitNote();
+    }
 
-    $mensaje='Se ha modificado exitosamente los datos de la empresa';
+    $mensaje = 'Se ha modificado exitosamente los datos de la empresa';
 
-    return redirect('empresa/configuracion/create')->with('success', $mensaje)->with('modalFe', $modalFe );
+    return redirect('empresa/configuracion/create')->with('success', $mensaje)->with('modalFe', $modalFe);
   }
 
   /**
-  * Vita para ver los datos
-  */
-  public function miusuario(){
-      $this->getAllPermissions(Auth::user()->id);
-    view()->share(['title' => 'Editar mi Usuario', 'icon' =>'']);
+   * Vita para ver los datos
+   */
+  public function miusuario()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Editar mi Usuario', 'icon' => '']);
     $usuario = User::find(Auth::user()->id);
     return view('configuracion.miusuario')->with(compact('usuario'));
-
   }
 
   /**
-  * Modificar las numeraciones registradas
-  * @param Request $request
-  * @return view
-  */
-  public function miusuario_store(Request $request){
+   * Modificar las numeraciones registradas
+   * @param Request $request
+   * @return view
+   */
+  public function miusuario_store(Request $request)
+  {
 
-    $usuario =User::find(Auth::user()->id);
+    $usuario = User::find(Auth::user()->id);
     if ($request->imagenperfil) {
       $img = $request->input('imagenperfil');
       $baseFromJavascript = $img;
@@ -263,47 +275,46 @@ class ConfiguracionController extends Controller
       $data = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $baseFromJavascript));
 
       //CREAR LA CARPETA
-      $destinationPath = public_path('images/Empresas/Empresa'.Auth::user()->empresa."/usuarios");
+      $destinationPath = public_path('images/Empresas/Empresa' . Auth::user()->empresa . "/usuarios");
       // echo $destinationPath;
       // die;
       $filepath = $destinationPath . '/' . $usuario->nro . '.png'; // or image.jpg
       $usuario->image = $usuario->nro . '.png';
       $usuario->save();
       // Finalmente guarda la imágen en el directorio especificado y con la informacion dada
-      if (!file_exists($destinationPath) ) {
-         mkdir($destinationPath, 0777, true);
+      if (!file_exists($destinationPath)) {
+        mkdir($destinationPath, 0777, true);
       }
 
       file_put_contents($filepath, $data);
       return redirect('empresa/configuracion/miusuario');
-
     }
     if ($request->nombres) {
-      $errors= (object) array();
-      $error =User::where('email', $request->email)->where('id', '<>', $usuario->id)->get();
-      if (count($error)>0) {
-        $errors->email='El correo electrónico ya se encuentra registrado para otro usuario';
+      $errors = (object) array();
+      $error = User::where('email', $request->email)->where('id', '<>', $usuario->id)->get();
+      if (count($error) > 0) {
+        $errors->email = 'El correo electrónico ya se encuentra registrado para otro usuario';
         return back()->withErrors($errors)->withInput();
       }
 
-      $error =User::where('username', $request->username)->where('id', '<>', $usuario->id)->get();
-      if (count($error)>0) {
-        $errors->username='El Nombre de Usuario ya se encuentra registrado para otro usuario';
+      $error = User::where('username', $request->username)->where('id', '<>', $usuario->id)->get();
+      if (count($error) > 0) {
+        $errors->username = 'El Nombre de Usuario ya se encuentra registrado para otro usuario';
         return back()->withErrors($errors)->withInput();
       }
 
       if ($request->changepass) {
         if (!Hash::check($request->pass_actual, Auth::user()->password)) {
-          $errors->pass_actual='Error en la contraseña';
+          $errors->pass_actual = 'Error en la contraseña';
           return back()->withErrors($errors)->withInput();
         }
         $usuario->password  = bcrypt($request->password);
       }
       $usuario->email = $request->email;
       $usuario->nombres = $request->nombres;
-      $usuario->username = $request->username=strtolower($request->username);
+      $usuario->username = $request->username = strtolower($request->username);
       $usuario->save();
-      $mensaje='Se ha modificado satisfactoriamente el usuario';
+      $mensaje = 'Se ha modificado satisfactoriamente el usuario';
       return redirect('empresa/configuracion/miusuario')->with('success', $mensaje);
     }
 
@@ -313,46 +324,48 @@ class ConfiguracionController extends Controller
 
 
   /**
-  * Vita para ver los datos
-  */
-  public function datos(){
-      $this->getAllPermissions(Auth::user()->id);
-    view()->share(['title' => 'Configuración de Facturas de Venta', 'icon' =>'']);
+   * Vita para ver los datos
+   */
+  public function datos()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Configuración de Facturas de Venta', 'icon' => '']);
     $empresa = Empresa::find(Auth::user()->empresa);
     return view('configuracion.datos')->with(compact('empresa'));
-
   }
 
   /**
-  * Modificar las numeraciones registradas
-  * @param Request $request
-  * @return view
-  */
-  public function datos_store(Request $request){
-     if (!$request->edo_cuenta_fact) {
-       $request->edo_cuenta_fact=0;
-     }
-             if(Auth::user()->empresa == 28){
-            //dd($request->all());
-        }
+   * Modificar las numeraciones registradas
+   * @param Request $request
+   * @return view
+   */
+  public function datos_store(Request $request)
+  {
+    if (!$request->edo_cuenta_fact) {
+      $request->edo_cuenta_fact = 0;
+    }
+    if (Auth::user()->empresa == 28) {
+      //dd($request->all());
+    }
     $empresa = Empresa::find(Auth::user()->empresa);
-    $empresa->terminos_cond=$request->terminos_cond;
-    $empresa->notas_fact=$request->notas_fact;
-    $empresa->edo_cuenta_fact=$request->edo_cuenta_fact;
+    $empresa->terminos_cond = $request->terminos_cond;
+    $empresa->notas_fact = $request->notas_fact;
+    $empresa->edo_cuenta_fact = $request->edo_cuenta_fact;
     $empresa->tirilla = !$request->tirilla ? 0 : 1;
     $empresa->medios_pago = $request->medios_pago;
     $empresa->save();
-    $mensaje='Se ha modificado satisfactoriamente la configuración de facturas de venta';
+    $mensaje = 'Se ha modificado satisfactoriamente la configuración de facturas de venta';
     return redirect('empresa/configuracion/datos')->with('success', $mensaje);
   }
 
 
   /**
-  * Modificar las numeraciones registradas
-  * @param Request $request
-  * @return view
-  */
-  public function numeraciones_store(Request $request){
+   * Modificar las numeraciones registradas
+   * @param Request $request
+   * @return view
+   */
+  public function numeraciones_store(Request $request)
+  {
     if ($request->caja) {
       $request->validate([
         'caja' => 'required|numeric',
@@ -363,17 +376,16 @@ class ConfiguracionController extends Controller
         'orden' => 'required|numeric',
       ]);
 
-      $numeracion = Numeracion::where('empresa',Auth::user()->empresa)->first();
-      $numeracion->caja=$request->caja;
-      $numeracion->cajar=$request->cajar;
-      $numeracion->pago=$request->pago;
-      $numeracion->credito=$request->credito;
-      $numeracion->remision=$request->remision;
-      $numeracion->cotizacion=$request->cotizacion;
-      $numeracion->orden=$request->orden;
+      $numeracion = Numeracion::where('empresa', Auth::user()->empresa)->first();
+      $numeracion->caja = $request->caja;
+      $numeracion->cajar = $request->cajar;
+      $numeracion->pago = $request->pago;
+      $numeracion->credito = $request->credito;
+      $numeracion->remision = $request->remision;
+      $numeracion->cotizacion = $request->cotizacion;
+      $numeracion->orden = $request->orden;
       $numeracion->save();
-    }
-    else{
+    } else {
       $request->validate([
         'nombre' => 'required',
         'inicio' => 'required|numeric',
@@ -382,232 +394,254 @@ class ConfiguracionController extends Controller
 
       //Tipo de numeracion_factura, 1=estandar, 2=DIAN
       $tipo = 1;
-      if($request->tipo == 2){$tipo=2;}
+      if ($request->tipo == 2) {
+        $tipo = 2;
+      }
 
-      if ($request->preferida==1) {
+      if ($request->preferida == 1) {
         DB::table('numeraciones_facturas')
-        ->where('empresa', Auth::user()->empresa)
-        ->where('tipo',$tipo)
-        ->update(['preferida' => 0]);
+          ->where('empresa', Auth::user()->empresa)
+          ->where('tipo', $tipo)
+          ->update(['preferida' => 0]);
       }
 
 
-      $numeracion=new NumeracionFactura;
-      $numeracion->nombre=$request->nombre;
-      $numeracion->prefijo=$request->prefijo;
-      $numeracion->inicio=$request->inicio;
+      $numeracion = new NumeracionFactura;
+      $numeracion->nombre = $request->nombre;
+      $numeracion->prefijo = $request->prefijo;
+      $numeracion->inicio = $request->inicio;
       $numeracion->inicioverdadero = $request->inicio;
-      $numeracion->final=$request->final;
+      $numeracion->final = $request->final;
       if ($request->desde) {
-        $numeracion->desde=Carbon::parse($request->desde)->format('Y-m-d');
+        $numeracion->desde = Carbon::parse($request->desde)->format('Y-m-d');
       }
       if ($request->hasta) {
-        $numeracion->hasta=Carbon::parse($request->hasta)->format('Y-m-d');
+        $numeracion->hasta = Carbon::parse($request->hasta)->format('Y-m-d');
       }
-      $numeracion->preferida=$request->preferida;
-      $numeracion->nroresolucion=$request->nroresolucion;
-      $numeracion->resolucion=$request->resolucion;
-      $numeracion->empresa=Auth::user()->empresa;
+      $numeracion->preferida = $request->preferida;
+      $numeracion->nroresolucion = $request->nroresolucion;
+      $numeracion->resolucion = $request->resolucion;
+      $numeracion->empresa = Auth::user()->empresa;
       $numeracion->tipo = $tipo;
       $numeracion->save();
 
-      $mensaje='Se ha creado satisfactoriamente la numeración';
+      $mensaje = 'Se ha creado satisfactoriamente la numeración';
       return redirect('empresa/configuracion/numeraciones')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
     }
 
-    $mensaje='Se ha creado satisfactoriamente la numeración';
+    $mensaje = 'Se ha creado satisfactoriamente la numeración';
     return redirect('empresa/configuracion/numeraciones')->with('success', $mensaje);
   }
 
   /**
-  * Formulario para crear un nueva numeracion
-  * @return view
-  */
-  public function numeraciones_create(){
-      $this->getAllPermissions(Auth::user()->id);
-    view()->share(['title' => 'Nueva Numeración', 'icon' =>'']);
+   * Formulario para crear un nueva numeracion
+   * @return view
+   */
+  public function numeraciones_create()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Nueva Numeración', 'icon' => '']);
     return view('configuracion.numeracion.create');
   }
 
-    /**
-  * Formulario para modificar los datos de una numeracion
-  * @param int $id
-  * @return view
-  */
-  public function numeraciones_edit($id){
+  /**
+   * Formulario para modificar los datos de una numeracion
+   * @param int $id
+   * @return view
+   */
+  public function numeraciones_edit($id)
+  {
     $this->getAllPermissions(Auth::user()->id);
-  $numeracion = NumeracionFactura::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
-  if ($numeracion) {
-    view()->share(['title' => 'Modificar Numeración', 'icon' =>'']);
-    return view('configuracion.numeracion.edit')->with(compact('numeracion'));
+    $numeracion = NumeracionFactura::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
+    if ($numeracion) {
+      view()->share(['title' => 'Modificar Numeración', 'icon' => '']);
+      return view('configuracion.numeracion.edit')->with(compact('numeracion'));
+    }
+    return redirect('empresa/configuracion/numeraciones/dian')->with('success', 'No existe un registro con ese id');
   }
-  return redirect('empresa/configuracion/numeraciones/dian')->with('success', 'No existe un registro con ese id');
-}
 
   /**
-  * Modificar los datos de la numeracion
-  * @param Request $request
-  * @return redirect
-  */
-  public function numeraciones_update(Request $request, $id){
-    $numeracion = NumeracionFactura::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+   * Modificar los datos de la numeracion
+   * @param Request $request
+   * @return redirect
+   */
+  public function numeraciones_update(Request $request, $id)
+  {
+    $numeracion = NumeracionFactura::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
     if ($numeracion) {
       $request->validate([
         'nombre' => 'required',
         'inicio' => 'required|numeric',
         'preferida' => 'required|numeric'
       ]);
-      if ($request->preferida==1) {
+      if ($request->preferida == 1) {
         DB::table('numeraciones_facturas')
-        ->where('empresa', Auth::user()->empresa)
-        ->where('tipo',1)
-        ->where('id', '<>',$numeracion->id)
-        ->update(['preferida' => 0]);
+          ->where('empresa', Auth::user()->empresa)
+          ->where('tipo', 1)
+          ->where('id', '<>', $numeracion->id)
+          ->update(['preferida' => 0]);
       }
-      $numeracion->nombre=$request->nombre;
-      $numeracion->prefijo=$request->prefijo;
-      $numeracion->inicioverdadero=$request->inicioverdadero;
-      $numeracion->inicio=$request->inicio;
-      $numeracion->final=$request->final;
+      $numeracion->nombre = $request->nombre;
+      $numeracion->prefijo = $request->prefijo;
+      $numeracion->inicioverdadero = $request->inicioverdadero;
+      $numeracion->inicio = $request->inicio;
+      $numeracion->final = $request->final;
 
-      if ($request->desde) { $numeracion->desde=Carbon::parse($request->desde)->format('Y-m-d');  }
-      else{ $numeracion->desde=null; }
-      if ($request->hasta) { $numeracion->hasta=Carbon::parse($request->hasta)->format('Y-m-d'); }
-      else{ $numeracion->hasta=null; }
-      $numeracion->preferida=$request->preferida;
-      $numeracion->nroresolucion=$request->nroresolucion;
-      $numeracion->resolucion=$request->resolucion;
+      if ($request->desde) {
+        $numeracion->desde = Carbon::parse($request->desde)->format('Y-m-d');
+      } else {
+        $numeracion->desde = null;
+      }
+      if ($request->hasta) {
+        $numeracion->hasta = Carbon::parse($request->hasta)->format('Y-m-d');
+      } else {
+        $numeracion->hasta = null;
+      }
+      $numeracion->preferida = $request->preferida;
+      $numeracion->nroresolucion = $request->nroresolucion;
+      $numeracion->resolucion = $request->resolucion;
       $numeracion->save();
 
-      $mensaje='Se ha modificado satisfactoriamente la numeración';
+      $mensaje = 'Se ha modificado satisfactoriamente la numeración';
       return redirect('empresa/configuracion/numeraciones')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
-
     }
     return redirect('empresa/configuracion/numeraciones')->with('success', 'No existe un registro con ese id');
   }
 
-  public function numeraciones_dian_store(Request $request){
+  public function numeraciones_dian_store(Request $request)
+  {
     $request->validate([
-        'nombre' => 'required',
-        'inicio' => 'required|numeric',
-        'preferida' => 'required|numeric'
-      ]);
+      'nombre' => 'required',
+      'inicio' => 'required|numeric',
+      'preferida' => 'required|numeric'
+    ]);
 
-      //Tipo de numeracion_factura, 1=estandar, 2=DIAN
-      $tipo = 1;
-      if($request->tipo == 2){$tipo=2;}
+    //Tipo de numeracion_factura, 1=estandar, 2=DIAN
+    $tipo = 1;
+    if ($request->tipo == 2) {
+      $tipo = 2;
+    }
 
-    if ($request->preferida==1) {
+    if ($request->preferida == 1) {
       DB::table('numeraciones_facturas')
-      ->where('empresa', Auth::user()->empresa)
-      ->where('tipo',$tipo)
-      ->update(['preferida' => 0]);
+        ->where('empresa', Auth::user()->empresa)
+        ->where('tipo', $tipo)
+        ->update(['preferida' => 0]);
     }
 
 
-      $numeracion=new NumeracionFactura;
-      $numeracion->nombre=$request->nombre;
-      $numeracion->prefijo=$request->prefijo;
-      $numeracion->inicio=$request->inicio;
-      $numeracion->inicioverdadero = $request->inicio;
-      $numeracion->final=$request->final;
-      if ($request->desde) {
-        $numeracion->desde=Carbon::parse($request->desde)->format('Y-m-d');
-      }
-      if ($request->hasta) {
-        $numeracion->hasta=Carbon::parse($request->hasta)->format('Y-m-d');
-      }
-      $numeracion->preferida=$request->preferida;
-      $numeracion->nroresolucion=$request->nroresolucion;
-      $numeracion->resolucion=$request->resolucion;
-      $numeracion->empresa=Auth::user()->empresa;
-      $numeracion->tipo = $tipo;
-      $numeracion->save();
+    $numeracion = new NumeracionFactura;
+    $numeracion->nombre = $request->nombre;
+    $numeracion->prefijo = $request->prefijo;
+    $numeracion->inicio = $request->inicio;
+    $numeracion->inicioverdadero = $request->inicio;
+    $numeracion->final = $request->final;
+    if ($request->desde) {
+      $numeracion->desde = Carbon::parse($request->desde)->format('Y-m-d');
+    }
+    if ($request->hasta) {
+      $numeracion->hasta = Carbon::parse($request->hasta)->format('Y-m-d');
+    }
+    $numeracion->preferida = $request->preferida;
+    $numeracion->nroresolucion = $request->nroresolucion;
+    $numeracion->resolucion = $request->resolucion;
+    $numeracion->empresa = Auth::user()->empresa;
+    $numeracion->tipo = $tipo;
+    $numeracion->save();
 
-      $mensaje='Se ha creado satisfactoriamente la numeración';
-      return redirect('empresa/configuracion/numeraciones/dian')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
+    $mensaje = 'Se ha creado satisfactoriamente la numeración';
+    return redirect('empresa/configuracion/numeraciones/dian')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
 
-      $mensaje='Se ha creado satisfactoriamente la numeración';
-      return redirect('empresa/configuracion/numeraciones/dian')->with('success', $mensaje);
+    $mensaje = 'Se ha creado satisfactoriamente la numeración';
+    return redirect('empresa/configuracion/numeraciones/dian')->with('success', $mensaje);
   }
 
-   /**
-  * Formulario para crear un nueva numeracion dian
-  * @return view
-  */
-  public function numeraciones_dian_create(){
+  /**
+   * Formulario para crear un nueva numeracion dian
+   * @return view
+   */
+  public function numeraciones_dian_create()
+  {
     $this->getAllPermissions(Auth::user()->id);
-    view()->share(['title' => 'Nueva Numeración', 'icon' =>'']);
+    view()->share(['title' => 'Nueva Numeración', 'icon' => '']);
     return view('configuracion.numeracion-dian.create');
   }
 
   /**
-  * Formulario para modificar los datos de una numeracion DIAN
-  * @param int $id
-  * @return view
-  */
-  public function numeraciones_dian_edit($id){
+   * Formulario para modificar los datos de una numeracion DIAN
+   * @param int $id
+   * @return view
+   */
+  public function numeraciones_dian_edit($id)
+  {
     $this->getAllPermissions(Auth::user()->id);
-    $numeracion = NumeracionFactura::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+    $numeracion = NumeracionFactura::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
     if ($numeracion) {
-      view()->share(['title' => 'Modificar Numeración', 'icon' =>'']);
+      view()->share(['title' => 'Modificar Numeración', 'icon' => '']);
       return view('configuracion.numeracion-dian.edit')->with(compact('numeracion'));
     }
     return redirect('empresa/configuracion/numeraciones/dian')->with('success', 'No existe un registro con ese id');
-}
+  }
 
   /**
-  * Modificar los datos de la numeracion DIAN
-  * @param Request $request
-  * @return redirect
-  */
-  public function numeraciones_dian_update(Request $request, $id){
-    $numeracion = NumeracionFactura::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+   * Modificar los datos de la numeracion DIAN
+   * @param Request $request
+   * @return redirect
+   */
+  public function numeraciones_dian_update(Request $request, $id)
+  {
+    $numeracion = NumeracionFactura::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
     if ($numeracion) {
       $request->validate([
         'nombre' => 'required',
         'inicio' => 'required|numeric',
         'preferida' => 'required|numeric'
       ]);
-      if ($request->preferida==1) {
+      if ($request->preferida == 1) {
         DB::table('numeraciones_facturas')
-        ->where('empresa', Auth::user()->empresa)
-        ->where('tipo',2)
-        ->where('id', '<>',$numeracion->id)
-        ->update(['preferida' => 0]);
+          ->where('empresa', Auth::user()->empresa)
+          ->where('tipo', 2)
+          ->where('id', '<>', $numeracion->id)
+          ->update(['preferida' => 0]);
       }
-      $numeracion->nombre=$request->nombre;
-      $numeracion->prefijo=$request->prefijo;
-      $numeracion->inicioverdadero=$request->inicioverdadero;
-      $numeracion->inicio=$request->inicio;
-      $numeracion->final=$request->final;
+      $numeracion->nombre = $request->nombre;
+      $numeracion->prefijo = $request->prefijo;
+      $numeracion->inicioverdadero = $request->inicioverdadero;
+      $numeracion->inicio = $request->inicio;
+      $numeracion->final = $request->final;
 
-      if ($request->desde) { $numeracion->desde=Carbon::parse($request->desde)->format('Y-m-d');  }
-      else{ $numeracion->desde=null; }
-      if ($request->hasta) { $numeracion->hasta=Carbon::parse($request->hasta)->format('Y-m-d'); }
-      else{ $numeracion->hasta=null; }
-      $numeracion->preferida=$request->preferida;
-      $numeracion->nroresolucion=$request->nroresolucion;
-      $numeracion->resolucion=$request->resolucion;
+      if ($request->desde) {
+        $numeracion->desde = Carbon::parse($request->desde)->format('Y-m-d');
+      } else {
+        $numeracion->desde = null;
+      }
+      if ($request->hasta) {
+        $numeracion->hasta = Carbon::parse($request->hasta)->format('Y-m-d');
+      } else {
+        $numeracion->hasta = null;
+      }
+      $numeracion->preferida = $request->preferida;
+      $numeracion->nroresolucion = $request->nroresolucion;
+      $numeracion->resolucion = $request->resolucion;
       $numeracion->save();
 
-      $mensaje='Se ha modificado satisfactoriamente la numeración';
+      $mensaje = 'Se ha modificado satisfactoriamente la numeración';
       return redirect('empresa/configuracion/numeraciones/dian')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
-
     }
     return redirect('empresa/configuracion/numeraciones/dian')->with('success', 'No existe un registro con ese id');
   }
 
   /**
-  * Formulario para eliminar la numeracion
-  * @param int $id
-  * @return view
-  */
-  public function numeraciones_destroy($id){
-    $numeracion = NumeracionFactura::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+   * Formulario para eliminar la numeracion
+   * @param int $id
+   * @return view
+   */
+  public function numeraciones_destroy($id)
+  {
+    $numeracion = NumeracionFactura::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
     if ($numeracion) {
 
-      if ($numeracion->usado()==0) {
+      if ($numeracion->usado() == 0) {
         $numeracion->delete();
         return redirect('empresa/configuracion/numeraciones')->with('success', 'Se ha eliminado correctamente la numeración');
       }
@@ -616,117 +650,122 @@ class ConfiguracionController extends Controller
   }
 
   /**
-  * Formulario para cambiar el estatus de la numeracion
-  * @param int $id
-  * @return view
-  */
-  public function numeraciones_act_desc($id){
+   * Formulario para cambiar el estatus de la numeracion
+   * @param int $id
+   * @return view
+   */
+  public function numeraciones_act_desc($id)
+  {
 
-    $numeracion = NumeracionFactura::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+    $numeracion = NumeracionFactura::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
     if ($numeracion) {
-        if ($numeracion->estado==1) {
+      if ($numeracion->estado == 1) {
 
-          $mensaje='Se ha desactivado la numeración';
-          $numeracion->estado=0;
-          $numeracion->update();
-        }
-        else{
-          $mensaje='Se ha activado la numeración';
-          $numeracion->estado=1;
-          $numeracion->update();
-        }
+        $mensaje = 'Se ha desactivado la numeración';
+        $numeracion->estado = 0;
+        $numeracion->update();
+      } else {
+        $mensaje = 'Se ha activado la numeración';
+        $numeracion->estado = 1;
+        $numeracion->update();
+      }
       return redirect('empresa/configuracion/numeraciones')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
     }
     return redirect('empresa/configuracion/numeraciones')->with('success', 'No existe un registro con ese id');
   }
 
   /**
-  * Vita para ver los terminos de pago
-  */
-  public function terminos(){
-      $this->getAllPermissions(Auth::user()->id);
+   * Vita para ver los terminos de pago
+   */
+  public function terminos()
+  {
+    $this->getAllPermissions(Auth::user()->id);
     view()->share(['title' => 'Términos de Pago']);
-    $terminos=TerminosPago::where('empresa',Auth::user()->empresa)->get();
+    $terminos = TerminosPago::where('empresa', Auth::user()->empresa)->get();
     return view('configuracion.terminos.index')->with(compact('terminos'));
   }
 
   /**
-  * Formulario para crear un nuevo términos de pago
-  * @return view
-  */
-  public function terminos_create(){
-      $this->getAllPermissions(Auth::user()->id);
-    view()->share(['title' => 'Nuevo Término de Pago', 'icon' =>'']);
+   * Formulario para crear un nuevo términos de pago
+   * @return view
+   */
+  public function terminos_create()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Nuevo Término de Pago', 'icon' => '']);
     return view('configuracion.terminos.create');
   }
 
   /**
-  * Registrar un nuevo términos de pago
-  * @param Request $request
-  * @return redirect
-  */
-  public function terminos_store(Request $request){
+   * Registrar un nuevo términos de pago
+   * @param Request $request
+   * @return redirect
+   */
+  public function terminos_store(Request $request)
+  {
     $request->validate([
-          'nombre' => 'required|max:200',
-          'dias' => 'required|numeric'
+      'nombre' => 'required|max:200',
+      'dias' => 'required|numeric'
     ]);
     $termino = new TerminosPago;
-    $termino->empresa=Auth::user()->empresa;
-    $termino->nombre=$request->nombre;
-    $termino->dias=$request->dias;
+    $termino->empresa = Auth::user()->empresa;
+    $termino->nombre = $request->nombre;
+    $termino->dias = $request->dias;
     $termino->save();
 
-    $mensaje='Se ha creado satisfactoriamente el término de pago';
+    $mensaje = 'Se ha creado satisfactoriamente el término de pago';
     return redirect('empresa/configuracion/terminos')->with('success', $mensaje)->with('termino_id', $termino->id);
   }
 
-   /**
-  * Formulario para modificar los datos de un  términos de pago
-  * @param int $id
-  * @return view
-  */
-  public function terminos_edit($id){
-      $this->getAllPermissions(Auth::user()->id);
-    $termino = TerminosPago::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+  /**
+   * Formulario para modificar los datos de un  términos de pago
+   * @param int $id
+   * @return view
+   */
+  public function terminos_edit($id)
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    $termino = TerminosPago::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
     if ($termino) {
-      view()->share(['title' => 'Modificar Término de Pago', 'icon' =>'']);
+      view()->share(['title' => 'Modificar Término de Pago', 'icon' => '']);
       return view('configuracion.terminos.edit')->with(compact('termino'));
     }
     return redirect('empresa/configuracion/terminos')->with('success', 'No existe un registro con ese id');
   }
 
   /**
-  * Modificar los datos del banco
-  * @param Request $request
-  * @return redirect
-  */
-  public function terminos_update(Request $request, $id){
-    $termino = TerminosPago::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+   * Modificar los datos del banco
+   * @param Request $request
+   * @return redirect
+   */
+  public function terminos_update(Request $request, $id)
+  {
+    $termino = TerminosPago::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
     if ($termino) {
       $request->validate([
-            'nombre' => 'required|max:200',
-            'dias' => 'required|numeric'
+        'nombre' => 'required|max:200',
+        'dias' => 'required|numeric'
       ]);
-      $termino->nombre=$request->nombre;
-      $termino->dias=$request->dias;
+      $termino->nombre = $request->nombre;
+      $termino->dias = $request->dias;
       $termino->save();
-      $mensaje='Se ha modificado satisfactoriamente el término de pago';
+      $mensaje = 'Se ha modificado satisfactoriamente el término de pago';
       return redirect('empresa/configuracion/terminos')->with('success', $mensaje)->with('termino_id', $termino->id);
-
     }
     return redirect('empresa/configuracion/terminos')->with('success', 'No existe un registro con ese id');
   }
 
   /**
-  * Formulario para eliminar el término de pago
-  * @param int $id
-  * @return view
-  */
-  public function terminos_destroy($id){
-    $termino = TerminosPago::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
+   * Formulario para eliminar el término de pago
+   * @param int $id
+   * @return view
+   */
+  public function terminos_destroy($id)
+  {
+    $termino = TerminosPago::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
     if ($termino) {
 
-      if ($termino->usado()==0) {
+      if ($termino->usado() == 0) {
         $termino->delete();
         return redirect('empresa/configuracion/terminos')->with('success', 'Se ha eliminado correctamente el término de pago');
       }
@@ -734,21 +773,19 @@ class ConfiguracionController extends Controller
     return redirect('empresa/configuracion/terminos')->with('success', 'No existe un registro con ese id');
   }
 
-   public function listabusquedaproveedor($prov = null)
+  public function listabusquedaproveedor($prov = null)
   {
-    view()->share(['seccion' => 'configuracion', 'title' => 'Proveedores/Clientes', 'icon' =>'fas fa-cogs']);
+    view()->share(['seccion' => 'configuracion', 'title' => 'Proveedores/Clientes', 'icon' => 'fas fa-cogs']);
 
     if ($prov == null) {
-      $proveedores = Contacto::where('tipo_contacto',1)->where('empresa', Auth::user()->empresa)->where('status',1)->get();
+      $proveedores = Contacto::where('tipo_contacto', 1)->where('empresa', Auth::user()->empresa)->where('status', 1)->get();
 
-      return view('busquedas.proveedores.lista',compact('proveedores'));
-    }
-    else
-    {
+      return view('busquedas.proveedores.lista', compact('proveedores'));
+    } else {
       $prov = $this->toarray($prov);
       $proveedores = Contacto::whereIn('id', $prov)->orderBy('id', 'desc')->get();
       //$proveedores = Contacto::whereIn('id', $prov->id)->get();
-      return view('busquedas.proveedores.lista',compact('proveedores'));
+      return view('busquedas.proveedores.lista', compact('proveedores'));
     }
   }
 
@@ -756,35 +793,34 @@ class ConfiguracionController extends Controller
   public function autocomplete_linea(Request $request)
   {
 
-    $lineas = DB::table('pais')->where('nombre','like', '%'.$request['query'].'%')->get();
+    $lineas = DB::table('pais')->where('nombre', 'like', '%' . $request['query'] . '%')->get();
 
-        if ($lineas->count() > 0) {
-            foreach ($lineas as $linea) {
-                echo "<a class='list-group-item list-group-item-action border-1' value='".$linea->codigo."'>".$linea->nombre."</a>";
-            }
-        }
-        else{
-            echo "<p class='list-group-item border-1' id='ocultplacaobyclickout'>No hay resultados pero se creará el vehiculo</p>";
-        }
+    if ($lineas->count() > 0) {
+      foreach ($lineas as $linea) {
+        echo "<a class='list-group-item list-group-item-action border-1' value='" . $linea->codigo . "'>" . $linea->nombre . "</a>";
+      }
+    } else {
+      echo "<p class='list-group-item border-1' id='ocultplacaobyclickout'>No hay resultados pero se creará el vehiculo</p>";
+    }
   }
 
-  public function form_facturacion(){
+  public function form_facturacion()
+  {
 
-      $empresa=Empresa::find(Auth::user()->empresa);
+    $empresa = Empresa::find(Auth::user()->empresa);
 
-        if ($empresa) {
-            if($empresa->form_fe == 0){
-                $empresa->form_fe = 1;
-                $empresa->save();
-                $arrayPost['status']  = 'OK';
-                echo json_encode($arrayPost);
-                exit;
-            }else{
-                $empresa->form_fe = 0;
-                $empresa->save();
-            }
-        }
-
+    if ($empresa) {
+      if ($empresa->form_fe == 0) {
+        $empresa->form_fe = 1;
+        $empresa->save();
+        $arrayPost['status']  = 'OK';
+        echo json_encode($arrayPost);
+        exit;
+      } else {
+        $empresa->form_fe = 0;
+        $empresa->save();
+      }
+    }
   }
 
   public function getGenerarValidacion()
@@ -1013,96 +1049,96 @@ class ConfiguracionController extends Controller
     </DATA>
     <!-- /Información de la Dian -->
     </Invoice>';
-        $fecha = date('Y-m-d');
-        $fechahora = date('H:i:s') . "-05:00";
-        $empresa = Empresa::find(auth()->user()->empresa);
-        if ($empresa->estado_dian == 0 && preg_match('/^([0-9a-zA-Z]{8}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{12})$/', $empresa->fe_resolucion) == 1) {
-            $departamentos  = DB::table('departamentos')->where('id', $empresa->fk_iddepartamento)->first();
-            $municipios  = DB::table('municipios')->where('id', $empresa->fk_idmunicipio)->first();
-            $validos = [];
-            $fallidos = [];
-            for ($i = 1; $i <= 1; $i++) {
-                $xml = $xml_;
-                $cu = 'SETT' . $i . $fecha . $fechahora . '100000.000119000.00040.00030.00119000.00' . $empresa->nit . '1128431331fc8eac422eba16e22ffd8c6f94b3f40a6e38162c2';
-                $cufe = hash('sha384', $cu);
-                $numfactura = 'SETT' . $i;
-                $nota = 'Fac-Sett-' . $i;
-                $xml = str_replace('--numf--', $numfactura, $xml);
-                $xml = str_replace('--cufe--', $cufe, $xml);
-                $xml = str_replace('--fe_resolucion--', $empresa->fe_resolucion, $xml);
-                $xml = str_replace('--nit--', $empresa->nit, $xml);
-                $xml = str_replace('--dv--', $empresa->dv, $xml);
-                $xml = str_replace('--mail--', $empresa->email, $xml);
-                $xml = str_replace('--nombre--', $empresa->nombre, $xml);
-                $xml = str_replace('--dir--', $empresa->direccion, $xml);
-                $xml = str_replace('--codepostal--', $empresa->cod_postal, $xml);
-                $xml = str_replace('--fecha--', $fecha, $xml);
-                $xml = str_replace('--horafecha--', $fechahora, $xml);
-                $xml = str_replace('--nota--', $nota, $xml);
-                $xml = str_replace('--codeciudad--', $municipios->codigo_completo, $xml);
-                $xml = str_replace('--nameciudad--', $municipios->nombre, $xml);
-                $xml = str_replace('--departamento--', $departamentos->nombre, $xml);
-                $xml = str_replace('--codigodep--', $departamentos->codigo, $xml);
-                $res = $this->getEnviarDatos($xml);
-                $res = json_decode($res, true);
+    $fecha = date('Y-m-d');
+    $fechahora = date('H:i:s') . "-05:00";
+    $empresa = Empresa::find(auth()->user()->empresa);
+    if ($empresa->estado_dian == 0 && preg_match('/^([0-9a-zA-Z]{8}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{12})$/', $empresa->fe_resolucion) == 1) {
+      $departamentos  = DB::table('departamentos')->where('id', $empresa->fk_iddepartamento)->first();
+      $municipios  = DB::table('municipios')->where('id', $empresa->fk_idmunicipio)->first();
+      $validos = [];
+      $fallidos = [];
+      for ($i = 1; $i <= 1; $i++) {
+        $xml = $xml_;
+        $cu = 'SETT' . $i . $fecha . $fechahora . '100000.000119000.00040.00030.00119000.00' . $empresa->nit . '1128431331fc8eac422eba16e22ffd8c6f94b3f40a6e38162c2';
+        $cufe = hash('sha384', $cu);
+        $numfactura = 'SETT' . $i;
+        $nota = 'Fac-Sett-' . $i;
+        $xml = str_replace('--numf--', $numfactura, $xml);
+        $xml = str_replace('--cufe--', $cufe, $xml);
+        $xml = str_replace('--fe_resolucion--', $empresa->fe_resolucion, $xml);
+        $xml = str_replace('--nit--', $empresa->nit, $xml);
+        $xml = str_replace('--dv--', $empresa->dv, $xml);
+        $xml = str_replace('--mail--', $empresa->email, $xml);
+        $xml = str_replace('--nombre--', $empresa->nombre, $xml);
+        $xml = str_replace('--dir--', $empresa->direccion, $xml);
+        $xml = str_replace('--codepostal--', $empresa->cod_postal, $xml);
+        $xml = str_replace('--fecha--', $fecha, $xml);
+        $xml = str_replace('--horafecha--', $fechahora, $xml);
+        $xml = str_replace('--nota--', $nota, $xml);
+        $xml = str_replace('--codeciudad--', $municipios->codigo_completo, $xml);
+        $xml = str_replace('--nameciudad--', $municipios->nombre, $xml);
+        $xml = str_replace('--departamento--', $departamentos->nombre, $xml);
+        $xml = str_replace('--codigodep--', $departamentos->codigo, $xml);
+        $res = $this->getEnviarDatos($xml);
+        $res = json_decode($res, true);
 
 
 
-                if (!isset($res['statusCode'])) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => (isset($res['message'])) ? $res['message'] : 'la DIAN esta presentando problemas'
-                    ]);
-                }
-
-                if ($res['statusCode'] == '200') {
-                    $validos[] = ([
-                        "statusCode" => $res['statusCode'],
-                        "trackId" => isset($res['trackId']) ? $res['trackId'] : '',
-                        "uuid" => isset($res['uuid']) ? $res['uuid'] : '',
-                        "statusMessage" => $res['statusMessage'],
-                        "statusDescription" => $res['statusDescription'],
-                        "warnings" => $res['warnings']
-                    ]);
-
-                    //desarrollo nuevo ya que se esta dejando habilitar con un solo documento emitido.
-                    $empresa->estado_dian = 1;
-                    $empresa->save();
-
-                    $emails = $empresa->email;
-                    $tituloCorreo = "Set de Pruebas Habilitado";
-                    // Mail::send('emails.dian.settestid', compact('empresa'), function ($message) use ($emails, $tituloCorreo) {
-                    //     $message->from('info@gestordepartes.net', 'Facturación Electrónica - Gestor de Partes');
-                    //     $message->to($emails)->subject($tituloCorreo);
-                    // });
-
-
-                } else {
-                    $fallidos[] = ([
-
-                        "statusCode" => $res['statusCode'],
-                        "trackId" => $res['trackId'] ?? null,
-                        "uuid" => $res['uuid'] ?? null,
-                        "errorMessage" => $res['errorMessage'] ?? null,
-                        "errorReason" => $res['errorReason'] ?? null
-                    ]);
-                }
-            }
-
-
-            $resp = array('validos' => count($validos), 'data_validos' => $validos, 'fallidos' => count($fallidos), 'data_fallidos' => $fallidos);
-            $empresa->json_test = json_encode($resp);
-            //if(count($validos)>10)$empresa->estado_dian=1;
-            $empresa->save();
-        } else {
-            $resp = array('status' => 200, 'msj' => 'Cliente ya se encuenta validado');
+        if (!isset($res['statusCode'])) {
+          return response()->json([
+            'success' => false,
+            'message' => (isset($res['message'])) ? $res['message'] : 'la DIAN esta presentando problemas'
+          ]);
         }
-        //$this->generateCreditNote();
+
+        if ($res['statusCode'] == '200') {
+          $validos[] = ([
+            "statusCode" => $res['statusCode'],
+            "trackId" => isset($res['trackId']) ? $res['trackId'] : '',
+            "uuid" => isset($res['uuid']) ? $res['uuid'] : '',
+            "statusMessage" => $res['statusMessage'],
+            "statusDescription" => $res['statusDescription'],
+            "warnings" => $res['warnings']
+          ]);
+
+          //desarrollo nuevo ya que se esta dejando habilitar con un solo documento emitido.
+          $empresa->estado_dian = 1;
+          $empresa->save();
+
+          $emails = $empresa->email;
+          $tituloCorreo = "Set de Pruebas Habilitado";
+          // Mail::send('emails.dian.settestid', compact('empresa'), function ($message) use ($emails, $tituloCorreo) {
+          //     $message->from('info@gestordepartes.net', 'Facturación Electrónica - Gestor de Partes');
+          //     $message->to($emails)->subject($tituloCorreo);
+          // });
+
+
+        } else {
+          $fallidos[] = ([
+
+            "statusCode" => $res['statusCode'],
+            "trackId" => $res['trackId'] ?? null,
+            "uuid" => $res['uuid'] ?? null,
+            "errorMessage" => $res['errorMessage'] ?? null,
+            "errorReason" => $res['errorReason'] ?? null
+          ]);
+        }
+      }
+
+
+      $resp = array('validos' => count($validos), 'data_validos' => $validos, 'fallidos' => count($fallidos), 'data_fallidos' => $fallidos);
+      $empresa->json_test = json_encode($resp);
+      //if(count($validos)>10)$empresa->estado_dian=1;
+      $empresa->save();
+    } else {
+      $resp = array('status' => 200, 'msj' => 'Cliente ya se encuenta validado');
+    }
+    //$this->generateCreditNote();
   }
 
   public function generateCreditNote()
   {
-      $xml_ = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    $xml_ = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
       <CreditNote xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sts="dian:gov:co:facturaelectronica:Structures-2-1" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" xmlns:xades141="http://uri.etsi.org/01903/v1.4.1#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2     http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-CreditNote-2.1.xsd">
       <cbc:CustomizationID>10</cbc:CustomizationID>
       <cbc:ProfileExecutionID>2</cbc:ProfileExecutionID>
@@ -1326,75 +1362,75 @@ class ConfiguracionController extends Controller
       <!-- /Información Provieniente de la DIAN -->
       </CreditNote>';
 
-          $fecha = date('Y-m-d');
-          $fechahora = date('H:i:s') . "-05:00";
-          $empresa = Empresa::find(auth()->user()->empresa);
+    $fecha = date('Y-m-d');
+    $fechahora = date('H:i:s') . "-05:00";
+    $empresa = Empresa::find(auth()->user()->empresa);
 
-          if ($empresa->estado_dian == 0 && preg_match('/^([0-9a-zA-Z]{8}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{12})$/', $empresa->fe_resolucion) == 1) {
-              $departamentos  = DB::table('departamentos')->where('id', $empresa->fk_iddepartamento)->first();
-              $municipios  = DB::table('municipios')->where('id', $empresa->fk_idmunicipio)->first();
-              $validos = [];
-              $fallidos = [];
-              for ($i = 1; $i <= 5; $i++) {
-                  $xml = $xml_;
-                  $cu = 'NC' . $i . $fecha . $fechahora . '100000.000119000.00040.00030.00119000.00' . $empresa->nit . '1128431331753152';
-                  $cude = hash('sha384', $cu);
-                  $numfactura = 'NC' . $i;
-                  $nota = 'Fac-Sett-' . $i;
-                  $xml = str_replace('--numf--', $numfactura, $xml);
-                  $xml = str_replace('--cude--', $cude, $xml);
-                  $xml = str_replace('--fe_resolucion--', $empresa->fe_resolucion, $xml);
-                  $xml = str_replace('--nit--', $empresa->nit, $xml);
-                  $xml = str_replace('--dv--', $empresa->dv, $xml);
-                  $xml = str_replace('--mail--', $empresa->email, $xml);
-                  $xml = str_replace('--nombre--', $empresa->nombre, $xml);
-                  $xml = str_replace('--dir--', $empresa->direccion, $xml);
-                  $xml = str_replace('--codepostal--', $empresa->cod_postal, $xml);
-                  $xml = str_replace('--fecha--', $fecha, $xml);
-                  $xml = str_replace('--fecharelacionada--', $fecha, $xml);
-                  $xml = str_replace('--uuidfact--', Auth()->user()->empresaObj->firstuuidfact(), $xml);
-                  $xml = str_replace('--horafecha--', $fechahora, $xml);
-                  $xml = str_replace('--nota--', $nota, $xml);
-                  $xml = str_replace('--codeciudad--', $municipios->codigo_completo, $xml);
-                  $xml = str_replace('--nameciudad--', $municipios->nombre, $xml);
-                  $xml = str_replace('--departamento--', $departamentos->nombre, $xml);
-                  $xml = str_replace('--codigodep--', $departamentos->codigo, $xml);
-                  $res = $this->getEnviarDatos($xml);
-                  $res = json_decode($res, true);
-                  if ($res['statusCode'] == '200') {
-                      $validos[] = ([
-                          "statusCode" => $res['statusCode'],
-                          "trackId" => $res['trackId'],
-                          "uuid" => $res['uuid'],
-                          "statusMessage" => $res['statusMessage'],
-                          "statusDescription" => $res['statusDescription'],
-                          "warnings" => $res['warnings']
-                      ]);
-                  } else {
-                      $fallidos[] = ([
-                          "statusCode" => $res['statusCode'],
-                          "trackId" => isset($res['trackId']) ? $res['trackId'] : null,
-                          "uuid" => isset($res['uuid']) ? $res['uuid'] : null,
-                          "errorMessage" => isset($res['errorMessage']) ? $res['errorMessage'] : null,
-                          "errorReason" =>  isset($res['errorReason']) ? $res['errorReason'] : null
-                      ]);
-                  }
-                  //return response()->json($xml);
-              }
-              $resp = array('validos' => count($validos), 'data_validos' => $validos, 'fallidos' => count($fallidos), 'data_fallidos' => $fallidos);
-              $empresa->json_test_creditnote = json_encode($resp);
-              //if(count($validos)>5)$empresa->estado_dian=1;
-              $empresa->save();
-          } else {
-              $resp = array('status' => 200, 'msj' => 'Cliente ya se encuenta validado');
-          }
-          //$this->generateDebitNote();
+    if ($empresa->estado_dian == 0 && preg_match('/^([0-9a-zA-Z]{8}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{12})$/', $empresa->fe_resolucion) == 1) {
+      $departamentos  = DB::table('departamentos')->where('id', $empresa->fk_iddepartamento)->first();
+      $municipios  = DB::table('municipios')->where('id', $empresa->fk_idmunicipio)->first();
+      $validos = [];
+      $fallidos = [];
+      for ($i = 1; $i <= 5; $i++) {
+        $xml = $xml_;
+        $cu = 'NC' . $i . $fecha . $fechahora . '100000.000119000.00040.00030.00119000.00' . $empresa->nit . '1128431331753152';
+        $cude = hash('sha384', $cu);
+        $numfactura = 'NC' . $i;
+        $nota = 'Fac-Sett-' . $i;
+        $xml = str_replace('--numf--', $numfactura, $xml);
+        $xml = str_replace('--cude--', $cude, $xml);
+        $xml = str_replace('--fe_resolucion--', $empresa->fe_resolucion, $xml);
+        $xml = str_replace('--nit--', $empresa->nit, $xml);
+        $xml = str_replace('--dv--', $empresa->dv, $xml);
+        $xml = str_replace('--mail--', $empresa->email, $xml);
+        $xml = str_replace('--nombre--', $empresa->nombre, $xml);
+        $xml = str_replace('--dir--', $empresa->direccion, $xml);
+        $xml = str_replace('--codepostal--', $empresa->cod_postal, $xml);
+        $xml = str_replace('--fecha--', $fecha, $xml);
+        $xml = str_replace('--fecharelacionada--', $fecha, $xml);
+        $xml = str_replace('--uuidfact--', Auth()->user()->empresaObj->firstuuidfact(), $xml);
+        $xml = str_replace('--horafecha--', $fechahora, $xml);
+        $xml = str_replace('--nota--', $nota, $xml);
+        $xml = str_replace('--codeciudad--', $municipios->codigo_completo, $xml);
+        $xml = str_replace('--nameciudad--', $municipios->nombre, $xml);
+        $xml = str_replace('--departamento--', $departamentos->nombre, $xml);
+        $xml = str_replace('--codigodep--', $departamentos->codigo, $xml);
+        $res = $this->getEnviarDatos($xml);
+        $res = json_decode($res, true);
+        if ($res['statusCode'] == '200') {
+          $validos[] = ([
+            "statusCode" => $res['statusCode'],
+            "trackId" => $res['trackId'],
+            "uuid" => $res['uuid'],
+            "statusMessage" => $res['statusMessage'],
+            "statusDescription" => $res['statusDescription'],
+            "warnings" => $res['warnings']
+          ]);
+        } else {
+          $fallidos[] = ([
+            "statusCode" => $res['statusCode'],
+            "trackId" => isset($res['trackId']) ? $res['trackId'] : null,
+            "uuid" => isset($res['uuid']) ? $res['uuid'] : null,
+            "errorMessage" => isset($res['errorMessage']) ? $res['errorMessage'] : null,
+            "errorReason" =>  isset($res['errorReason']) ? $res['errorReason'] : null
+          ]);
+        }
+        //return response()->json($xml);
+      }
+      $resp = array('validos' => count($validos), 'data_validos' => $validos, 'fallidos' => count($fallidos), 'data_fallidos' => $fallidos);
+      $empresa->json_test_creditnote = json_encode($resp);
+      //if(count($validos)>5)$empresa->estado_dian=1;
+      $empresa->save();
+    } else {
+      $resp = array('status' => 200, 'msj' => 'Cliente ya se encuenta validado');
+    }
+    //$this->generateDebitNote();
   }
 
 
   public function generateDebitNote()
   {
-      $xml_ = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    $xml_ = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
       <DebitNote xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns="urn:oasis:names:specification:ubl:schema:xsd:DebitNote-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sts="dian:gov:co:facturaelectronica:Structures-2-1" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" xmlns:xades141="http://uri.etsi.org/01903/v1.4.1#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:DebitNote-2     http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-DebitNote-2.1.xsd">
       <cbc:CustomizationID>10</cbc:CustomizationID>
       <cbc:ProfileExecutionID>2</cbc:ProfileExecutionID>
@@ -1617,246 +1653,254 @@ class ConfiguracionController extends Controller
       </DATA>
       <!-- /Información Provieniente de la DIAN -->
       </DebitNote>';
-      $fecha = date('Y-m-d');
-      $fechahora = date('H:i:s') . "-05:00";
-      $empresa = Empresa::find(auth()->user()->empresa);
+    $fecha = date('Y-m-d');
+    $fechahora = date('H:i:s') . "-05:00";
+    $empresa = Empresa::find(auth()->user()->empresa);
 
-      if ($empresa->estado_dian == 0 && preg_match('/^([0-9a-zA-Z]{8}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{12})$/', $empresa->fe_resolucion) == 1) {
-          $departamentos  = DB::table('departamentos')->where('id', $empresa->fk_iddepartamento)->first();
-          $municipios  = DB::table('municipios')->where('id', $empresa->fk_idmunicipio)->first();
-          $validos = [];
-          $fallidos = [];
-          for ($i = 1; $i <= 2; $i++) {
-              $xml = $xml_;
-              $cu = 'NC' . $i . $fecha . $fechahora . '100000.000119000.00040.00030.00119000.00' . $empresa->nit . '1128431331753152';
-              $cude = hash('sha384', $cu);
-              $numfactura = 'NC' . $i;
-              $nota = 'Fac-Sett-' . $i;
-              $xml = str_replace('--numf--', $numfactura, $xml);
-              $xml = str_replace('--cude--', $cude, $xml);
-              $xml = str_replace('--fe_resolucion--', $empresa->fe_resolucion, $xml);
-              $xml = str_replace('--nit--', $empresa->nit, $xml);
-              $xml = str_replace('--dv--', $empresa->dv, $xml);
-              $xml = str_replace('--mail--', $empresa->email, $xml);
-              $xml = str_replace('--nombre--', $empresa->nombre, $xml);
-              $xml = str_replace('--dir--', $empresa->direccion, $xml);
-              $xml = str_replace('--codepostal--', $empresa->cod_postal, $xml);
-              $xml = str_replace('--fecha--', $fecha, $xml);
-              $xml = str_replace('--fecharelacionada--', $fecha, $xml);
-              $xml = str_replace('--uuidfact--', Auth()->user()->empresaObj->firstuuidfact(), $xml);
-              $xml = str_replace('--horafecha--', $fechahora, $xml);
-              $xml = str_replace('--nota--', $nota, $xml);
-              $xml = str_replace('--codeciudad--', $municipios->codigo_completo, $xml);
-              $xml = str_replace('--nameciudad--', $municipios->nombre, $xml);
-              $xml = str_replace('--departamento--', $departamentos->nombre, $xml);
-              $xml = str_replace('--codigodep--', $departamentos->codigo, $xml);
-              $res = $this->getEnviarDatos($xml);
-              $res = json_decode($res, true);
-              if ($res['statusCode'] == '200') {
-                  $validos[] = ([
-                      "statusCode" => $res['statusCode'],
-                      "trackId" => $res['trackId'],
-                      "uuid" => $res['uuid'],
-                      "statusMessage" => $res['statusMessage'],
-                      "statusDescription" => $res['statusDescription'],
-                      "warnings" => $res['warnings']
-                  ]);
-              } else {
-                  $fallidos[] = ([
-                      "statusCode" => $res['statusCode'],
-                      "trackId" => isset($res['trackId']) ? $res['trackId'] : '',
-                      "uuid" => $res['uuid'],
-                      "errorMessage" => $res['errorMessage'],
-                      "errorReason" => $res['errorReason']
-                  ]);
-              }
-          }
-          $resp = array('validos' => count($validos), 'data_validos' => $validos, 'fallidos' => count($fallidos), 'data_fallidos' => $fallidos);
-          $empresa->json_test_debitnote = json_encode($resp);
-          if (count($validos) > 0 && count($fallidos) > 0) {
-              $empresa->estado_dian = 1;
-          }
-          $empresa->save();
-
-          //Como la ultima tanda que se hace es la de notas debito y silos validos es mayor a cero entonces mandaremos un correo
-          //diciendo que el cliente ya ha sido activado
-          $emails = $empresa->email;
-          $tituloCorreo = "Set de Pruebas Habilitado";
-          self::sendMail('emails.dian.settestid', compact('empresa'), compact('emails', 'tituloCorreo'), function ($message) use ($emails, $tituloCorreo) {
-              $message->from('info@gestordepartes.net', 'Facturación Electrónica - Integra Colombia');
-              $message->to($emails)->subject($tituloCorreo);
-          });
-      } else {
-          $resp = array('status' => 200, 'msj' => 'Cliente ya se encuenta validado');
+    if ($empresa->estado_dian == 0 && preg_match('/^([0-9a-zA-Z]{8}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{4}\-[0-9a-zA-Z]{12})$/', $empresa->fe_resolucion) == 1) {
+      $departamentos  = DB::table('departamentos')->where('id', $empresa->fk_iddepartamento)->first();
+      $municipios  = DB::table('municipios')->where('id', $empresa->fk_idmunicipio)->first();
+      $validos = [];
+      $fallidos = [];
+      for ($i = 1; $i <= 2; $i++) {
+        $xml = $xml_;
+        $cu = 'NC' . $i . $fecha . $fechahora . '100000.000119000.00040.00030.00119000.00' . $empresa->nit . '1128431331753152';
+        $cude = hash('sha384', $cu);
+        $numfactura = 'NC' . $i;
+        $nota = 'Fac-Sett-' . $i;
+        $xml = str_replace('--numf--', $numfactura, $xml);
+        $xml = str_replace('--cude--', $cude, $xml);
+        $xml = str_replace('--fe_resolucion--', $empresa->fe_resolucion, $xml);
+        $xml = str_replace('--nit--', $empresa->nit, $xml);
+        $xml = str_replace('--dv--', $empresa->dv, $xml);
+        $xml = str_replace('--mail--', $empresa->email, $xml);
+        $xml = str_replace('--nombre--', $empresa->nombre, $xml);
+        $xml = str_replace('--dir--', $empresa->direccion, $xml);
+        $xml = str_replace('--codepostal--', $empresa->cod_postal, $xml);
+        $xml = str_replace('--fecha--', $fecha, $xml);
+        $xml = str_replace('--fecharelacionada--', $fecha, $xml);
+        $xml = str_replace('--uuidfact--', Auth()->user()->empresaObj->firstuuidfact(), $xml);
+        $xml = str_replace('--horafecha--', $fechahora, $xml);
+        $xml = str_replace('--nota--', $nota, $xml);
+        $xml = str_replace('--codeciudad--', $municipios->codigo_completo, $xml);
+        $xml = str_replace('--nameciudad--', $municipios->nombre, $xml);
+        $xml = str_replace('--departamento--', $departamentos->nombre, $xml);
+        $xml = str_replace('--codigodep--', $departamentos->codigo, $xml);
+        $res = $this->getEnviarDatos($xml);
+        $res = json_decode($res, true);
+        if ($res['statusCode'] == '200') {
+          $validos[] = ([
+            "statusCode" => $res['statusCode'],
+            "trackId" => $res['trackId'],
+            "uuid" => $res['uuid'],
+            "statusMessage" => $res['statusMessage'],
+            "statusDescription" => $res['statusDescription'],
+            "warnings" => $res['warnings']
+          ]);
+        } else {
+          $fallidos[] = ([
+            "statusCode" => $res['statusCode'],
+            "trackId" => isset($res['trackId']) ? $res['trackId'] : '',
+            "uuid" => $res['uuid'],
+            "errorMessage" => $res['errorMessage'],
+            "errorReason" => $res['errorReason']
+          ]);
+        }
       }
+      $resp = array('validos' => count($validos), 'data_validos' => $validos, 'fallidos' => count($fallidos), 'data_fallidos' => $fallidos);
+      $empresa->json_test_debitnote = json_encode($resp);
+      if (count($validos) > 0 && count($fallidos) > 0) {
+        $empresa->estado_dian = 1;
+      }
+      $empresa->save();
+
+      //Como la ultima tanda que se hace es la de notas debito y silos validos es mayor a cero entonces mandaremos un correo
+      //diciendo que el cliente ya ha sido activado
+      $emails = $empresa->email;
+      $tituloCorreo = "Set de Pruebas Habilitado";
+      self::sendMail('emails.dian.settestid', compact('empresa'), compact('emails', 'tituloCorreo'), function ($message) use ($emails, $tituloCorreo) {
+        $message->from('info@gestordepartes.net', 'Facturación Electrónica - Integra Colombia');
+        $message->to($emails)->subject($tituloCorreo);
+      });
+    } else {
+      $resp = array('status' => 200, 'msj' => 'Cliente ya se encuenta validado');
+    }
   }
 
   public function checkStatusDian()
   {
-      $empresa = Empresa::find(auth()->user()->empresa)->first();
+    $empresa = Empresa::find(auth()->user()->empresa)->first();
 
-      $contador = 0;
-      $jsonfact = json_decode($empresa->json_test, true);
-      $jsondebitnote = json_decode($empresa->json_test_creditnote, true);
-      $jsoncreditnote = json_decode($empresa->json_test_debitnote, true);
+    $contador = 0;
+    $jsonfact = json_decode($empresa->json_test, true);
+    $jsondebitnote = json_decode($empresa->json_test_creditnote, true);
+    $jsoncreditnote = json_decode($empresa->json_test_debitnote, true);
 
 
-      $contador = $jsonfact['validos'] + $jsoncreditnote['validos'] + $jsondebitnote['validos'];
+    $contador = $jsonfact['validos'] + $jsoncreditnote['validos'] + $jsondebitnote['validos'];
 
-      if ($contador > 9) {
-          $empresa->estado_dian = 1; //Autorizado frente a la Dian;
-      } else {
-          $empresa->estado_dian = 0; //No autorizado.
-      }
+    if ($contador > 9) {
+      $empresa->estado_dian = 1; //Autorizado frente a la Dian;
+    } else {
+      $empresa->estado_dian = 0; //No autorizado.
+    }
   }
 
   public function getEnviarDatos($xml)
   {
-      $xml_base = base64_encode($xml);
-      $json = json_encode($xml_base);
-      $curl = curl_init();
-      curl_setopt_array($curl, array(
+    $xml_base = base64_encode($xml);
+    $json = json_encode($xml_base);
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
 
-          CURLOPT_URL => "https://apivp.efacturacadena.com/staging/vp-hab/documentos/proceso/alianzas",
-          CURLOPT_RETURNTRANSFER => true,
-          CURLOPT_ENCODING => "",
-          CURLOPT_MAXREDIRS => 10,
-          CURLOPT_TIMEOUT => 30,
-          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-          CURLOPT_CUSTOMREQUEST => "POST",
-          CURLOPT_POSTFIELDS => $json,
-          CURLOPT_HTTPHEADER => array(
-              "Content-Type: application/json",
-              "Postman-Token: 13e97781-32ef-49b7-ad05-3461f465d410",
-              "cache-control: no-cache",
-              "efacturaAuthorizationToken: 5c6bc925-a4c5-4f72-b398-88b31def04da"
-          ),
-      ));
-      $response = curl_exec($curl);
-      $err = curl_error($curl);
-      curl_close($curl);
-      unset($curl);
-      if ($err) {
-          return "cURL Error #:" . $err;
-      } else {
-          return $response;
-      }
+      CURLOPT_URL => "https://apivp.efacturacadena.com/staging/vp-hab/documentos/proceso/alianzas",
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_ENCODING => "",
+      CURLOPT_MAXREDIRS => 10,
+      CURLOPT_TIMEOUT => 30,
+      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+      CURLOPT_CUSTOMREQUEST => "POST",
+      CURLOPT_POSTFIELDS => $json,
+      CURLOPT_HTTPHEADER => array(
+        "Content-Type: application/json",
+        "Postman-Token: 13e97781-32ef-49b7-ad05-3461f465d410",
+        "cache-control: no-cache",
+        "efacturaAuthorizationToken: 5c6bc925-a4c5-4f72-b398-88b31def04da"
+      ),
+    ));
+    $response = curl_exec($curl);
+    $err = curl_error($curl);
+    curl_close($curl);
+    unset($curl);
+    if ($err) {
+      return "cURL Error #:" . $err;
+    } else {
+      return $response;
+    }
   }
 
-    public function enviar($clave){
+  public function enviar($clave)
+  {
 
-        $empresa    = Empresa::find(Auth::user()->empresa);
-        $email      = $empresa->email;
-        $data = array(
-            'email'=> 'info@gestordepartes.net',
-        );
-        $tituloCorreo = "Solicitud de facturación electrónica en proceso";
-        self::sendMail('emails.notificacionFe', compact("clave", "empresa"), compact('email','tituloCorreo'), function($message) use ($email,$tituloCorreo)
-        {
-            $message->to($email)->subject($tituloCorreo);
-        });
+    $empresa    = Empresa::find(Auth::user()->empresa);
+    $email      = $empresa->email;
+    $data = array(
+      'email' => 'info@gestordepartes.net',
+    );
+    $tituloCorreo = "Solicitud de facturación electrónica en proceso";
+    self::sendMail('emails.notificacionFe', compact("clave", "empresa"), compact('email', 'tituloCorreo'), function ($message) use ($email, $tituloCorreo) {
+      $message->to($email)->subject($tituloCorreo);
+    });
 
-        return "Enviado";
+    return "Enviado";
+  }
+
+  /**
+   * * VISTA DE SERVICIOS
+   * * @return view
+   */
+  public function servicios()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+
+    view()->share(['title' => 'Servicios']);
+
+    $servicios = Servicio::where('empresa', Auth::user()->empresa)->get();
+    return view('configuracion.servicios.index')->with(compact('servicios'));
+  }
+
+  /**
+   * Formulario para crear un nuevo servicio
+   * * @return view
+   * */
+  public function servicios_create()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Nuevo Servicio']);
+    return view('configuracion.servicios.create');
+  }
+
+  /**
+   * Registrar un nuevo servicio
+   * @param Request $request
+   * @return redirect
+   */
+  public function servicios_store(Request $request)
+  {
+    $request->validate([
+      'nombre' => 'required|max:200'
+    ]);
+    $servicio = new Servicio;
+    $servicio->empresa = Auth::user()->empresa;
+    $servicio->nombre = $request->nombre;
+    $servicio->tiempo = $request->tiempo;
+    $servicio->save();
+
+    $mensaje = 'Se ha creado satisfactoriamente el servicio';
+    return redirect('empresa/configuracion/servicios')->with('success', $mensaje)->with('servicio_id', $servicio->id);
+  }
+
+  /**
+   * Formulario para modificar los datos de un servicio
+   * @param int $id
+   * @return view
+   */
+  public function servicios_edit($id)
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    $servicio = Servicio::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
+    if ($servicio) {
+      view()->share(['title' => 'Modificar Servicio']);
+      return view('configuracion.servicios.edit')->with(compact('servicio'));
     }
+    return redirect('empresa/configuracion/terminos')->with('danger', 'No existe un registro con ese id');
+  }
 
-    /**
-     * * VISTA DE SERVICIOS
-     * * @return view
-     */
-    public function servicios(){
-      $this->getAllPermissions(Auth::user()->id);
-
-      view()->share(['title' => 'Servicios']);
-
-      $servicios=Servicio::where('empresa',Auth::user()->empresa)->get();
-      return view('configuracion.servicios.index')->with(compact('servicios'));
-    }
-
-    /**
-    * Formulario para crear un nuevo servicio
-    * * @return view
-    * */
-    public function servicios_create(){
-      $this->getAllPermissions(Auth::user()->id);
-      view()->share(['title' => 'Nuevo Servicio']);
-      return view('configuracion.servicios.create');
-    }
-
-    /**
-    * Registrar un nuevo servicio
-    * @param Request $request
-    * @return redirect
-    */
-    public function servicios_store(Request $request){$request->validate([
+  /**
+   * Modificar los datos de un servicio
+   * @param Request $request
+   * @return redirect
+   */
+  public function servicios_update(Request $request, $id)
+  {
+    $servicio = Servicio::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
+    if ($servicio) {
+      $request->validate([
         'nombre' => 'required|max:200'
       ]);
-      $servicio = new Servicio;
-      $servicio->empresa=Auth::user()->empresa;
-      $servicio->nombre=$request->nombre;
-      $servicio->tiempo=$request->tiempo;
+      $servicio->nombre = $request->nombre;
+      $servicio->tiempo = $request->tiempo;
       $servicio->save();
-
-      $mensaje='Se ha creado satisfactoriamente el servicio';
+      $mensaje = 'Se ha modificado satisfactoriamente el servicio';
       return redirect('empresa/configuracion/servicios')->with('success', $mensaje)->with('servicio_id', $servicio->id);
     }
+    return redirect('empresa/configuracion/servicios')->with('danger', 'No existe un registro con ese id');
+  }
 
-    /**
-    * Formulario para modificar los datos de un servicio
-    * @param int $id
-    * @return view
-    */
-    public function servicios_edit($id){
-      $this->getAllPermissions(Auth::user()->id);
-      $servicio = Servicio::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
-      if ($servicio) {
-        view()->share(['title' => 'Modificar Servicio']);
-        return view('configuracion.servicios.edit')->with(compact('servicio'));
+  /**
+   * Formulario para eliminar un servicio
+   * @param int $id
+   * @return view
+   */
+  public function servicios_destroy($id)
+  {
+    $servicio = Servicio::where('empresa', Auth::user()->empresa)->where('id', $id)->first();
+    if ($servicio) {
+      if ($servicio->usado() == 0) {
+        $servicio->delete();
+        return redirect('empresa/configuracion/servicios')->with('success', 'Se ha eliminado correctamente el servicio');
+      } else {
+        return redirect('empresa/configuracion/servicios')->with('danger', 'El servicio se encuentra asociado, no es posible eliminarlo.');
       }
-      return redirect('empresa/configuracion/terminos')->with('danger', 'No existe un registro con ese id');
     }
+    return redirect('empresa/configuracion/servicios')->with('danger', 'No existe un registro con ese id');
+  }
 
-    /**
-    * Modificar los datos de un servicio
-    * @param Request $request
-    * @return redirect
-    */
-    public function servicios_update(Request $request, $id){
-      $servicio = Servicio::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
-      if ($servicio) {
-        $request->validate([
-              'nombre' => 'required|max:200'
-        ]);
-        $servicio->nombre=$request->nombre;
-        $servicio->tiempo=$request->tiempo;
-        $servicio->save();
-        $mensaje='Se ha modificado satisfactoriamente el servicio';
-        return redirect('empresa/configuracion/servicios')->with('success', $mensaje)->with('servicio_id', $servicio->id);
-      }
-      return redirect('empresa/configuracion/servicios')->with('danger', 'No existe un registro con ese id');
-    }
-
-    /**
-    * Formulario para eliminar un servicio
-    * @param int $id
-    * @return view
-    */
-    public function servicios_destroy($id){
-      $servicio = Servicio::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
-      if ($servicio) {
-        if ($servicio->usado()==0) {
-          $servicio->delete();
-          return redirect('empresa/configuracion/servicios')->with('success', 'Se ha eliminado correctamente el servicio');
-        }else{
-          return redirect('empresa/configuracion/servicios')->with('danger', 'El servicio se encuentra asociado, no es posible eliminarlo.');
-        }
-      }
-      return redirect('empresa/configuracion/servicios')->with('danger', 'No existe un registro con ese id');
-    }
-
-    /**
-     * Crear Facturación Automática
-     */
-  public function facturacionAutomatica(Request $request){
+  /**
+   * Crear Facturación Automática
+   */
+  public function facturacionAutomatica(Request $request)
+  {
     $empresa = Empresa::find(auth()->user()->empresa);
 
     if ($request->status == 0) {
@@ -1870,7 +1914,8 @@ class ConfiguracionController extends Controller
     }
   }
 
-  public function aplicacionSaldosFavor(Request $request){
+  public function aplicacionSaldosFavor(Request $request)
+  {
     $empresa = Empresa::find(auth()->user()->empresa);
 
     if ($request->status == 0) {
@@ -1884,7 +1929,8 @@ class ConfiguracionController extends Controller
     }
   }
 
-  public function facturaContratoOff(Request $request){
+  public function facturaContratoOff(Request $request)
+  {
     $empresa = Empresa::find(auth()->user()->empresa);
 
     if ($request->factura_contrato_off == 0) {
@@ -1898,7 +1944,8 @@ class ConfiguracionController extends Controller
     }
   }
 
-  public function facturacionSmsAutomatica(Request $request){
+  public function facturacionSmsAutomatica(Request $request)
+  {
     $empresa = Empresa::find(auth()->user()->empresa);
 
     if ($request->status == 0) {
@@ -1912,7 +1959,8 @@ class ConfiguracionController extends Controller
     }
   }
 
-  public function limpiarCache(Request $request){
+  public function limpiarCache(Request $request)
+  {
     $empresa = Empresa::find($request->empresa);
 
     if ($empresa) {
@@ -1926,34 +1974,46 @@ class ConfiguracionController extends Controller
     }
   }
 
-  public function configurarOLT(Request $request){
+  public function configurarOLT(Request $request)
+  {
+
     $empresa = Empresa::find(Auth::user()->empresa);
 
     if ($empresa) {
-      //Probando conexion de la api.
-      $curl = curl_init();
-      
-      curl_setopt_array($curl, array(
-        CURLOPT_URL => $request->adminOLT.'/api/system/get_olts',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'GET',
-        CURLOPT_HTTPHEADER => array(
-          'X-Token: ' . $request->smartOLT
-        ),
-      ));
-      
-      $response = curl_exec($curl);
-      curl_close($curl);
-      $response = json_decode($response);
-      
-      if(isset($response->status) && $response->status == true){
-        $empresa->smartOLT = $request->smartOLT;
-        $empresa->adminOLT = $request->adminOLT;
+
+      if ($request->smartOLT && $request->adminOLT) {
+        //Probando conexion de la api.
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+          CURLOPT_URL => $request->adminOLT . '/api/system/get_olts',
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_ENCODING => '',
+          CURLOPT_MAXREDIRS => 10,
+          CURLOPT_TIMEOUT => 0,
+          CURLOPT_FOLLOWLOCATION => true,
+          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+          CURLOPT_CUSTOMREQUEST => 'GET',
+          CURLOPT_HTTPHEADER => array(
+            'X-Token: ' . $request->smartOLT
+          ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $response = json_decode($response);
+
+        if (isset($response->status) && $response->status == true) {
+          $empresa->eatado_olt = $request->estadoOlt;
+          $empresa->smartOLT = $request->smartOLT;
+          $empresa->adminOLT = $request->adminOLT;
+          $empresa->save();
+          return 1;
+        }
+      }
+
+      if($request->estadoOlt){
+        $empresa->eatado_olt = $request->estadoOlt;
         $empresa->save();
         return 1;
       }
@@ -1963,25 +2023,27 @@ class ConfiguracionController extends Controller
     }
   }
 
-  public function actDescProrrateo(Request $request){
+  public function actDescProrrateo(Request $request)
+  {
 
     $empresa = Empresa::find(Auth::user()->empresa);
 
-    if($empresa){
-        if($request->prorrateo == 0){
-          $empresa->prorrateo = 1;
-        }else{
-          $empresa->prorrateo = 0;
-        }
-        $empresa->save();
-        return $empresa->prorrateo;
+    if ($empresa) {
+      if ($request->prorrateo == 0) {
+        $empresa->prorrateo = 1;
+      } else {
+        $empresa->prorrateo = 0;
+      }
+      $empresa->save();
+      return $empresa->prorrateo;
     }
   }
 
-  public function actDescEfecty(Request $request){
+  public function actDescEfecty(Request $request)
+  {
     $empresa = Empresa::find(Auth::user()->empresa);
-    if($empresa){
-      if($request->efecty == 0){
+    if ($empresa) {
+      if ($request->efecty == 0) {
         $empresa->efecty = 1;
         $bancoA = Banco::where('empresa', Auth::user()->empresa)->where('nombre', 'EFECTY')->first();
         if (!$bancoA) {
@@ -1998,7 +2060,7 @@ class ConfiguracionController extends Controller
           $banco->descripcion = 'Pagos por Efecty';
           $banco->save();
         }
-      }else{
+      } else {
         $empresa->efecty = 0;
       }
       $empresa->save();
@@ -2009,273 +2071,274 @@ class ConfiguracionController extends Controller
   // cambia el estado de la nomina electronica de una empresa
   public function estadoNomina()
   {
-      $empresa = auth()->user()->empresaObj;
-      $user_master = User::where('empresa', $empresa->id)->first()->id;
-      $text = '';
+    $empresa = auth()->user()->empresaObj;
+    $user_master = User::where('empresa', $empresa->id)->first()->id;
+    $text = '';
 
 
 
-      if ($empresa->nomina == 1) {
-        DB::table('empresas')->where('id',$empresa->id)->update(['nomina' => 0]);
-          return response()->json([
-              'success' => true,
-              'message' => 'La nómina ha sido desactivada',
-              'text'    => $text,
-              'nomina' => 0
-          ]);
-      } elseif ($empresa->fresh()->nomina == 0) {
-        DB::table('empresas')->where('id',$empresa->id)->update(['nomina' => 1]);
+    if ($empresa->nomina == 1) {
+      DB::table('empresas')->where('id', $empresa->id)->update(['nomina' => 0]);
+      return response()->json([
+        'success' => true,
+        'message' => 'La nómina ha sido desactivada',
+        'text'    => $text,
+        'nomina' => 0
+      ]);
+    } elseif ($empresa->fresh()->nomina == 0) {
+      DB::table('empresas')->where('id', $empresa->id)->update(['nomina' => 1]);
 
-          // $permisos = DB::table('permisos_usuarios')->where('id_permiso', 157)->where('id_usuario', $user_master)->get()->count();
-          // if ($permisos == 0) {
-          //     $permisosAccesos = DB::table('permisos_botones')->where('id_modulo', 17)->select('id')->get();
+      // $permisos = DB::table('permisos_usuarios')->where('id_permiso', 157)->where('id_usuario', $user_master)->get()->count();
+      // if ($permisos == 0) {
+      //     $permisosAccesos = DB::table('permisos_botones')->where('id_modulo', 17)->select('id')->get();
 
-          //     foreach ($permisosAccesos as $permiso) {
-          //         DB::table('permisos_usuarios')->insert(['id_usuario' => $user_master, 'id_permiso' => $permiso->id]);
-          //     }
-          // }
+      //     foreach ($permisosAccesos as $permiso) {
+      //         DB::table('permisos_usuarios')->insert(['id_usuario' => $user_master, 'id_permiso' => $permiso->id]);
+      //     }
+      // }
 
-          $suscripcion = SuscripcionNomina::where('id_empresa', $empresa->id)->first();
+      $suscripcion = SuscripcionNomina::where('id_empresa', $empresa->id)->first();
 
-          if (!$suscripcion) {
-              $suscripcion                  = new SuscripcionNomina();
-              $suscripcion->id_empresa      = $empresa->id;
-              $suscripcion->fec_inicio      = date('Y-m-d');
-              $suscripcion->fec_vencimiento = date('Y-m-d', strtotime(Carbon::now() . "+ 15 days"));
-              $suscripcion->fec_corte       = date('Y-m-d', strtotime(Carbon::now() . "+ 15 days"));
-              $suscripcion->created_at      = Carbon::now();
-              $suscripcion->save();
-              $text = 'RECUERDE: La nómina estará habilitada por 15 días de manera gratuita.';
-          }
-
-          return response()->json([
-              'success' => true,
-              'message' => 'La nómina ha sido activada',
-              'text'    => 'Recuerde habilitar los persmisos a través del módulo configuración > usuario y en el candado de permisos',
-              'nomina'  => 1
-          ]);
+      if (!$suscripcion) {
+        $suscripcion                  = new SuscripcionNomina();
+        $suscripcion->id_empresa      = $empresa->id;
+        $suscripcion->fec_inicio      = date('Y-m-d');
+        $suscripcion->fec_vencimiento = date('Y-m-d', strtotime(Carbon::now() . "+ 15 days"));
+        $suscripcion->fec_corte       = date('Y-m-d', strtotime(Carbon::now() . "+ 15 days"));
+        $suscripcion->created_at      = Carbon::now();
+        $suscripcion->save();
+        $text = 'RECUERDE: La nómina estará habilitada por 15 días de manera gratuita.';
       }
+
+      return response()->json([
+        'success' => true,
+        'message' => 'La nómina ha sido activada',
+        'text'    => 'Recuerde habilitar los persmisos a través del módulo configuración > usuario y en el candado de permisos',
+        'nomina'  => 1
+      ]);
+    }
   }
 
   public function numeracion_nomina_create()
-    {
-        $this->getAllPermissions(Auth::user()->id);
-        view()->share(['title' => 'Crear numeración Nomina Electrónica']);
-        return view('configuracion.numeracion-nomina.create');
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Crear numeración Nomina Electrónica']);
+    return view('configuracion.numeracion-nomina.create');
+  }
+
+  public function numeracion_nomina_store(Request $request)
+  {
+    $empresa = auth()->user()->empresaObj;
+
+    $request->validate([
+      'nombre' => 'required',
+      'inicio' => 'required',
+    ]);
+
+    if (NumeracionFactura::where('nombre', $request->nombre)
+      ->where('nomina', 1)
+      ->where('empresa', $empresa->id)
+      ->first()
+    ) {
+      return back()
+        ->withInput()
+        ->withErrors(['nombre' => 'La numeración ya existe. Cambie el nombre o borre la anterior numeración']);
     }
 
-    public function numeracion_nomina_store(Request $request)
-    {
-        $empresa = auth()->user()->empresaObj;
+    $numeracion = new NumeracionFactura();
+    $numeracion->nombre = $request->nombre;
+    $numeracion->prefijo = $request->prefijo;
+    $numeracion->inicio = $request->inicio;
+    $numeracion->inicioverdadero = $request->inicio;
+    $numeracion->preferida = $request->preferida;
+    $numeracion->empresa = $empresa->id;
+    $numeracion->nomina = 1;
+    if ($numeracion->preferida) {
+      DB::table('numeraciones_facturas')->where('nomina', 1)->where('tipo_nomina', $request->tipo_nomina)->where('preferida', 1)->update(['preferida' => 0]);
+    }
+    $numeracion->tipo_nomina = $request->tipo_nomina;
+    $numeracion->save();
 
-        $request->validate([
-            'nombre' => 'required',
-            'inicio' => 'required',
-        ]);
+    $mensaje = 'Se ha creado satisfactoriamente la numeración';
+    return redirect()->route('numeraciones_nomina.index')->with('success', $mensaje);
+  }
 
-        if (NumeracionFactura::where('nombre', $request->nombre)
-            ->where('nomina', 1)
-            ->where('empresa', $empresa->id)
-            ->first()
-        ) {
-            return back()
-            ->withInput()
-            ->withErrors(['nombre' => 'La numeración ya existe. Cambie el nombre o borre la anterior numeración']);
-        }
+  public function numeracion_nomina_index()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Numeraciones de la nomina electrónica']);
 
-        $numeracion = new NumeracionFactura();
-        $numeracion->nombre = $request->nombre;
-        $numeracion->prefijo = $request->prefijo;
-        $numeracion->inicio = $request->inicio;
-        $numeracion->inicioverdadero = $request->inicio;
-        $numeracion->preferida = $request->preferida;
-        $numeracion->empresa = $empresa->id;
-        $numeracion->nomina = 1;
-        if ($numeracion->preferida) {
-            DB::table('numeraciones_facturas')->where('nomina', 1)->where('tipo_nomina',$request->tipo_nomina)->where('preferida', 1)->update(['preferida' => 0]);
-        }
-        $numeracion->tipo_nomina = $request->tipo_nomina;
-        $numeracion->save();
+    $numeraciones = NumeracionFactura::where('empresa', auth()->user()->empresa)->where('nomina', 1)->get();
+    return view('configuracion.numeracion-nomina.index')->with(compact('numeraciones'));
+  }
 
-        $mensaje = 'Se ha creado satisfactoriamente la numeración';
-        return redirect()->route('numeraciones_nomina.index')->with('success', $mensaje);
+  public function numeracion_nomina_edit($id)
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Editar numeracion Nomina Electrónica']);
+
+    $empresa = auth()->user()->empresaObj;
+    $numeracion = NumeracionFactura::where('id', $id)->where('empresa', $empresa->id)->first();
+
+    return view('configuracion.numeracion-nomina.edit', compact('numeracion', 'empresa'));
+  }
+
+  public function numeracion_nomina_update(Request $request)
+  {
+
+    $empresa = $request->user()->empresaObj;
+    $numeracion = NumeracionFactura::where('id', $request->numeracion)->where('empresa', $empresa->id)->first();
+
+    if (NumeracionFactura::where('nombre', $request->nombre)
+      ->where('nomina', 1)
+      ->where('id', '<>', $numeracion->id)
+      ->where('empresa', $empresa->id)
+      ->first()
+    ) {
+      return back()
+        ->withErrors(['nombre' => 'La numeración ya existe. Cambie el nombre o borre la anterior numeración']);
     }
 
-    public function numeracion_nomina_index()
-    {
-        $this->getAllPermissions(Auth::user()->id);
-        view()->share(['title' => 'Numeraciones de la nomina electrónica']);
+    if ((bool) $request->preferida) {
 
-        $numeraciones = NumeracionFactura::where('empresa', auth()->user()->empresa)->where('nomina', 1)->get();
-        return view('configuracion.numeracion-nomina.index')->with(compact('numeraciones'));
+      NumeracionFactura::where('preferida', 1)->where('empresa', $empresa->id)
+        ->where('id', '<>',  $numeracion->id)
+        ->where('tipo_nomina', $request->tipo_nomina)
+        ->where('nomina', 1)
+        ->update(['preferida' => 0]);
+
+      $numeracion->fresh();
+      $numeracion->preferida = 1;
     }
 
-    public function numeracion_nomina_edit($id)
-    {
-        $this->getAllPermissions(Auth::user()->id);
-        view()->share(['title' => 'Editar numeracion Nomina Electrónica']);
 
-        $empresa = auth()->user()->empresaObj;
-        $numeracion = NumeracionFactura::where('id', $id)->where('empresa', $empresa->id)->first();
+    $numeracion->nombre = $request->nombre;
+    $numeracion->prefijo = $request->prefijo;
+    $numeracion->inicio = $request->inicio;
+    $numeracion->tipo_nomina = $request->tipo_nomina;
+    $numeracion->inicioverdadero = $request->inicioverdadero;
+    $numeracion->empresa = $empresa->id;
 
-        return view('configuracion.numeracion-nomina.edit', compact('numeracion', 'empresa'));
-    }
-
-    public function numeracion_nomina_update(Request $request)
-    {
-
-        $empresa = $request->user()->empresaObj;
-        $numeracion = NumeracionFactura::where('id', $request->numeracion)->where('empresa', $empresa->id)->first();
-
-        if (NumeracionFactura::where('nombre', $request->nombre)
-            ->where('nomina', 1)
-            ->where('id', '<>', $numeracion->id)
-            ->where('empresa', $empresa->id)
-            ->first()
-        ) {
-            return back()
-            ->withErrors(['nombre' => 'La numeración ya existe. Cambie el nombre o borre la anterior numeración']);
-        }
-
-        if ((bool) $request->preferida) {
-
-            NumeracionFactura::where('preferida', 1)->where('empresa', $empresa->id)
-                ->where('id', '<>',  $numeracion->id)
-                ->where('tipo_nomina',$request->tipo_nomina)
-                ->where('nomina',1)
-                ->update(['preferida' => 0]);
-
-            $numeracion->fresh();
-            $numeracion->preferida = 1;
-        }
+    $numeracion->update();
 
 
-        $numeracion->nombre = $request->nombre;
-        $numeracion->prefijo = $request->prefijo;
-        $numeracion->inicio = $request->inicio;
-        $numeracion->tipo_nomina = $request->tipo_nomina;
-        $numeracion->inicioverdadero = $request->inicioverdadero;
-        $numeracion->empresa = $empresa->id;
+    $mensaje = 'Se actualizó la numeración correctamente';
+    return redirect()->route('numeraciones_nomina.index')->with('success', $mensaje);
+  }
 
+  public function numeracion_nomina_destroy($id)
+  {
+    $numeracion = NumeracionFactura::find($id);
+    $numeracion->delete();
+    $mensaje = 'Se elminó la numeración correctamente';
+    return redirect()->route('numeraciones_nomina.index')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
+  }
+
+  public function numeraciones_nomina_act_desc($id)
+  {
+    $numeracion = NumeracionFactura::where('empresa', auth()->user()->empresa)->where('id', $id)->first();
+    if ($numeracion) {
+      if ($numeracion->estado == 1) {
+        $mensaje = 'Se ha desactivado la numeración';
+        $numeracion->estado = 0;
         $numeracion->update();
-
-
-        $mensaje = 'Se actualizó la numeración correctamente';
-        return redirect()->route('numeraciones_nomina.index')->with('success', $mensaje);
+      } else {
+        $mensaje = 'Se ha activado la numeración';
+        $numeracion->estado = 1;
+        $numeracion->update();
+      }
+      return redirect()->route('numeraciones_nomina.index')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
     }
+    return redirect()->route('numeraciones_nomina.index')->with('success', 'No existe un registro con ese id');
+  }
 
-    public function numeracion_nomina_destroy($id)
-    {
-        $numeracion = NumeracionFactura::find($id);
-        $numeracion->delete();
-        $mensaje = 'Se elminó la numeración correctamente';
-        return redirect()->route('numeraciones_nomina.index')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
+  /**
+   * Tabla principal para configuración de calculos fijos.
+   *
+   * @return view
+   */
+  function calculos_nomina()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Configuración de cálculos fijos']);
+
+    $calculos = NominaConfiguracionCalculos::where('fk_idempresa', auth()->user()->empresa)->get();
+
+    /* >>> SCRIPT PARA AGREGAR LOS CALCULOS FIJOS A TODAS LAS EMPRESAS <<< */
+    // $empresas = Empresa::all();
+
+    // foreach($empresas as $empresa){
+    //     foreach($calculos as $calculo){
+    //         $nuevoCalculo = new NominaConfiguracionCalculos;
+    //         $nuevoCalculo->nro = $calculo->nro;
+    //         $nuevoCalculo->nombre = $calculo->nombre;
+    //         $nuevoCalculo->tipo = $calculo->tipo;
+    //         $nuevoCalculo->simbolo = $calculo->simbolo;
+    //         $nuevoCalculo->valor = $calculo->valor;
+    //         $nuevoCalculo->observaciones = $calculo->observaciones;
+    //         $nuevoCalculo->fk_idempresa = $calculo->fk_idempresa;
+    //         $nuevoCalculo->save();
+    //     }
+    // }
+
+    return view('configuracion.calculos-nomina.index')->with(compact('calculos'));
+  }
+
+  function calculos_nomina_editcalculo($id)
+  {
+    $calculo = NominaConfiguracionCalculos::find($id);
+    if ($calculo) {
+      $calculo->valor = round($calculo->valor);
+      return response()->json($calculo);
     }
+  }
 
-    public function numeraciones_nomina_act_desc($id)
-    {
-        $numeracion = NumeracionFactura::where('empresa', auth()->user()->empresa)->where('id', $id)->first();
-        if ($numeracion) {
-            if ($numeracion->estado == 1) {
-                $mensaje = 'Se ha desactivado la numeración';
-                $numeracion->estado = 0;
-                $numeracion->update();
-            } else {
-                $mensaje = 'Se ha activado la numeración';
-                $numeracion->estado = 1;
-                $numeracion->update();
-            }
-            return redirect()->route('numeraciones_nomina.index')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
-        }
-        return redirect()->route('numeraciones_nomina.index')->with('success', 'No existe un registro con ese id');
+  function storecalculo(Request $request)
+  {
+
+    $calculo = NominaConfiguracionCalculos::find($request->id);
+
+    if ($calculo) {
+      $calculo->valor = floatval($request->valor);
+      $calculo->save();
+      $calculo->valorFormateado = $calculo->valor();
+
+      /* actualizar nomina de las personas en su ultimo periodo */
+      $personas = Persona::where('fk_empresa', auth()->user()->empresa)->get();
+      foreach ($personas as $persona) {
+        //PersonasController::nominaPersona($persona);
+        $persona->refrescarUltimaNomina();
+      }
+
+      return response()->json($calculo);
+    } else {
+      return response()->json(false);
     }
+  }
 
-    /**
-     * Tabla principal para configuración de calculos fijos.
-     *
-     * @return view
-     */
-    function calculos_nomina()
-    {
-        $this->getAllPermissions(Auth::user()->id);
-        view()->share(['title' => 'Configuración de cálculos fijos']);
+  /**
+   * Habilitar/Deshabilitar Emisión de Nómina por la DIAN
+   */
+  public function nominaDian(Request $request)
+  {
+    $empresa = Empresa::find(auth()->user()->empresa);
 
-        $calculos = NominaConfiguracionCalculos::where('fk_idempresa', auth()->user()->empresa)->get();
-
-        /* >>> SCRIPT PARA AGREGAR LOS CALCULOS FIJOS A TODAS LAS EMPRESAS <<< */
-        // $empresas = Empresa::all();
-
-        // foreach($empresas as $empresa){
-        //     foreach($calculos as $calculo){
-        //         $nuevoCalculo = new NominaConfiguracionCalculos;
-        //         $nuevoCalculo->nro = $calculo->nro;
-        //         $nuevoCalculo->nombre = $calculo->nombre;
-        //         $nuevoCalculo->tipo = $calculo->tipo;
-        //         $nuevoCalculo->simbolo = $calculo->simbolo;
-        //         $nuevoCalculo->valor = $calculo->valor;
-        //         $nuevoCalculo->observaciones = $calculo->observaciones;
-        //         $nuevoCalculo->fk_idempresa = $calculo->fk_idempresa;
-        //         $nuevoCalculo->save();
-        //     }
-        // }
-
-        return view('configuracion.calculos-nomina.index')->with(compact('calculos'));
+    if ($request->status == 0) {
+      $empresa->nomina_dian = 1;
+      $empresa->save();
+      return 1;
+    } else {
+      $empresa->nomina_dian = 0;
+      $empresa->save();
+      return 0;
     }
+  }
 
-      function calculos_nomina_editcalculo($id)
-    {
-        $calculo = NominaConfiguracionCalculos::find($id);
-        if ($calculo) {
-            $calculo->valor = round($calculo->valor);
-            return response()->json($calculo);
-        }
-    }
-
-    function storecalculo(Request $request)
-    {
-
-        $calculo = NominaConfiguracionCalculos::find($request->id);
-
-        if ($calculo) {
-            $calculo->valor = floatval($request->valor);
-            $calculo->save();
-            $calculo->valorFormateado = $calculo->valor();
-
-            /* actualizar nomina de las personas en su ultimo periodo */
-            $personas = Persona::where('fk_empresa', auth()->user()->empresa)->get();
-            foreach ($personas as $persona) {
-                //PersonasController::nominaPersona($persona);
-                $persona->refrescarUltimaNomina();
-            }
-
-            return response()->json($calculo);
-        } else {
-            return response()->json(false);
-        }
-    }
-
-    /**
-     * Habilitar/Deshabilitar Emisión de Nómina por la DIAN
-     */
-    public function nominaDian(Request $request)
-    {
-        $empresa = Empresa::find(auth()->user()->empresa);
-
-        if ($request->status == 0) {
-            $empresa->nomina_dian = 1;
-            $empresa->save();
-            return 1;
-        } else {
-            $empresa->nomina_dian = 0;
-            $empresa->save();
-            return 0;
-        }
-    }
-
-  public function actDescOficina(Request $request){
+  public function actDescOficina(Request $request)
+  {
     $empresa = Empresa::find(Auth::user()->empresa);
-    if($empresa){
-      if($request->oficina == 0){
+    if ($empresa) {
+      if ($request->oficina == 0) {
         $empresa->oficina = 1;
 
         $user_master = User::where('empresa', $empresa->id)->first()->id;
@@ -2286,7 +2349,7 @@ class ConfiguracionController extends Controller
             DB::table('permisos_usuarios')->insert(['id_usuario' => $user_master, 'id_permiso' => $permiso->id]);
           }
         }
-      }else{
+      } else {
         $empresa->oficina = 0;
       }
       $empresa->save();
@@ -2294,7 +2357,8 @@ class ConfiguracionController extends Controller
     }
   }
 
-  public function clausula_permanencia(Request $request){
+  public function clausula_permanencia(Request $request)
+  {
     $empresa = Empresa::find(Auth::user()->empresa);
 
     if ($empresa) {
@@ -2311,156 +2375,156 @@ class ConfiguracionController extends Controller
     }
   }
 
-     /**
-     * Activar o descativar el modo de facturas soporte desde el modulo de configuracion
-     * @return int
-     */
-    public function actdesc_equivalentes(Request $request)
-    {
-        $empresa = Empresa::find(auth()->user()->empresa);
+  /**
+   * Activar o descativar el modo de facturas soporte desde el modulo de configuracion
+   * @return int
+   */
+  public function actdesc_equivalentes(Request $request)
+  {
+    $empresa = Empresa::find(auth()->user()->empresa);
 
-        if ($request->status == 0) {
-            $empresa->equivalente = 1;
-        } else {
-            $empresa->equivalente = 0;
-        }
-        $empresa->save();
+    if ($request->status == 0) {
+      $empresa->equivalente = 1;
+    } else {
+      $empresa->equivalente = 0;
+    }
+    $empresa->save();
 
-        return response()->json($empresa->equivalente);
+    return response()->json($empresa->equivalente);
+  }
+
+  /**
+   * Tabla principal de numeraciones de documentos soporte
+   * @return view
+   */
+  public function numeraciones_equivalente()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+
+    view()->share(['title' => 'Numeraciones de Documentos Soportes']);
+    $numeraciones = NumeracionFactura::where('empresa', auth()->user()->empresa)->where('num_equivalente', 1)->get();
+    return view('configuracion.numeracion-equivalente.index')->with(compact('numeraciones'));
+  }
+
+  /**
+   * Lleva al formulario de creacion de numeraciones soporte
+   * @return view
+   */
+  public function numeracion_equivalente_create()
+  {
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Crear numeración Documentos Soporte']);
+    return view('configuracion.numeracion-equivalente.create');
+  }
+
+  /**
+   * Guarda la numearcion de facturas soporte y retorna a la vista principal
+   * @return view
+   */
+  public function numeracion_equivalente_store(Request $request)
+  {
+    $numeracion = new NumeracionFactura();
+    $numeracion->nombre = $request->nombre;
+    $numeracion->prefijo = $request->prefijo;
+    $numeracion->inicio = $request->inicio;
+    $numeracion->inicioverdadero = $request->inicio;
+    $numeracion->final = $request->final;
+    if ($request->desde) {
+      $numeracion->desde = Carbon::parse($request->desde)->format('Y-m-d');
+    }
+    if ($request->hasta) {
+      $numeracion->hasta = Carbon::parse($request->hasta)->format('Y-m-d');
+    }
+    $numeracion->preferida = $request->preferida;
+    $numeracion->nroresolucion = $request->nroresolucion;
+    $numeracion->resolucion = $request->resolucion;
+    $numeracion->num_equivalente =  1;
+    $numeracion->empresa = auth()->user()->empresa;
+
+    $numeracion->save();
+
+    $numeraciones = NumeracionFactura::where('empresa', auth()->user()->empresa)
+      ->where('preferida', 1)
+      ->where('num_equivalente', 1)
+      ->where('id', '!=', $numeracion->id)
+      ->get();
+
+    foreach ($numeraciones as $numeracion) {
+      $numeracion->update(['preferida' => 0]);
     }
 
-      /**
-     * Tabla principal de numeraciones de documentos soporte
-     * @return view
-     */
-    public function numeraciones_equivalente()
-    {
-        $this->getAllPermissions(Auth::user()->id);
+    $mensaje = 'Se ha creado satisfactoriamente la numeración';
+    return redirect('empresa/configuracion/numeraciones-equivalente')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
+  }
 
-        view()->share(['title' => 'Numeraciones de Documentos Soportes']);
-        $numeraciones = NumeracionFactura::where('empresa', auth()->user()->empresa)->where('num_equivalente', 1)->get();
-        return view('configuracion.numeracion-equivalente.index')->with(compact('numeraciones'));
+  /**
+   * Lleva al formulario de creacion de numeraciones soporte
+   * @return view
+   */
+  public function numeracion_equivalente_edit($id)
+  {
+    $numeracion = NumeracionFactura::find($id);
+
+    $this->getAllPermissions(Auth::user()->id);
+    view()->share(['title' => 'Editar numeración Documentos Soporte']);
+    return view('configuracion.numeracion-equivalente.edit', compact('numeracion'));
+  }
+
+  /**
+   * Actualiza la numeracion equivalente y retorna a la vista principal
+   * @return view
+   */
+  public function numeracion_equivalente_update(Request $request)
+  {
+    $numeracion = NumeracionFactura::find($request->id);
+    $numeracion->nombre = $request->nombre;
+    $numeracion->prefijo = $request->prefijo;
+    $numeracion->inicio = $request->inicio;
+    $numeracion->inicioverdadero = $request->inicioverdadero;
+    $numeracion->final = $request->final;
+
+    if ($request->desde) {
+      $numeracion->desde = Carbon::parse($request->desde)->format('Y-m-d');
     }
-
-        /**
-     * Lleva al formulario de creacion de numeraciones soporte
-     * @return view
-     */
-    public function numeracion_equivalente_create()
-    {
-        $this->getAllPermissions(Auth::user()->id);
-        view()->share(['title' => 'Crear numeración Documentos Soporte']);
-        return view('configuracion.numeracion-equivalente.create');
+    if ($request->hasta) {
+      $numeracion->hasta = Carbon::parse($request->hasta)->format('Y-m-d');
     }
+    $numeracion->preferida = $request->preferida;
+    $numeracion->nroresolucion = $request->nroresolucion;
+    $numeracion->resolucion = $request->resolucion;
+    $numeracion->num_equivalente =  1;
+    $numeracion->empresa = auth()->user()->empresa;
 
-    /**
-     * Guarda la numearcion de facturas soporte y retorna a la vista principal
-     * @return view
-     */
-    public function numeracion_equivalente_store(Request $request)
-    {
-        $numeracion = new NumeracionFactura();
-        $numeracion->nombre = $request->nombre;
-        $numeracion->prefijo = $request->prefijo;
-        $numeracion->inicio = $request->inicio;
-        $numeracion->inicioverdadero = $request->inicio;
-        $numeracion->final = $request->final;
-        if ($request->desde) {
-            $numeracion->desde = Carbon::parse($request->desde)->format('Y-m-d');
-        }
-        if ($request->hasta) {
-            $numeracion->hasta = Carbon::parse($request->hasta)->format('Y-m-d');
-        }
-        $numeracion->preferida = $request->preferida;
-        $numeracion->nroresolucion = $request->nroresolucion;
-        $numeracion->resolucion = $request->resolucion;
-        $numeracion->num_equivalente =  1;
-        $numeracion->empresa = auth()->user()->empresa;
+    $numeracion->save();
 
-        $numeracion->save();
+    $mensaje = 'Se actualizó la numeración correctamente';
+    return redirect('empresa/configuracion/numeraciones-equivalente')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
+  }
 
-        $numeraciones = NumeracionFactura::where('empresa', auth()->user()->empresa)
-            ->where('preferida', 1)
-            ->where('num_equivalente', 1)
-            ->where('id', '!=', $numeracion->id)
-            ->get();
+  /**
+   * Elimina la numeracion equivalente y retorna a la vista principal
+   * @return view
+   */
+  public function numeracion_equivalente_destroy($id)
+  {
+    $numeracion = NumeracionFactura::find($id);
+    $numeracion->delete();
+    $mensaje = 'Se elminó la numeración correctamente';
+    return redirect('empresa/configuracion/numeraciones-equivalente')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
+  }
 
-        foreach ($numeraciones as $numeracion) {
-            $numeracion->update(['preferida' => 0]);
-        }
+  public function factCronAbiertas(Request $request)
+  {
+    $empresa = Empresa::find(auth()->user()->empresa);
 
-        $mensaje = 'Se ha creado satisfactoriamente la numeración';
-        return redirect('empresa/configuracion/numeraciones-equivalente')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
+    if ($request->status == 0) {
+      $empresa->cron_fact_abiertas = 1;
+      $empresa->save();
+      return 1;
+    } else {
+      $empresa->cron_fact_abiertas = 0;
+      $empresa->save();
+      return 0;
     }
-
-    /**
-     * Lleva al formulario de creacion de numeraciones soporte
-     * @return view
-     */
-    public function numeracion_equivalente_edit($id)
-    {
-        $numeracion = NumeracionFactura::find($id);
-
-        $this->getAllPermissions(Auth::user()->id);
-        view()->share(['title' => 'Editar numeración Documentos Soporte']);
-        return view('configuracion.numeracion-equivalente.edit', compact('numeracion'));
-    }
-
-    /**
-     * Actualiza la numeracion equivalente y retorna a la vista principal
-     * @return view
-     */
-    public function numeracion_equivalente_update(Request $request)
-    {
-        $numeracion = NumeracionFactura::find($request->id);
-        $numeracion->nombre = $request->nombre;
-        $numeracion->prefijo = $request->prefijo;
-        $numeracion->inicio = $request->inicio;
-        $numeracion->inicioverdadero = $request->inicioverdadero;
-        $numeracion->final = $request->final;
-
-        if ($request->desde) {
-            $numeracion->desde = Carbon::parse($request->desde)->format('Y-m-d');
-        }
-        if ($request->hasta) {
-            $numeracion->hasta = Carbon::parse($request->hasta)->format('Y-m-d');
-        }
-        $numeracion->preferida = $request->preferida;
-        $numeracion->nroresolucion = $request->nroresolucion;
-        $numeracion->resolucion = $request->resolucion;
-        $numeracion->num_equivalente =  1;
-        $numeracion->empresa = auth()->user()->empresa;
-
-        $numeracion->save();
-
-        $mensaje = 'Se actualizó la numeración correctamente';
-        return redirect('empresa/configuracion/numeraciones-equivalente')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
-    }
-
-    /**
-     * Elimina la numeracion equivalente y retorna a la vista principal
-     * @return view
-     */
-    public function numeracion_equivalente_destroy($id)
-    {
-        $numeracion = NumeracionFactura::find($id);
-        $numeracion->delete();
-        $mensaje = 'Se elminó la numeración correctamente';
-        return redirect('empresa/configuracion/numeraciones-equivalente')->with('success', $mensaje)->with('numeracion_id', $numeracion->id);
-    }
-
-    public function factCronAbiertas(Request $request){
-      $empresa = Empresa::find(auth()->user()->empresa);
-  
-      if ($request->status == 0) {
-        $empresa->cron_fact_abiertas = 1;
-        $empresa->save();
-        return 1;
-      } else {
-        $empresa->cron_fact_abiertas = 0;
-        $empresa->save();
-        return 0;
-      }
-    }
-
+  }
 }

@@ -375,6 +375,17 @@
 									<strong>{{ $errors->first('smartOLT') }}</strong>
 								</span>
 							</div>
+
+							<div class="col-md-12 form-group">
+								<label class="control-label">Estado OLT</label>
+								<select class="form-control" name="estado_olt" id="estado_olt">
+									<option value="1" {{ $empresa->eatado_olt == 1 ? 'selected' : '' }}>Habilitado</option>
+									<option value="0" {{ $empresa->eatado_olt == 0 ? 'selected' : '' }}> Deshabilitado</option>
+								</select>
+								<span class="help-block error">
+									<strong>{{ $errors->first('estado_olt') }}</strong>
+								</span>
+							</div>
 						</div>
 					</form>
 				</div>
@@ -1142,7 +1153,8 @@
                 method: 'get',
                 data: {
                 	smartOLT: $("#smartOLT").val(),
-                	adminOLT: $("#adminOLT").val()
+                	adminOLT: $("#adminOLT").val(),
+					estadoOlt: $("#estado_olt").val(),
                 },
                 success: function (data) {
                 	$("#config_olt").modal('hide');
