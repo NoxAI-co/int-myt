@@ -123,7 +123,11 @@
                                     <a  href="#" 
                                     @if($onus[$i]['actions'][$k] == "authorize")
                                         @if(count($onus[$i]['actions']) > 1 && $onus[$i]['actions'][1] == "move_here" && $k == 0)
-                                        onclick="viewOnu({{$i}})"
+
+                                            @if(Auth::user()->empresa()->eatado_olt == 1)
+                                            onclick="viewOnu({{$i}})"
+                                            @endif
+                                            
                                         @else
                                         onclick="formAuthorizeOnu({{$i}})" 
                                         @endif
@@ -137,7 +141,9 @@
                                     @endif 
                                     >
                                         @if(count($onus[$i]['actions']) > 1 && $onus[$i]['actions'][1] == "move_here" && $k == 0)
-                                        {{ "View ONU" }}
+                                            @if(Auth::user()->empresa()->eatado_olt == 1)
+                                            {{ "View ONU" }}
+                                            @endif
                                         @else
                                         {{ $onus[$i]['actions'][$k] }}
                                         @endif

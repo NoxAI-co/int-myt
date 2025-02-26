@@ -42,7 +42,7 @@
 
 <a href="{{ route('contrato.iniciar', $id) }}" class="btn btn-outline-warning btn-icons" title="Iniciar contrato" onclick="return confirm('¿Estás seguro de iniciar el contrato?');"><i class="fas fa-clipboard-list"></i></a>
 
-@if($olt_sn_mac != null && Auth::user()->empresa()->eatado_olt == 1)
+@if($olt_sn_mac != null)
 <a href="#" class="btn {{$state_olt_catv == true ? 'btn-outline-success' : 'btn-outline-danger'}} btn-icons" title="{{$state_olt_catv == true ? 'Deshabilitar Catv?' : 'Habilitar Catv?'}}"
 onclick="confirmar('cambiar-statecatv{{$id}}', 
 '¿Está seguro que desea cambiar el estado del catv a {{$state_olt_catv == true ? 'deshabilitado?' : 'habilitado?'}}', 

@@ -731,7 +731,6 @@
                                     </span>
                                 </div>
 
-                                @if(Auth::user()->empresa()->eatado_olt == 1)
                                 <div class="col-md-4 form-group">
                                     <label class="control-label font-weight-bold">SN / MAC</label>
                                     <input type="text" class="form-control" id="olt_sn_mac" name="olt_sn_mac"
@@ -758,7 +757,6 @@
                                         <strong>{{ $errors->first('state_olt_catv') }}</strong>
                                     </span>
                                 </div>
-                                @endif
 
                             </div>
                         </div>
