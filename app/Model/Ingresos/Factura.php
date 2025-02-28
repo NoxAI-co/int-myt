@@ -1727,4 +1727,9 @@ public function forma_pago()
         ->sum('debito');
     }
 
+    public function clienteObj()
+    {
+        return $this->belongsTo(Contacto::class, 'cliente');
+    }
+
 }

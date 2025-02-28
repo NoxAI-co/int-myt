@@ -2051,6 +2051,14 @@ class FacturasController extends Controller{
             $ingreso = IngresosFactura::where('factura',$factura->id)->first();
             //---------------------------------------------//
             if($factura->emitida == 1){
+
+                $infoEmpresa = $empresa;
+                
+                $data['Empresa'] = $infoEmpresa->toArray();
+                
+                $infoCliente = $factura->clienteObj;
+                $data['Cliente'] = $infoCliente->toArray();
+                
                 $impTotal = 0;
                 foreach ($factura->total()->imp as $totalImp){
                     if(isset($totalImp->total)){
@@ -2112,7 +2120,7 @@ class FacturasController extends Controller{
             $factura->nonkey = $key;
             $factura->save();
             $cliente = $factura->cliente()->nombre.' '.$factura->cliente()->apellidos();
-            $tituloCorreo = $empresa->nombre.": Factura N° $factura->codigo";
+            $tituloCorreo =  $data['Empresa']['nit'] . ";" . $data['Empresa']['nombre'] . ";" . $factura->codigo . ";01;" . $data['Empresa']['nombre'];
             $xmlPath = 'xml/empresa'.auth()->user()->empresa.'/FV/FV-'.$factura->codigo.'.xml';
             //return $xmlPath;
 
