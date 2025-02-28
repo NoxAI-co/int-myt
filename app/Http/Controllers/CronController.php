@@ -127,7 +127,7 @@ class CronController extends Controller
             $state = ['enabled'];
             if ($empresa->factura_contrato_off == 1) {
                 $state[] = 'disabled';
-            }
+            } 
 
             foreach($grupos_corte as $grupo_corte){ 
  
