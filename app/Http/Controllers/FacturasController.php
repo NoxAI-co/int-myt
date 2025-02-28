@@ -2108,7 +2108,8 @@ class FacturasController extends Controller{
             }
 
             //-----------------------------------------------//
-
+            
+            $tituloCorreo =  $data['Empresa']['nit'] . ";" . $data['Empresa']['nombre'] . ";" . $factura->codigo . ";01;" . $data['Empresa']['nombre'];
             $data = array(
                 'email'=> 'info@istingenieria.online',
             );
@@ -2120,7 +2121,6 @@ class FacturasController extends Controller{
             $factura->nonkey = $key;
             $factura->save();
             $cliente = $factura->cliente()->nombre.' '.$factura->cliente()->apellidos();
-            $tituloCorreo =  $data['Empresa']['nit'] . ";" . $data['Empresa']['nombre'] . ";" . $factura->codigo . ";01;" . $data['Empresa']['nombre'];
             $xmlPath = 'xml/empresa'.auth()->user()->empresa.'/FV/FV-'.$factura->codigo.'.xml';
             //return $xmlPath;
 
