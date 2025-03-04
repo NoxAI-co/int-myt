@@ -249,7 +249,10 @@ class CronController extends Controller
                         }
                     }
 
-                    if($mesActualFactura != $mesUltimaFactura)
+                    /* ** Validacion: si la actual es dif a la ultima fac pasa o sino
+                    si son iguales y no tiene fact manual == 1(la ultima) y es manual y no automatica pasa */
+                    if($mesActualFactura != $mesUltimaFactura || 
+                       $mesActualFactura == $mesUltimaFactura && $ultimaFactura->factura_mes_manual == 0 && $ultimaFactura->facturacion_automatica == 0)
                     {
 
                     ## Verificamos que el cliente no posea la ultima factura automática abierta, de tenerla no se le genera la nueva factura
@@ -295,7 +298,6 @@ class CronController extends Controller
 
                                 if($contrato->facturacion == 3 && !$electronica){
                                     $tipo = 1;
-                                    // return redirect('empresa/facturas')->with('success', "La Factura Electrónica no pudo ser creada por que no ha pasado el tiempo suficiente desde la ultima factura");
                                 }elseif($contrato->facturacion == 3 && $electronica){
                                     $tipo = 2;
                                 }
