@@ -1,6 +1,7 @@
 <?php
 
 use App\Contacto;
+use App\Contrato;
 use App\Empresa;
 use App\Model\Ingresos\Factura;
 use App\Model\Ingresos\FacturaRetencion;
@@ -217,5 +218,17 @@ Route::get('NotaCreditoElectronica/{id}', function ($id) {
      }
      abort(403, 'ACCIÓN NO AUTORIZADA');
  });
+
+ Route::get('deudacontrato/{contro_nro}', function (Request $request) {
+    $contrato = Contrato::where('nro' , $request->contro_nro)->first();
+    if($contrato){
+        $deuda = "$" . App\Funcion::Parsear($contrato->deudaFacturas());
+        $contrato->deuda = $deuda;
+
+        return response()->json(['data' => $contrato, 'status' => 200]);
+    }else{
+        return response()->json(['status' => 400, 'message' => 'No se encontraron datos']);
+    }
+});
 
 
