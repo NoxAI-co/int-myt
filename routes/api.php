@@ -219,8 +219,8 @@ Route::get('NotaCreditoElectronica/{id}', function ($id) {
      abort(403, 'ACCIÓN NO AUTORIZADA');
  });
 
- Route::get('deudacontrato/{contro_nro}', function (Request $request) {
-    $contrato = Contrato::where('nro' , $request->contro_nro)->first();
+ Route::get('deudacontrato', function (Request $request) {
+    $contrato = Contrato::where('nro' , $request->contrato_nro)->first();
     if($contrato){
         $deuda = "$" . App\Funcion::Parsear($contrato->deudaFacturas());
         $contrato->deuda = $deuda;

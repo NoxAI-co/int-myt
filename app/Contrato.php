@@ -58,11 +58,19 @@ class Contrato extends Model
 
 	public function plan($tv = false){
 
-        if($tv){
-            return Inventario::find($this->servicio_tv);
+	    $plan = new StdClass();
+	    $plan->producto = "N/A";
+	    $plan->name = "N/A";
+
+        if(Inventario::find($this->servicio_tv) && $tv){
+            return $tv = Inventario::find($this->servicio_tv);
         }
-    
-		return PlanesVelocidad::where('id', $this->plan_id)->first();
+
+		if(PlanesVelocidad::where('id', $this->plan_id)->first()){
+		    return $tv = PlanesVelocidad::where('id', $this->plan_id)->first();
+		}
+
+		return $plan;
 	}
 
     public function etiqueta(){
