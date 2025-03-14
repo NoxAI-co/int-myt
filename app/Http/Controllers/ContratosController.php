@@ -379,11 +379,12 @@ class ContratosController extends Controller
              'contactos.email as c_email', 'contactos.barrio as c_barrio', 'contactos.direccion',
               'contactos.celular as c_celular','contactos.fk_idmunicipio',
                'contactos.email as c_email', 'contactos.id as c_id', 'contactos.firma_isp',
-               'contactos.estrato as c_estrato',
+               'contactos.estrato as c_estrato','barrio.nombre as barrio_nombre',
                DB::raw('(select fecha from ingresos where ingresos.cliente = contracts.client_id and ingresos.tipo = 1 LIMIT 1) AS pago'))
             ->selectRaw('INET_ATON(contracts.ip) as ipformat')
             ->join('contactos', 'contracts.client_id', '=', 'contactos.id')
             ->join('municipios', 'contactos.fk_idmunicipio', '=', 'municipios.id')
+            ->leftJoin('barrios as barrio','barrio.id','contactos.barrio_id')
             ->whereIn('contracts.id',$arrayContratos);
         } 
 
@@ -2374,7 +2375,8 @@ class ContratosController extends Controller
                 'contactos.direccion as c_direccion',
                 'contactos.estrato as c_estrato',
                 'contactos.fk_idmunicipio as c_municipio',
-                'municipios.nombre as c_nombre_municipio'
+                'municipios.nombre as c_nombre_municipio',
+                'barrio.nombre as barrio_nombre'
             )
             ->join('contactos', 'contracts.client_id', '=', 'contactos.id')
             ->join('municipios', 'contactos.fk_idmunicipio', '=', 'municipios.id')
@@ -2524,7 +2526,7 @@ class ContratosController extends Controller
                 ->setCellValue($letras[3].$i, $contrato->c_celular)
                 ->setCellValue($letras[4].$i, $contrato->c_email)
                 ->setCellValue($letras[5].$i, $contrato->c_direccion)
-                ->setCellValue($letras[6].$i, $contrato->c_barrio)
+                ->setCellValue($letras[6].$i, $contrato->barrio_nombre)
                 ->setCellValue($letras[7].$i, $contrato->c_vereda)
                 ->setCellValue($letras[8].$i, $contrato->c_estrato)
                 ->setCellValue($letras[9].$i, ($contrato->servicio_tv) ? $contrato->plan(true)->producto : '')
