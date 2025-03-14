@@ -136,7 +136,7 @@ class ContratosController extends Controller
              'contactos.email as c_email', 'contactos.barrio as c_barrio', 'contactos.direccion',
               'contactos.celular as c_celular','contactos.fk_idmunicipio',
                'contactos.email as c_email', 'contactos.id as c_id', 'contactos.firma_isp',
-               'contactos.estrato as c_estrato',
+               'contactos.estrato as c_estrato','barrio.nombre as barrio_nombre',
                DB::raw('(select fecha from ingresos where ingresos.cliente = contracts.client_id and ingresos.tipo = 1 LIMIT 1) AS pago'))
             ->selectRaw('INET_ATON(contracts.ip) as ipformat')
             ->join('contactos', 'contracts.client_id', '=', 'contactos.id')
@@ -411,7 +411,7 @@ class ContratosController extends Controller
                 return $contrato->c_email;
             })
             ->editColumn('barrio', function (Contrato $contrato) {
-                return $contrato->c_barrio;
+                return $contrato->barrio_nombre;
             })
             ->editColumn('fk_idmunicipio', function (Contrato $contrato) {
                 return $contrato->nombre_municipio;
