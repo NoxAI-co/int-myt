@@ -21,6 +21,7 @@ use App\Contrato;
 use App\Servicio;
 use App\User;
 use App\AP;
+use App\Barrios;
 use App\Contacto;
 use App\TipoIdentificacion;
 use App\Vendedor;
@@ -87,7 +88,8 @@ class ContratosController extends Controller
         $aps = AP::where('status',1)->where('empresa', Auth::user()->empresa)->get();
         $vendedores = Vendedor::where('empresa',Auth::user()->empresa)->where('estado',1)->get();
         $canales = Canal::where('empresa',Auth::user()->empresa)->where('status', 1)->get();
-        return view('contratos.indexnew', compact('etiquetas','clientes','planes','planestv','servidores','grupos','tipo','tabla','nodos','aps', 'vendedores', 'canales'));
+        $barrios = Barrios::where('status','1')->get();
+        return view('contratos.indexnew', compact('etiquetas','clientes','planes','planestv','servidores','grupos','tipo','tabla','nodos','aps', 'vendedores', 'canales','barrios'));
     }
 
     public function disabled(Request $request){
@@ -138,7 +140,8 @@ class ContratosController extends Controller
                DB::raw('(select fecha from ingresos where ingresos.cliente = contracts.client_id and ingresos.tipo = 1 LIMIT 1) AS pago'))
             ->selectRaw('INET_ATON(contracts.ip) as ipformat')
             ->join('contactos', 'contracts.client_id', '=', 'contactos.id')
-            ->join('municipios', 'contactos.fk_idmunicipio', '=', 'municipios.id');
+            ->join('municipios', 'contactos.fk_idmunicipio', '=', 'municipios.id')
+            ->leftJoin('barrios as barrio','barrio.id','contactos.barrio_id');
 
         if ($request->filtro == true) {
 
@@ -224,7 +227,7 @@ class ContratosController extends Controller
             }
             if($request->c_barrio){
                 $contratos->where(function ($query) use ($request) {
-                    $query->orWhere('contactos.barrio', 'like', "%{$request->c_barrio}%");
+                    $query->orWhere('contactos.barrio_id',$request->c_barrio);
                 });
             }
             if($request->c_celular){
@@ -2375,6 +2378,7 @@ class ContratosController extends Controller
             )
             ->join('contactos', 'contracts.client_id', '=', 'contactos.id')
             ->join('municipios', 'contactos.fk_idmunicipio', '=', 'municipios.id')
+            ->leftJoin('barrios as barrio','barrio.id','contactos.barrio_id')
             ->where('contracts.empresa', Auth::user()->empresa)
             ;
 
@@ -2443,7 +2447,7 @@ class ContratosController extends Controller
         }
         if($request->barrio != null){
             $contratos->where(function ($query) use ($request) {
-                $query->orWhere('contactos.barrio', 'like', "%{$request->barrio}%");
+                $query->orWhere('contactos.barrio_id', 'like', "%{$request->barrio}%");
             });
         }
         if($request->celular != null){
