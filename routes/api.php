@@ -220,15 +220,48 @@ Route::get('NotaCreditoElectronica/{id}', function ($id) {
  });
 
  Route::get('deudacontrato', function (Request $request) {
-    $contrato = Contrato::where('nro' , $request->contrato_nro)->first();
-    if($contrato){
-        $deuda = "$" . App\Funcion::Parsear($contrato->deudaFacturas());
-        $contrato->deuda = $deuda;
 
-        return response()->json(['data' => $contrato, 'status' => 200]);
-    }else{
-        return response()->json(['status' => 400, 'message' => 'No se encontraron datos']);
+    if(isset($request->contrato_nro)){
+        $contrato = Contrato::where('nro' , $request->contrato_nro)->first();
+        if($contrato){
+            $deuda = "$" . App\Funcion::Parsear($contrato->deudaFacturas());
+            $contrato->deuda = $deuda;
+    
+            return response()->json(['data' => $contrato, 'status' => 200, 'multicontratos' => false]);
+        }else{
+            return response()->json(['status' => 400, 'message' => 'No se encontraron datos']);
+        }
     }
+
+    if(isset($request->identificacion)){
+
+        $cliente = Contacto::where('nit',$request->identificacion)->first();
+        if($cliente){
+            $contratos = Contrato::where('client_id' , $cliente->id)->get();
+
+            if(count($contratos) == 0){
+                return response()->json(['status' => 400, 'message' => 'No se encontraron datos']);
+            }
+
+            if(count($contratos) > 1){
+                return response()->json(['data' => $contratos, 'status' => 200, 'multicontratos' => true]);
+            }else{
+                $contrato = $contratos->first();
+                $deuda = "$" . App\Funcion::Parsear($contrato->deudaFacturas());
+                $contrato->deuda = $deuda;
+    
+                return response()->json(['data' => $contrato, 'status' => 200, 'multicontratos' => false]);
+            
+            }
+        }else{
+            return response()->json(['status' => 400, 'message' => 'No se encontraron clientes con esa cédula']);
+        }
+    }
+    
+});
+
+Route::get('create-radicado', function (Request $request) {
+
 });
 
 
