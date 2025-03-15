@@ -224,6 +224,7 @@ Route::get('NotaCreditoElectronica/{id}', function ($id) {
     if(isset($request->contrato_nro)){
         $contrato = Contrato::where('nro' , $request->contrato_nro)->first();
         if($contrato){
+
             $deuda = "$" . App\Funcion::Parsear($contrato->deudaFacturas());
             $contrato->deuda = $deuda;
     
@@ -260,8 +261,9 @@ Route::get('NotaCreditoElectronica/{id}', function ($id) {
     
 });
 
-Route::get('create-radicado', function (Request $request) {
-
+Route::get('medios-pago', function (Request $request) {
+    $empresa = Empresa::Find(1);
+    return response()->json(['data' => $empresa->medios_pago, 'status' => 200]);
 });
 
 
