@@ -19,9 +19,13 @@ class Radicado extends Model
     protected $appends = ['session'];
 
     public function getSessionAttribute()
-    {
+{
+    if (\Auth::check()) {
         return $this->getAllPermissions(\Auth::user()->id);
     }
+    // Opcional: retornar un array vacío, null o algún valor por defecto para usuarios no autenticados
+    return [];
+}
 
     public function getAllPermissions($id)
     {
