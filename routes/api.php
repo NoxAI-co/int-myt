@@ -292,7 +292,7 @@ Route::get('create-radicado', function (Request $request) {
         $servicio = Servicio::find($request->servicio);
         $contrato = Contrato::where('nro', $request->contrato)->first();
         $tecnico = User::where('empresa',1)->where('rol', 4)->first(); //hay que revisar a quien se le asigna
-        $oficina = Oficina::where('empresa',1)->first();
+        // $oficina = Oficina::where('empresa',1)->first();
 
         try {
             if($servicio && $cliente && $contrato){
@@ -336,7 +336,7 @@ Route::get('create-radicado', function (Request $request) {
             $radicado->ip = $contrato->ip;
             $radicado->empresa = 1;
             $radicado->valor = null;
-            $radicado->oficina = $oficina->id;
+            // $radicado->oficina = $oficina->id;
             $radicado->barrio = $cliente->barrio;
             $radicado->save();
     
