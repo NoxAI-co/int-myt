@@ -1967,6 +1967,14 @@ class ReportesController extends Controller
             $appends['hasta']=$request->hasta;
         }
 
+        $campos=array( '','movimientos.fecha', 'movimientos.fecha', 'movimientos.fecha', 'movimientos.fecha', 'movimientos.fecha', 'movimientos.fecha', 'movimientos.fecha');
+        if (!$request->orderby) {
+            $request->orderby=1; $request->order=1;
+        }
+        $order=$request->order==1?'DESC':'ASC';
+
+        $orderby=$campos[$request->orderby];
+
         if(!isset($request->servidor) ||  $request->servidor == 0){
 
             $movimientos= Movimiento::leftjoin('contactos as c', 'movimientos.contacto', '=', 'c.id')
@@ -2018,7 +2026,9 @@ class ReportesController extends Controller
             $movimientosTodos->where('movimientos.tipo',$request->tipo);
         }
 
-        $movimientos=  $movimientos->orderBy('fecha', 'DESC')->paginate(25)->appends($appends);
+        $movimientos=$movimientos->OrderBy($orderby, $order)->get();
+        // $movimientos=  $movimientos->orderBy('fecha', 'DESC')->paginate(25)->appends($appends);
+        $movimientos = $this->paginate($movimientos, 25, $request->page, $request);
         $movimientosTodos = $movimientosTodos->get();
 
         $totales = array(
@@ -2035,13 +2045,7 @@ class ReportesController extends Controller
 
         $servidores = Mikrotik::where('status', 1)->where('empresa', $empresa)->get();
 
-        return view('reportes.cajas.index')
-            ->with('movimientos', $movimientos)
-            ->with('request', $request)
-            ->with('example', $example)
-            ->with('totales', $totales)
-            ->with('servidores', $servidores)
-            ->with('cajas', $cajas);
+        return view('reportes.cajas.index')->with(compact('movimientos','request','example','totales','servidores','cajas'));
     }
 
     public function instalacion(Request $request) {
