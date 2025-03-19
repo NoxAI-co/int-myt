@@ -212,7 +212,7 @@ class ExportarReportesController extends Controller
         $dates = $this->setDateRequest($request);
         $comprobacionFacturas->where('fecha','>=', $dates['inicio'])->where('fecha','<=', $dates['fin']);
         if($comprobacionFacturas->count() >2100){
-            return $this->bigVentas($request);
+            // return $this->bigVentas($request);
         }
 
 
@@ -365,7 +365,7 @@ class ExportarReportesController extends Controller
         $dates = $this->setDateRequest($request);
         $comprobacionFacturas->where('fecha','>=', $dates['inicio'])->where('fecha','<=', $dates['fin']);
         if($comprobacionFacturas->count() >2100){
-            return $this->bigVentas($request);
+            // return $this->bigVentas($request);
         }
 
         $objPHPExcel = new PHPExcel();
@@ -633,7 +633,7 @@ class ExportarReportesController extends Controller
             }
 
             if($comprobacionFacturas->count() >2100){
-                return $this->bigVentas($request);
+                // return $this->bigVentas($request);
             }
 
 
