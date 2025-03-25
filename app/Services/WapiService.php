@@ -56,7 +56,6 @@ class WapiService
 
     public function sendMessageMedia(string $uuid, string $apiKey, array $body)
     {
-        $this->headers['Authorization'] = 'Bearer ' . $apiKey;
         return $this->makeRequest(
             "POST",
             $this->baseUri . "/api/v1/send/" . $uuid,
