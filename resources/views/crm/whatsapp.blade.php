@@ -249,7 +249,7 @@
                 return;
             }
 
-            if (session.status == "PAIRED") {
+            if (wbot.status == "PAIRED") {
                 fetch(`/software/empresa/instances/${wbot.channelId}`, {
                         method: "PUT",
                         headers: {
