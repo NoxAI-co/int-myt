@@ -315,8 +315,8 @@ class AvisosController extends Controller
 
                     $body = [
                         "contact" => $contact,
-                        "body" => $message,
-                        "file" => ''
+                        "message" => $message,
+                        "media" => ''
                     ];
 
                 $response = (object) $wapiService->sendMessageMedia($instance->uuid_whatsapp, $instance->api_key, $body);

@@ -2010,8 +2010,8 @@ class IngresosController extends Controller
             }
 
             $file = [
-                "mime" => "@file/pdf",
-                "data" => $pdf64,
+                "mimeType" => "application/pdf",
+                "file" => $pdf64,
             ];
 
             $cliente = $ingreso->cliente();
@@ -2031,8 +2031,8 @@ class IngresosController extends Controller
 
             $body = [
                 "contact" => $contact,
-                "body" => $message,
-                "file" => $file
+                "message" => $message,
+                "media" => $file
             ];
 
             $response = (object) $wapiService->sendMessageMedia($instance->uuid_whatsapp, $instance->api_key, $body);
