@@ -169,7 +169,7 @@ class InstanceController extends Controller
             ]);
         }
 
-        $session = $wapiService->initSession($instance->uuid_whatsapp);
+        $session = $wapiService->initSession($instance->uuid);
         $session = json_decode($session);
         if($session->status === 'error') {
             return response()->json([
