@@ -4204,7 +4204,7 @@ class FacturasController extends Controller{
             "media" => $file
         ];
 
-        $response = (object) $wapiService->sendMessageMedia($instance->uuid_whatsapp, $instance->api_key, $body);
+        $response = (object) $wapiService->sendMessageMedia($instance->uuid, $instance->api_key, $body);
         if(isset($response->statusCode)) {
             return back()->with('danger', 'No se pudo enviar el mensaje, por favor intente nuevamente.');
         }
