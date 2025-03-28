@@ -25,7 +25,7 @@ class GrupoCorte extends Model
     protected $fillable = [
         'nombre', 'fecha_factura', 'fecha_pago', 'fecha_corte', 
         'fecha_suspension', 'hora_suspension', 'status', 'created_by', 'updated_by', 
-        'created_at', 'updated_at', 'nro_factura_vencida'
+        'created_at', 'updated_at', 'nro_factura_vencida','prorroga_tv'
     ];
 
     protected $appends = ['uso', 'session'];
