@@ -226,7 +226,7 @@
 	  				<option value="4">4</option>
 	  				<option value="5">5</option>
 	  				<option value="6">6</option>
-	  			</select>
+	  			</select> 
 	  			<span class="help-block error">
 	  				<strong>{{ $errors->first('estato') }}</strong>
 	  			</span>
