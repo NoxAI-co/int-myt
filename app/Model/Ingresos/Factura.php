@@ -1504,7 +1504,7 @@ public function forma_pago()
                     $yearContrato = Carbon::parse($contrato->created_at)->format('Y');
                     $mesContrato = Carbon::parse($contrato->created_at)->format('m');
                     $diaContrato = Carbon::parse($contrato->created_at)->format('d');
-                }
+                } 
 
                 $fechaContrato = $yearContrato . "-" . $mesContrato . "-" . $diaContrato;
                 $fechaContrato = Carbon::parse($fechaContrato);
