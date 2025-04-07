@@ -149,7 +149,7 @@ class VentasExternasController extends Controller{
         $this->getAllPermissions(Auth::user()->id);
         $identificaciones=TipoIdentificacion::all();
         $paises =DB::table('pais')->where('codigo', 'CO')->get();
-        $planes = Inventario::whereIn('type',['TV, PLAN'])->where('status',1)->get();
+        $planes = Inventario::whereIn('type',['TV','PLAN'])->where('status',1)->get();
         $departamentos = DB::table('departamentos')->get();
         $vendedores = Vendedor::where('empresa',Auth::user()->empresa)->where('estado',1)->get();
         $canales = Canal::where('empresa',Auth::user()->empresa)->where('status', 1)->get();
@@ -233,7 +233,7 @@ class VentasExternasController extends Controller{
             $vendedores       = Vendedor::where('empresa',Auth::user()->empresa)->where('estado',1)->get();
             $canales          = Canal::where('empresa',Auth::user()->empresa)->where('status', 1)->get();
             $oficinas = (Auth::user()->oficina && Auth::user()->empresa()->oficina) ? Oficina::where('id', Auth::user()->oficina)->get() : Oficina::where('empresa', Auth::user()->empresa)->where('status', 1)->get();
-            $planes = Inventario::whereIn('type',['TV, PLAN'])->where('status',1)->get();
+            $planes = Inventario::whereIn('type',['TV','PLAN'])->where('status',1)->get();
             view()->share(['title' => 'Editar Venta Externa']);
             return view('ventas_externas.edit')->with(compact('identificaciones', 'paises', 'departamentos','vendedores','canales', 'contacto', 'oficinas','planes'));
         }
