@@ -285,93 +285,99 @@ Route::get('info-radicado', function (Request $request) {
 
 });
 
-Route::get('create-radicado', function (Request $request) {
+Route::post('create-radicado', function (Request $request) {
 
-    //Variables por defecto
-    $request = $request['query'];
+    // Registrar toda la data recibida para diagnóstico
+    $data = $request->json()->all();
+    Log::info('Request JSON:', $data);
     
-    $cliente = Contacto::where('nit', $request['identificacion'])->first();
-    $servicio = Servicio::find($request['servicio']);
-    $contrato = Contrato::where('nro', $request['contrato'])->first();
-    $tecnico = User::where('empresa',1)->where('rol', 4)->first(); //hay que revisar a quien se le asigna
-    // $oficina = Oficina::where('empresa',1)->first();
+    // Verificar que se recibieron los datos esperados
+    if (
+        !isset($data['servicio']) ||
+        !isset($data['identificacion']) ||
+        !isset($data['contrato']) ||
+        !isset($data['observaciones'])
+    ) {
+        return response()->json([
+            'status'  => 400,
+            'message' => 'Formato de solicitud inválido. Faltan datos.'
+        ], 400);
+    }
     
+    // Variables por defecto: buscar registros relacionados
+    $cliente = Contacto::where('nit', $data['identificacion'])->first();
+    $servicio = Servicio::find($data['servicio']);
+    $contrato = Contrato::where('nro', $data['contrato'])->first();
+    $tecnico = User::where('empresa', 1)->where('rol', 4)->first(); // Revisar a quién se le asigna
 
     try {
-        if($servicio && $cliente && $contrato){
-
-            if(!$request['contrato'] && $request['servicio'] != 4){
-
+        if ($servicio && $cliente && $contrato) {
+            // Si no se definió el contrato y el servicio no es 4 (caso especial)
+            if (!isset($data['contrato']) && isset($data['servicio']) && $data['servicio'] != 4) {
                 $nombreServicio = trim(strtolower($servicio->nombre));
-
-                if($nombreServicio != 'notificacion de data creditos' &&
-                   $nombreServicio != 'notificacion de datacreditos' &&
-                   $nombreServicio != 'notificacion datacredito' &&
-                   $nombreServicio != 'notificacion de datacredito'
-                   ){
-                        $mensaje='El cliente no posee contrato asignado y no puede hacer uso de un servicio distinto a instalaciones o notificacion de datacredito';
-                        return response()->json(['status' => 400, 'message' => $mensaje]);
-                    }
-
+                if (
+                    $nombreServicio != 'notificacion de data creditos' &&
+                    $nombreServicio != 'notificacion de datacreditos' &&
+                    $nombreServicio != 'notificacion datacredito' &&
+                    $nombreServicio != 'notificacion de datacredito'
+                ) {
+                    $mensaje = 'El cliente no posee contrato asignado y no puede hacer uso de un servicio distinto a instalaciones o notificacion de datacredito';
+                    return response()->json(['status' => 400, 'message' => $mensaje]);
+                }
             }
-
-        }else{
-            $mensaje = "No se encotró el servicio soliticado o el cliente o el contrato";
+        } else {
+            $mensaje = "No se encontró el servicio solicitado o el cliente o el contrato";
             return response()->json(['status' => 400, 'message' => $mensaje]);
         }
-
+    
+        // Crear el radicado
         $radicado = new Radicado();
-        $radicado->fecha=Carbon::now()->format('Y-m-d');
-        $radicado->identificacion = $request['identificacion'];
+        $radicado->fecha = \Carbon\Carbon::now()->format('Y-m-d');
+        $radicado->identificacion = $data['identificacion'];
         $radicado->cliente = $cliente->id;
         $radicado->nombre = $cliente->nombre . " " . $cliente->apellido1 . " " . $cliente->apellido2;
         $radicado->telefono = $cliente->celular;
         $radicado->correo = $cliente->email;
         $radicado->direccion = $cliente->direccion;
         $radicado->contrato = $contrato->nro;
-        $radicado->desconocido = $request['observaciones'];
+        $radicado->desconocido = $data['observaciones'];
         $radicado->servicio = $servicio->id;
         $radicado->tecnico = $tecnico->id;
-        $radicado->estatus = 0; //escalar caso  0 = no.
+        $radicado->estatus = 0; // Caso no escalado
         $radicado->codigo = Radicado::getNextConsecutiveCodeNumber();
-        $radicado->prioridad = 2; //prioridad media
+        $radicado->prioridad = 2; // Prioridad media
         $radicado->mac_address = $contrato->mac_address;
         $radicado->ip = $contrato->ip;
         $radicado->empresa = 1;
         $radicado->valor = null;
-        // $radicado->oficina = $oficina->id;
         $radicado->barrio = $cliente->barrio;
         $radicado->save();
-
-        if($request['contrato']){
+    
+        if (isset($data['contrato'])) {
             $movimiento = new MovimientoLOG();
-            $movimiento->contrato    = $contrato->nro;
-            $movimiento->modulo      = 5;
-            $movimiento->descripcion = '<i class="fas fa-check text-success"></i> <b>Generación de Radicado</b> Servicio '.$radicado->servicio()->nombre.' N° '.$radicado->codigo;
-            $movimiento->empresa     = 1;
+            $movimiento->contrato = $contrato->nro;
+            $movimiento->modulo = 5;
+            $movimiento->descripcion = '<i class="fas fa-check text-success"></i> <b>Generación de Radicado</b> Servicio ' . $radicado->servicio()->nombre . ' N° ' . $radicado->codigo;
+            $movimiento->empresa = 1;
             $movimiento->save();
-
-            if($request[deshabilitar_contrato] == 1){
-                $contrato = Contrato::where("nro",$contrato->nro)->first();
-                $contrato->update([
-                    "status" => 0
-                ]);
+    
+            if (isset($data['deshabilitar_contrato']) && $data['deshabilitar_contrato'] == 1) {
+                $contrato->update(["status" => 0]);
             }
         }
-
+    
         $log = new RadicadoLOG();
         $log->id_radicado = $radicado->id;
-        $log->accion = 'Creación del radicado bajo el código #'.$radicado->codigo;
+        $log->accion = 'Creación del radicado bajo el código #' . $radicado->codigo;
         $log->save();
-
-        $mensaje='Se ha creado satisfactoriamente el radicado bajo el código #'.$radicado->codigo;
+    
+        $mensaje = 'Se ha creado satisfactoriamente el radicado bajo el código #' . $radicado->codigo;
         return response()->json(['status' => 200, 'data' => $radicado, 'message' => $mensaje]);
-
+    
     } catch (\Throwable $th) {
-        dd($th);
+        Log::error('Error creando radicado: ' . $th->getMessage());
+        return response()->json(['status' => 500, 'message' => 'Error interno en el servidor'], 500);
     }
-
 });
-
 
 

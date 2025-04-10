@@ -130,6 +130,7 @@ class GruposCorteController extends Controller
         $grupo->hora_suspension_limit = $hora_suspension_limit;
         $grupo->hora_creacion_factura = $request->hora_creacion_factura;
         $grupo->status = $request->status;
+        $grupo->prorroga_tv = $request->prorroga_tv;
         $grupo->created_by = Auth::user()->id;
         $grupo->empresa = Auth::user()->empresa;
         $grupo->nro_factura_vencida = isset($request->nro_factura_vencida) ? $request->nro_factura_vencida : 0; 
@@ -153,6 +154,7 @@ class GruposCorteController extends Controller
         $grupo->hora_suspension  = $request->hora_suspension;
         $grupo->hora_suspension_limit = $hora_suspension_limit;
         $grupo->status           = $request->status;
+        $grupo->prorroga_tv = $request->prorroga_tv;
         $grupo->created_by       = Auth::user()->id;
         $grupo->empresa          = Auth::user()->empresa;
         $grupo->save();
@@ -238,6 +240,7 @@ class GruposCorteController extends Controller
             $grupo->hora_suspension_limit = $hora_suspension_limit;
             $grupo->hora_creacion_factura = $request->hora_creacion_factura;
             $grupo->status           = $request->status;
+            $grupo->prorroga_tv = $request->prorroga_tv;
             $grupo->updated_by       = Auth::user()->id;
             $grupo->nro_factura_vencida = isset($request->nro_factura_vencida) ? $request->nro_factura_vencida : 0; 
             $grupo->save();

@@ -2050,14 +2050,13 @@ class FacturasController extends Controller{
             $resolucion = NumeracionFactura::where('id',$factura->numeracion)->first();
             $ingreso = IngresosFactura::where('factura',$factura->id)->first();
             //---------------------------------------------//
-            if($factura->emitida == 1){
-
-                $infoEmpresa = $empresa;
+            $infoEmpresa = $empresa;
                 
-                $data['Empresa'] = $infoEmpresa->toArray();
+            $data['Empresa'] = $infoEmpresa->toArray();
                 
-                $infoCliente = $factura->clienteObj;
-                $data['Cliente'] = $infoCliente->toArray();
+            $infoCliente = $factura->clienteObj;
+            $data['Cliente'] = $infoCliente->toArray();
+            if($factura->emitida == 1){ 
                 
                 $impTotal = 0;
                 foreach ($factura->total()->imp as $totalImp){

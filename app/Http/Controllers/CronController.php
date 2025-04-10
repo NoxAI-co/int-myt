@@ -950,6 +950,7 @@ class CronController extends Controller
         ->where('status', 1)
         ->where('hora_suspension','<=',$horaActual)
         ->where('fecha_suspension','!=',0)
+        ->where('id',1)
         ->get();
 
         if($grupos_corte->count() > 0 && $empresa->smartOLT != null){
@@ -960,41 +961,35 @@ class CronController extends Controller
                 array_push($grupos_corte_array,$grupo->id);
             }
 
-            //Estamos tomando la ultima factura siempre del cliente con el orderby y el groupby, despues analizamos si esta ultima ya vencio
-            $contactos = Contacto::join('factura as f','f.cliente','=','contactos.id')->
-                join('contracts as cs','cs.id','=','f.contrato_id')->
-                select('contactos.id', 'contactos.nombre', 'contactos.nit', 'f.id as factura', 'f.estatus', 'f.suspension', 'cs.state', 'f.contrato_id','cs.grupo_corte')->
-                where('f.estatus',1)->
-                whereIn('f.tipo', [1,2])->
-                where('contactos.status',1)->
-                where('cs.state','enabled')->
-                whereIn('cs.grupo_corte',$grupos_corte_array)->
-                where('cs.fecha_suspension', null)->
-                where('cs.state_olt_catv',true)->
-                whereDate('f.vencimiento', '<=', now())->
-                orderBy('f.id', 'desc')->
-                take(20)->
-                get();
-                $swGrupo = 1; //masivo
+            $contactos = Contacto::join('factura as f', 'f.cliente', '=', 'contactos.id')
+            ->join('contracts as cs', 'cs.id', '=', 'f.contrato_id')
+            ->join('grupos_corte as gc', 'gc.id', '=', 'cs.grupo_corte') // Unimos con grupos_corte
+            ->select(
+                'contactos.id',
+                'contactos.nombre',
+                'contactos.nit',
+                'f.id as factura',
+                'f.estatus',
+                'f.suspension',
+                'cs.state',
+                'f.contrato_id',
+                'gc.prorroga_tv', // Seleccionamos prorroga_tv
+                'gc.id as grupo_corte'
+            )
+            ->where('f.estatus', 1)
+            ->whereIn('f.tipo', [1, 2])
+            ->where('contactos.status', 1)
+            // ->where('cs.state', 'enabled') // Solo si aplica
+            ->whereIn('cs.grupo_corte', $grupos_corte_array)
+            ->where('cs.fecha_suspension', null)
+            ->where('cs.state_olt_catv', true)
+            ->whereRaw("DATE_ADD(f.vencimiento, INTERVAL gc.prorroga_tv DAY) <= NOW()") // Agregamos la prórroga a la fecha de vencimiento
+            ->orderBy('f.id', 'desc')
+            ->take(45)
+            ->get();
 
             if($contactos){
                 foreach ($contactos as $contacto) {
-
-                    //** Desarrollo nuevo: 
-                    //** Analizar la cantidad de facturas abiertas del contrato y el grupo de corte
-                    $grupo_corte = null;
-                    $cant_fac_grupo_corte = 1;
-                    $cantFacturasVencidas = 1;
-                    if(isset($contacto->grupo_corte) && $contacto->grupo_corte != ""){
-                        $grupo_corte = GrupoCorte::Find($contacto->grupo_corte);
-                        $cant_fac_grupo_corte = $grupo_corte->nro_factura_vencida;
-                    }
-
-                    if(isset($grupo_corte->nro_factura_vencida) && $grupo_corte->nro_factura_vencida > 1){
-                        $contrato = Contrato::Find($contacto->contrato_id);
-                        $cantFacturasVencidas = $contrato->cantidadFacturasVencidas();
-                    }
-                    //** Fin desarrollo nuevo
 
                     $factura = Factura::find($contacto->factura);
 
@@ -1024,12 +1019,10 @@ class CronController extends Controller
                         ->where('contrato_id',$factura->contrato_id)
                         ->orderBy('created_at', 'desc')
                         ->value('id');
-                }
+                    }
 
-                //** Validacion nueva: 
-                ///** validamos que segun el grupo_corte la cantidad de facturas vencidas si sea igual
-                if($factura->id == $ultimaFacturaRegistrada && $cantFacturasVencidas >= $cant_fac_grupo_corte){
-        
+                    if($factura->id == $ultimaFacturaRegistrada){
+
                     //1. debemos primero mirar si los contrsatos existen en la tabla detalle, si no hacemos el proceso antiguo
                     $contratos = Contrato::whereIn('nro',$facturaContratos)->get();
                     if(!$contratos){
@@ -1039,17 +1032,10 @@ class CronController extends Controller
                             $contratos = Contrato::where('id',$contacto->contrato_id)->get();
                         }
                     }
-                    
-                    $promesaExtendida = DB::table('promesa_pago')->where('factura', $contacto->factura)->where('vencimiento', '>=', $fecha)->count();
 
                     //2. Debemos recorrer el o los contratos para que haga el disabled.
-                    
-                    if($promesaExtendida == 0){
-                        
                         foreach($contratos as $contrato){
-                                
-                                
-                                // DESHABILITACION DEL CATV
+
                                 if($contrato->olt_sn_mac != null){
                                     $curl = curl_init();
 
@@ -1069,7 +1055,7 @@ class CronController extends Controller
 
                                 $response = curl_exec($curl);
                                 $response = json_decode($response);
-                
+
                                 curl_close($curl);
 
                                 if(isset($response->status) && $response->status == true){
@@ -1077,64 +1063,9 @@ class CronController extends Controller
                                     $contrato->save();
                                 }
 
-                            } //FIN DESHABILITACION CATV
-                            
-                            //INICIO DESHABILITACION DE MK PLANES COMBO
-                            if(isset($contrato->server_configuration_id)){
-
-                                $mikrotik = Mikrotik::where('id', $contrato->server_configuration_id)->first();
-                                $API = new RouterosAPI();
-                                $API->port = $mikrotik->puerto_api;
-
-                                if ($API->connect($mikrotik->ip,$mikrotik->usuario,$mikrotik->clave)) {
-                                    $API->write('/ip/firewall/address-list/print', TRUE);
-                                    $ARRAYS = $API->read();
-                                    if($contrato->state == 'enabled'){
-                                        if($contrato->ip){
-                                            $API->comm("/ip/firewall/address-list/add", array(
-                                                "address" => $contrato->ip,
-                                                "comment" => $contrato->servicio,
-                                                "list" => 'morosos'
-                                                )
-                                            );
-
-                                            #ELIMINAMOS DE IP_AUTORIZADAS#
-                                            $API->write('/ip/firewall/address-list/print', false);
-                                            $API->write('?address='.$contrato->ip, false);
-                                            $API->write("?list=ips_autorizadas",false);
-                                            $API->write('=.proplist=.id');
-                                            $ARRAYS = $API->read();
-                                            if(count($ARRAYS)>0){
-                                                $API->write('/ip/firewall/address-list/remove', false);
-                                                $API->write('=.id='.$ARRAYS[0]['.id']);
-                                                $READ = $API->read();
-                                            }
-                                            #ELIMINAMOS DE IP_AUTORIZADAS#
-                                        }
-                                        $i++;
-                                    }
-                                    $API->disconnect();
-                                }
-                            }//FIN DESHABILITACION MK CON PLANES COMBO
-                            
-                            $contrato->state = 'disabled';
-                            $contrato->observaciones = $contrato->observaciones. " - Contrato deshabilitado automaticamente por tv";
-                            $contrato->save();
-
-                            $descripcion = '<i class="fas fa-check text-success"></i> <b>Cambio de Status</b> de habilitado a deshabilitado por cronjo de tvb<br>';
-                            $movimiento = new MovimientoLOG();
-                            $movimiento->contrato    = $contrato->id;
-                            $movimiento->modulo      = 5;
-                            $movimiento->descripcion = $descripcion;
-                            $movimiento->created_by  = 1;
-                            $movimiento->empresa     = $contrato->empresa;
-                            $movimiento->save();
-                            
+                            }
                         }
                     }
-                        
-                    }
-
                 }
             }
         }
