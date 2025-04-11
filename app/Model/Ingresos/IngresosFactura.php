@@ -25,6 +25,10 @@ class IngresosFactura extends Model
          return Factura::where('id',$this->factura)->first();
     }
     
+    public function ingresoRelation()
+    {
+        return $this->belongsTo(Ingreso::class, 'ingreso'); // o 'ingreso_id' si ese es el nombre real de la columna
+    }
     
     public function getPagadoAttribute()
     {
