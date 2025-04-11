@@ -305,7 +305,7 @@ class IngresosController extends Controller
                 if ($pagoRepetido) {
                     $factura = Factura::find($factura_id);
                     Log::info("No permitio la creacion de un pago duplicado" . $factura_id);
-                    return back()->with('danger', 'Ya has registrado un pago de $' . number_format($montoPago, 0, ',', '.') . ' recientemente para la factura N° ' . $factura->codigo . '. Evita pagos duplicados.')->withInput();
+                    return back()->with('danger', 'Ya has registrado un pago de $' . number_format($montoPago, 0, ',', '.') . ' recientemente para la factura N° ' . $factura->codigo . '. Evita pagos duplicados, intenta en dos minutos de nuevo.')->withInput();
                 }
             }
 
