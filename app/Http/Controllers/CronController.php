@@ -63,7 +63,7 @@ use Illuminate\Support\Facades\Log;
 class CronController extends Controller
 {
     public static function precisionAPI($valor, $id){
-        $empresa = Empresa::find($id);
+        $empresa = Empresa::find($id); 
         return round($valor, $empresa->precision);
     }
 
