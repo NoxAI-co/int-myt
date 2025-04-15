@@ -898,7 +898,7 @@ class CronController extends Controller
                                 $contrato->observaciones = $contrato->observaciones. " - Contrato deshabilitado automaticamente";
                                 $contrato->save();
 
-                                $descripcion = '<i class="fas fa-check text-success"></i> <b>Cambio de Status</b> de habilitado a deshabilitado por cronjob<br>';
+                                $descripcion = '<i class="fas fa-check text-success"></i> <b>Cambio de Status</b> de habilitado a deshabilitado por cronjob de facturas<br>';
                                 $movimiento = new MovimientoLOG();
                                 $movimiento->contrato    = $contrato->id;
                                 $movimiento->modulo      = 5;
@@ -2713,6 +2713,15 @@ class CronController extends Controller
                             $i++;
                             $contrato->disabled = 1;
                             $contrato->save();
+
+                            $descripcion = '<i class="fas fa-check text-success"></i> <b>Cambio de Status</b> de habilitado a deshabilitado por cronjob de contratos mikrotik<br>';
+                            $movimiento = new MovimientoLOG();
+                            $movimiento->contrato    = $contrato->id;
+                            $movimiento->modulo      = 5;
+                            $movimiento->descripcion = $descripcion;
+                            $movimiento->created_by  = 1;
+                            $movimiento->empresa     = $contrato->empresa;
+                            $movimiento->save();
                         }
                     }
                 }
