@@ -291,7 +291,7 @@ class IngresosController extends Controller
             return redirect('empresa/ingresos')->with('success', $mensaje);
         }else{
 
-             //Validacion
+             //Validaciones
              foreach ($request->factura_pendiente as $key => $factura_id) {
                 $montoPago = $this->precision($request->precio[$key]);
 
