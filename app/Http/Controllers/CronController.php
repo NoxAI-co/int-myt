@@ -950,7 +950,6 @@ class CronController extends Controller
         ->where('status', 1)
         ->where('hora_suspension','<=',$horaActual)
         ->where('fecha_suspension','!=',0)
-        ->where('id',1)
         ->get();
 
         if($grupos_corte->count() > 0 && $empresa->smartOLT != null){
@@ -985,7 +984,7 @@ class CronController extends Controller
             ->where('cs.state_olt_catv', true)
             ->whereRaw("DATE_ADD(f.vencimiento, INTERVAL gc.prorroga_tv DAY) <= NOW()") // Agregamos la prórroga a la fecha de vencimiento
             ->orderBy('f.id', 'desc')
-            ->take(45)
+            ->take(50)
             ->get();
 
             if($contactos){
@@ -1078,9 +1077,10 @@ class CronController extends Controller
         $hora_24 = date('H:i', strtotime($hora));
 
         $contactos = Contacto::join('factura as f','f.cliente','=','contactos.id')->
-            join('contracts as cs','cs.client_id','=','contactos.id')->
+            join('facturas_contratos as fc','fc.factura_id','f.id')->
+            join('contracts as cs','cs.nro','=','fc.contrato_nro')->
             join('promesa_pago as p', 'p.factura', '=', 'f.id')->
-            select('contactos.id','p.hora_pago')->
+            select('contactos.id','p.hora_pago','f.codigo','cs.nro')->
             where('f.estatus',1)->
             whereIn('f.tipo', [1,2])->
             where('f.promesa_pago', $fecha)->
@@ -1091,7 +1091,7 @@ class CronController extends Controller
 
         $empresa = Empresa::find(1);
         foreach ($contactos as $contacto) {
-            $contrato = Contrato::where('client_id', $contacto->id)->first();
+            $contrato = Contrato::where('nro', $contacto->nro)->first();
 
             //$crm = CRM::where('cliente', $contacto->id)->whereIn('estado', [0, 3])->delete();
             /*$crm = new CRM();
