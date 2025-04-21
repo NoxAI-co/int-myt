@@ -383,10 +383,14 @@ class Contacto extends Model
     public function barrio(){
         $barrio = new StdClass();
         $barrio->nombre = "N/A";
-        if($this->barrio_id){
+        if($this->barrio_id != null){
             $barrio = DB::table("barrios")->where('id',$this->barrio_id)->first();
+            return $barrio;
+        }else if($this->barrio != null){
+            $barrio->nombre = $this->barrio;
+            return $barrio;
         }
-
         return $barrio;
+
     }
 }

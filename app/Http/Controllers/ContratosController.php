@@ -2526,7 +2526,7 @@ class ContratosController extends Controller
                 ->setCellValue($letras[3].$i, $contrato->c_celular)
                 ->setCellValue($letras[4].$i, $contrato->c_email)
                 ->setCellValue($letras[5].$i, $contrato->c_direccion)
-                ->setCellValue($letras[6].$i, $contrato->barrio_nombre)
+                ->setCellValue($letras[6].$i, $contrato->barrio_nombre == "" ? $contrato->c_barrio : $contrato->barrio_nombre)
                 ->setCellValue($letras[7].$i, $contrato->c_vereda)
                 ->setCellValue($letras[8].$i, $contrato->c_estrato)
                 ->setCellValue($letras[9].$i, ($contrato->servicio_tv) ? $contrato->plan(true)->producto : '')
