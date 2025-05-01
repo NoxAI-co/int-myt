@@ -979,6 +979,7 @@ class CronController extends Controller
             ->whereIn('f.tipo', [1, 2])
             ->where('contactos.status', 1)
             // ->where('cs.state', 'enabled') // Solo si aplica
+            ->whereDate('f.vencimiento', '<=', now())
             ->whereIn('cs.grupo_corte', $grupos_corte_array)
             ->where('cs.fecha_suspension', null)
             ->where('cs.state_olt_catv', true)
