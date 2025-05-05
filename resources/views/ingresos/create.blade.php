@@ -604,7 +604,50 @@
         setTimeout(function() { btn.setAttribute('disabled', 'disabled'); }, 1);
         setTimeout(function() { btn.removeAttribute('disabled'); }, 5000);
     }
+
+
+    $("#submitcheck").click(function (e) {
+    e.preventDefault();
+
+      var form = $("#submitcheck").closest('form');
+
+      // QUITAR 'required' de los campos que estén ocultos
+      form.find(':input').each(function() {
+          var input = $(this);
+          if (!input.is(':visible')) {
+              input.prop('required', false);
+          }
+      });
+
+      // Validar si el formulario es válido
+      if (!form[0].checkValidity()) {
+          form[0].reportValidity();
+          return;
+      }
+
+      var btn = document.getElementById('button-guardar');
+      var preloader = $("#preloader");
+
+      // Mostrar el preloader
+      preloader.show();
+
+      // Deshabilitar el botón para evitar más clics
+      setTimeout(function () {
+          btn.setAttribute('disabled', 'disabled');
+      }, 1);
+
+      // Rehabilitar el botón y ocultar el preloader después de 45 segundos
+      setTimeout(function () {
+          btn.removeAttribute('disabled');
+          preloader.hide();
+      }, 45000);
+
+      // Enviar el formulario
+      form.submit();
+  });
           
   })
+
+  
 </script>
 @endsection
