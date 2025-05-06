@@ -291,24 +291,7 @@ class IngresosController extends Controller
             return redirect('empresa/ingresos')->with('success', $mensaje);
         }else{
 
-             //Validaciones
-             foreach ($request->factura_pendiente as $key => $factura_id) {
-                $montoPago = $this->precision($request->precio[$key]);
-
-                $pagoRepetido = IngresosFactura::where('factura', $factura_id)
-                    ->where('pagado', $montoPago)
-                    ->whereHas('ingresoRelation', function ($query) {
-                        $query->whereBetween('created_at', [now()->subSeconds(600), now()]);
-                    })
-                    ->exists();
-
-                if ($pagoRepetido) {
-                    $factura = Factura::find($factura_id);
-                    Log::info("No permitio la creacion de un pago duplicado" . $factura_id);
-                    return back()->with('danger', ' Ya has registrado un pago de $' . number_format($montoPago, 0, ',', '.') . ' recientemente para la factura N° ' . $factura->codigo . '. Evita pagos duplicados, intenta en dos minutos de nuevo.')->withInput();
-                }
-            }
-
+             
             if(isset($request->comprobante_pago)){
                 if(Ingreso::where('comprobante_pago', $request->comprobante_pago)->count() > 0){
                     return back()->withInput()->with('danger', 'DISCULPE, EL NRO DE COMPROBANTE DE PAGO INGRESADO YA HA SIDO REGISTRADO');
@@ -332,6 +315,24 @@ class IngresosController extends Controller
             //Si es tipo 1, osea coversion de factura estandar a electrónica con emisión
             if ($request->tipo == 1) {
 
+                //Validaciones
+                foreach ($request->factura_pendiente as $key => $factura_id) {
+                    $montoPago = $this->precision($request->precio[$key]);
+
+                    $pagoRepetido = IngresosFactura::where('factura', $factura_id)
+                        ->where('pagado', $montoPago)
+                        ->whereHas('ingresoRelation', function ($query) {
+                            $query->whereBetween('created_at', [now()->subSeconds(600), now()]);
+                        })
+                        ->exists();
+
+                    if ($pagoRepetido) {
+                        $factura = Factura::find($factura_id);
+                        Log::info("No permitio la creacion de un pago duplicado" . $factura_id);
+                        return back()->with('danger', ' Ya has registrado un pago de $' . number_format($montoPago, 0, ',', '.') . ' recientemente para la factura N° ' . $factura->codigo . '. Evita pagos duplicados, intenta en dos minutos de nuevo.')->withInput();
+                    }
+                }
+                
                 if(is_array($request->factura_pendiente)){
                     foreach ($request->factura_pendiente as $key => $value) {
 
