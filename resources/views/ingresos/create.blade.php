@@ -561,6 +561,11 @@
     //validacion
     let cliente = $("#clienteseleccionado").val();
     let saldoFavor = $("#saldofavorcliente").val();
+  $('.fecha').datepicker({
+      locale: 'es-es',
+      uiLibrary: 'bootstrap4',
+      format: 'yyyy-mm-dd' ,
+  });
     if(cliente && saldoFavor > 0){
         $("#divusarsaldo").removeClass('d-none');
         $("#saldo123").removeClass('d-none');
@@ -574,80 +579,46 @@
       }
 
       $("#submitcheck").click(function (e) {
-            e.preventDefault();
-
-            var btn = document.getElementById('button-guardar');
-            var preloader = $("#preloader");
-
-            // Mostrar el preloader
-            preloader.show();
-
-            // Deshabilitar el botón para evitar más clics
-            setTimeout(function () {
-                btn.setAttribute('disabled', 'disabled');
-            }, 1);
-
-            // Rehabilitar el botón y ocultar el preloader después de 15 segundos
-            setTimeout(function () {
-                btn.removeAttribute('disabled');
-                preloader.hide();
-            }, 45000);
-
-            // Enviar el formulario
-            $("#submitcheck").closest('form').submit();
-        });
-
-
-      function submitLimitForm(id) {
-        alert("hola");
-        var btn = document.getElementById(id);
-        setTimeout(function() { btn.setAttribute('disabled', 'disabled'); }, 1);
-        setTimeout(function() { btn.removeAttribute('disabled'); }, 5000);
-    }
-
-
-    $("#submitcheck").click(function (e) {
     e.preventDefault();
 
-      var form = $("#submitcheck").closest('form');
+    var form = $("#submitcheck").closest('form');
 
-      // QUITAR 'required' de los campos que estén ocultos
-      form.find(':input').each(function() {
-          var input = $(this);
-          if (!input.is(':visible')) {
-              input.prop('required', false);
-          }
-      });
+    // QUITAR 'required' de los campos que estén ocultos
+    form.find(':input').each(function() {
+        var input = $(this);
+        if (!input.is(':visible')) {
+            input.prop('required', false);
+        }
+    });
 
-      // Validar si el formulario es válido
-      if (!form[0].checkValidity()) {
-          form[0].reportValidity();
-          return;
-      }
+    // Validar si el formulario es válido
+    if (!form[0].checkValidity()) {
+        form[0].reportValidity();
+        return;
+    }
 
-      var btn = document.getElementById('button-guardar');
-      var preloader = $("#preloader");
+    var btn = document.getElementById('button-guardar');
+    var preloader = $("#preloader");
 
-      // Mostrar el preloader
-      preloader.show();
+    // Mostrar el preloader
+    preloader.show();
 
-      // Deshabilitar el botón para evitar más clics
-      setTimeout(function () {
-          btn.setAttribute('disabled', 'disabled');
-      }, 1);
+    // Deshabilitar el botón para evitar más clics
+    setTimeout(function () {
+        btn.setAttribute('disabled', 'disabled');
+    }, 1);
 
-      // Rehabilitar el botón y ocultar el preloader después de 45 segundos
-      setTimeout(function () {
-          btn.removeAttribute('disabled');
-          preloader.hide();
-      }, 45000);
+    // Rehabilitar el botón y ocultar el preloader después de 45 segundos
+    setTimeout(function () {
+        btn.removeAttribute('disabled');
+        preloader.hide();
+    }, 45000);
 
-      // Enviar el formulario
-      form.submit();
-  });
-          
+    // Enviar el formulario
+    form.submit();
+});
+
+
   })
-
-  
 </script>
 @endsection
