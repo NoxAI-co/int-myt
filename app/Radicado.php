@@ -105,16 +105,16 @@ class Radicado extends Model
         } elseif (2 == $this->estatus) {
             switch ($this->temp_status){
                 case 1:
-                    $status = 'Escalado /Iniciado';
+                    $status = 'Escalado/Iniciado';
                     break;
                 case 2:
-                    $status = 'Escalado /Finalizado';
+                    $status = 'Escalado/Finalizado';
                     break;
                 default:
-                    $status = 'Escalado /Pendiente';
+                    $status = 'Escalado/Pendiente';
             }
         } elseif (3 == $this->estatus) {
-            $status = 'Escalado / Solventado';
+            $status = 'Escalado/Solventado';
         }
 
         return $status;
