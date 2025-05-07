@@ -186,7 +186,9 @@
 										<div class="col-md-2 pl-1 pt-1">
 											<select title="Estado" class="form-control rounded selectpicker" id="estatus">
 												<option value="A">Pendiente</option>
-												<option value="2">Escalado / Pendiente</option>
+												<option value="1">Escalado / Iniciado</option>
+												<option value="2">Escalado / Finalizado</option>
+												<option value="3">Escalado / Pendiente</option>
 											</select>
 										</div>
 										<div class="col-md-2 pl-1 pt-1">
