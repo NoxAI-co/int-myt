@@ -128,7 +128,7 @@ class RadicadosController extends Controller{
             if($request->estatus){
                 $estatus = ($request->estatus == 'A') ? 0 : $request->estatus;
                 $radicados->where(function ($query) use ($request, $estatus) {
-                    $query->orWhere('radicados.estatus', $request->estatus);
+                    $query->orWhere('radicados.temp_status', $request->estatus);
                 });
             }
             if($request->creado){
