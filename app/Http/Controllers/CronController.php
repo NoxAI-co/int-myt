@@ -986,7 +986,7 @@ class CronController extends Controller
             ->where('cs.state_olt_catv', true)
             ->orderBy('contactos.updated_at', 'asc')
             ->take(50)
-            ->count();
+            ->get();
 
             if($contactos){
                 $i=0;
