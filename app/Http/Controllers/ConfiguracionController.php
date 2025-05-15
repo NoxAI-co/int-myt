@@ -35,6 +35,7 @@ use App\SuscripcionNomina;
 use App\Model\Nomina\NominaConfiguracionCalculos;
 use App\Model\Nomina\Persona;
 use App\Http\Controllers\Nomina\PersonasController;
+use Illuminate\Support\Facades\Http;
 
 include_once(app_path() . '/../public/routeros_api.class.php');
 include_once(app_path() . '/../public/api_mt_include2.php');
@@ -2526,5 +2527,47 @@ class ConfiguracionController extends Controller
       $empresa->save();
       return 0;
     }
+  }
+
+  public function chatIA(Request $request)
+  {
+      $idIA = env('VIBIO_ID_IA');
+      $apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODMwMDlhNS0zYTcwLTQ4NGQtYTM0Ny1mNmUzMjYwMzQ1MTIiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzQ3MTY5OTc1fQ.hNlU4FcgvTpeIUjLGO-NJtRPo7d14A6RVbZChs-ZvUE';
+  
+      if ($idIA != "") {
+          $empresa = Empresa::find(auth()->user()->empresa);
+  
+          $url = $request->chat_ia == 1
+              ? "https://n8n.vibiocrm.com/api/v1/workflows/{$idIA}/activate"
+              : "https://n8n.vibiocrm.com/api/v1/workflows/{$idIA}/deactivate";
+  
+          $response = Http::withHeaders([
+              'X-N8N-API-KEY' => $apiKey,
+          ])->post($url);
+  
+          if ($response->successful()) {
+
+              if($request->chat_ia == 1){$empresa->chat_ia = 1;}
+              else{$empresa->chat_ia = 0;}
+              $empresa->save();
+  
+              return response()->json([
+                  'success' => true,
+                  'message' => 'IA actualizada correctamente.',
+                  'response' => $response->json(),
+              ]);
+          } else {
+              return response()->json([
+                  'success' => false,
+                  'message' => 'Error al actualizar la IA.',
+                  'response' => $response->json(),
+              ], $response->status());
+          }
+      }
+  
+      return response()->json([
+          'success' => false,
+          'message' => 'ID de IA no configurado.',
+      ], 400);
   }
 }
