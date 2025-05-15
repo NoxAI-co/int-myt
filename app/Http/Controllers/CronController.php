@@ -973,7 +973,8 @@ class CronController extends Controller
                 'cs.state',
                 'f.contrato_id',
                 'gc.prorroga_tv', // Seleccionamos prorroga_tv
-                'gc.id as grupo_corte'
+                'gc.id as grupo_corte',
+                'contactos.updated_at'
             )
             ->where('f.estatus', 1)
             ->whereIn('f.tipo', [1, 2])
@@ -983,15 +984,19 @@ class CronController extends Controller
             ->whereIn('cs.grupo_corte', $grupos_corte_array)
             ->where('cs.fecha_suspension', null)
             ->where('cs.state_olt_catv', true)
-            ->orderBy('f.id', 'desc')
+            ->orderBy('contactos.updated_at', 'asc')
             ->take(50)
-            ->get();
+            ->count();
 
             if($contactos){
+                $i=0;
                 foreach ($contactos as $contacto) {
 
                     //** Desarrollo nuevo:
                     //** Analizar la cantidad de facturas abiertas del contrato y el grupo de corte
+                    $contacto->updated_at = now();
+                    $contacto->save();
+                    
                     $grupo_corte = null;
                     $cant_fac_grupo_corte = 1;
                     $cantFacturasVencidas = 1;
