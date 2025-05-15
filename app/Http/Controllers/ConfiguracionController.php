@@ -2538,8 +2538,8 @@ class ConfiguracionController extends Controller
           $empresa = Empresa::find(auth()->user()->empresa);
   
           $url = $request->chat_ia == 1
-              ? "https://n8n.vibiocrm.com/api/v1/workflows/{$idIA}/activate"
-              : "https://n8n.vibiocrm.com/api/v1/workflows/{$idIA}/deactivate";
+              ? "https://n8n.vibiocrm.com/api/v1/workflows/{$idIA}/deactivate"
+              : "https://n8n.vibiocrm.com/api/v1/workflows/{$idIA}/activate";
   
           $response = Http::withHeaders([
               'X-N8N-API-KEY' => $apiKey,
@@ -2547,8 +2547,8 @@ class ConfiguracionController extends Controller
   
           if ($response->successful()) {
 
-              if($request->chat_ia == 1){$empresa->chat_ia = 1;}
-              else{$empresa->chat_ia = 0;}
+              if($request->chat_ia == 1){$empresa->chat_ia = 0;}
+              else{$empresa->chat_ia = 1;}
               $empresa->save();
   
               return response()->json([
