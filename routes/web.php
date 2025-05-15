@@ -158,6 +158,7 @@ Route::get('qrcode', function () {
  });
 
 Route::post('configuracion_facturas_contratos_off', 'ConfiguracionController@facturaContratoOff');
+Route::post('configuracion_chat_ia', 'ConfiguracionController@chatIA');
 Route::post('configuracion_facturacionAutomatica', 'ConfiguracionController@facturacionAutomatica');
 Route::post('configuracion_aplicacionsaldosfavor', 'ConfiguracionController@aplicacionSaldosFavor');
 Route::post('configuracion_facturacionSmsAutomatica', 'ConfiguracionController@facturacionSmsAutomatica');
