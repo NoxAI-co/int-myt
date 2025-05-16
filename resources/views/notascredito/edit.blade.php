@@ -498,110 +498,151 @@
         }
 
 
-        function itemsFactura(id){
+        function itemsFactura(id) {
 
-            var url =$('#url').val()+'/empresa/notascredito/items/'+id;
-            $.ajax({
-                url: url,
-               /* beforeSend: function(){
-                    cargando(true);
-                },*/
-                complete: function(data){
-                    console.log(data.responseText);
-                    data = JSON.parse(data.responseText);
+var url = $('#url').val() + '/empresa/notascredito/items/' + id;
+$.ajax({
+    url: url,
+    /* beforeSend: function(){
+         cargando(true);
+     },*/
+    complete: function(data) {
+        console.log(data.responseText);
+        data = JSON.parse(data.responseText);
 
-                    $('#table-form tbody tr').remove();
-                    $('#table-retencion tbody tr').remove();
-                    var i = 0;
-                    $.each(data,function(key, value)
-                    {
+        $('#table-form tbody tr').remove();
+        $('#table-retencion tbody tr').remove();
+        var i = 0;
+        $.each(data, function(key, value) {
 
-                        if(value.desc == null){
-                            value.desc = '';
-                        }
-                        if(value.impuesto == null){
-                            value.impuesto = '';
-                        }
-                        if(value.descripcion == null){
-                            value.descripcion = '';
-                        }
-                        i++;
-                        //var impuesto+i = [];
-                        $('#table-form').append(
-                            '<tr id="'+i+'">'+
-                                '<td class="no-padding">'+
-                                    '<div class="resp-item">'+
-                                    '<input type="hidden" name="item[]" value="'+value.producto+'">'+
-                                    '<input type="text" class="form-control" disabled value="'+value.nombre+' - '+value.ref+'">'+
-                                    '</div>'+
-                                '</td>'+
-                                '<td>'+
-                                    '<div class="resp-refer">'+
-                                    '<input type="hidden" name="ref[]"  value="'+value.ref+'">'+
-                                    '<input type="text" class="form-control" id="ref'+i+'" placeholder="Referencia" required disabled value="'+value.ref+'">'+
-                                    '</div>'+
-                                '</td>'+
-                                '<td class="monetario">'+
-                                    '<div class="resp-precio">'+
-                                    '<input type="number" class="form-control "  id="precio'+i+'" name="precio[]" placeholder="Precio Unitario" onkeyup="total('+i+')" required maxlength="24" min="0" value="'+Math.round(value.precio,4)+'">'+
-                                    '</div>'+
-                                '</td>'+
-                                '<td>'+
-                                    '<div class="resp-item">'+
-                                    '<input type="hidden" name="descuento[]" value="'+value.desc+'" >'+
-                                    '<input type="text" class="form-control nro "  id="desc'+i+'" name="desc[]" placeholder="%" value="'+value.desc+'" disabled>'+
-                                    '</div>'+
-                                '</td>'+
-                                '<td class="no-padding">'+
-                                    '<div class="resp-item">'+
-                                        '<input type="hidden" name="impuesto'+i+'[]" value="'+value.id_impuesto+'" porc="'+Math.round(value.impuesto,4)+'"  id="impuesto'+i+'">'+
-                                        '<input type="text"  class="form-control" disabled value="'+Math.round(value.impuesto,4)+'%">'+
-                                    '</div>'+
-                                '</td>'+
-                                '<td  style="padding-top: 1% !important;">'+
-                                    '<div class="resp-descripcion">'+
-                                    '<textarea  class="form-control" id="descripcion'+i+'" name="descripcion[]" placeholder="Descripción" >'+value.descripcion+'</textarea>'+
-                                    '</div>'+
-                                '</td>'+
-                                '<td>'+
-                                    '<input type="number" class="form-control cantidades" id="cant'+i+'" name="cant[]" placeholder="Cantidad" onkeyup="total('+i+')" onclick="total('+i+');" min="1" value="'+Math.round(value.cant,4)+'" required="">'+
-                                    '<p class="text-danger nomargin" id="pcant'+i+'"></p>'+
-                                '</td>'+
-                                '<td>'+
-                                    '<div class="resp-total">'+
-                                    '<input type="text" class="form-control text-right " name="total[]" id="total'+i+'" value="" disabled>'+
-                                    '</div>'+
-                                '</td>'+
-                                '<td>'+
-                                    '<button type="button" class="btn btn-outline-secondary btn-icons" onclick="eliminarColumna('+i+');">X</button>'+
-                                '</td>'+
-                            '</tr>'
+            if (value.desc == null) {
+                value.desc = '';
+            }
+            if (value.impuesto == null) {
+                value.impuesto = '';
+            }
+            if (value.descripcion == null) {
+                value.descripcion = '';
+            }
+            i++;
+            //var impuesto+i = [];
+            $('#table-form').append(
+                '<tr id="' + i + '">' +
+                '<td class="no-padding">' +
+                '<div class="resp-item">' +
+                '<input type="hidden" name="item[]" value="' + value.producto + '">' +
+                '<input type="text" class="form-control" disabled value="' + value
+                .nombre + ' - ' + value.ref + '">' +
+                '</div>' +
+                '</td>' +
+                '<td>' +
+                '<div class="resp-refer">' +
+                '<input type="hidden" name="ref[]"  value="' + value.ref + '">' +
+                '<input type="text" class="form-control" id="ref' + i +
+                '" placeholder="Referencia" required disabled value="' + value.ref +
+                '">' +
+                '</div>' +
+                '</td>' +
+                '<td class="monetario">' +
+                '<div class="resp-precio">' +
+                '<input type="number" class="form-control "  id="precio' + i +
+                '" name="precio[]" placeholder="Precio Unitario" onkeyup="total(' + i +
+                ')" required maxlength="24" min="0" value="' + Math.round(value.precio,
+                    4) + '">' +
+                '</div>' +
+                '</td>' +
+                '<td>' +
+                '<div class="resp-item">' +
+                '<input type="hidden" name="descuento[]" value="' + value.desc + '" >' +
+                '<input type="text" class="form-control nro "  id="desc' + i +
+                '" name="desc[]" placeholder="%" value="' + value.desc + '" disabled>' +
+                '</div>' +
+                '</td>' +
+                '<td class="no-padding">' +
+                '<div class="resp-item">' +
+                '<input type="hidden" name="impuesto' + i + '[]" value="' + value
+                .id_impuesto + '" porc="' + Math.round(value.impuesto, 4) +
+                '"  id="impuesto' + i + '">' +
+                '<input type="text"  class="form-control" disabled value="' + Math
+                .round(value.impuesto, 4) + '%">' +
+                '</div>' +
+                '</td>' +
+                '<td  style="padding-top: 1% !important;">' +
+                '<div class="resp-descripcion">' +
+                '<textarea  class="form-control" id="descripcion' + i +
+                '" name="descripcion[]" placeholder="Descripción" >' + value
+                .descripcion + '</textarea>' +
+                '</div>' +
+                '</td>' +
+                '<td>' +
+                '<input type="number" class="form-control cantidades" id="cant' + i +
+                '" name="cant[]" placeholder="Cantidad" onkeyup="total(' + i +
+                ')" onclick="total(' + i + ');" min="1" value="' + Math.round(value
+                    .cant, 4) + '" required="">' +
+                '<p class="text-danger nomargin" id="pcant' + i + '"></p>' +
+                '</td>' +
+                '<td>' +
+                '<div class="resp-total">' +
+                '<input type="text" class="form-control text-right " name="total[]" id="total' +
+                i + '" value="" disabled>' +
+                '</div>' +
+                '</td>' +
+                '<td>' +
+                '<button type="button" class="btn btn-outline-secondary btn-icons" onclick="eliminarColumna(' +
+                i + ');" style="color:#E13130">X</button>' +
+                '</td>' +
+                '</tr>'
 
-                        );
-                        //MULTI IVA
-                        if(value.id_impuesto){ $("#impuesto" + id + " option[value=" + value.id_impuesto + "]").attr('selected', 'selected'); }
-                        if(value.id_impuesto_1){ $("#impuesto" + id + " option[value=" + value.id_impuesto_1 + "]").attr('selected', 'selected'); }
-                        if(value.id_impuesto_2){ $("#impuesto" + id + " option[value=" + value.id_impuesto_2 + "]").attr('selected', 'selected'); }
-                        if(value.id_impuesto_3){ $("#impuesto" + id + " option[value=" + value.id_impuesto_3 + "]").attr('selected', 'selected'); }
-                        if(value.id_impuesto_4){ $("#impuesto" + id + " option[value=" + value.id_impuesto_4 + "]").attr('selected', 'selected'); }
-                        if(value.id_impuesto_5){ $("#impuesto" + id + " option[value=" + value.id_impuesto_5 + "]").attr('selected', 'selected'); }
-                        if(value.id_impuesto_6){ $("#impuesto" + id + " option[value=" + value.id_impuesto_6 + "]").attr('selected', 'selected'); }
-                        if(value.id_impuesto_7){ $("#impuesto" + id + " option[value=" + value.id_impuesto_7 + "]").attr('selected', 'selected'); }
-                        //MULTI IVA
-                        $('#impuesto' + id).selectpicker('refresh');
-                        $('.cantidades').trigger('click');
-                    });
+            );
+            //MULTI IVA
+            if (value.id_impuesto) {
+                $("#impuesto" + id + " option[value=" + value.id_impuesto + "]").attr(
+                    'selected', 'selected');
+            }
+            if (value.id_impuesto_1) {
+                $("#impuesto" + id + " option[value=" + value.id_impuesto_1 + "]").attr(
+                    'selected', 'selected');
+            }
+            if (value.id_impuesto_2) {
+                $("#impuesto" + id + " option[value=" + value.id_impuesto_2 + "]").attr(
+                    'selected', 'selected');
+            }
+            if (value.id_impuesto_3) {
+                $("#impuesto" + id + " option[value=" + value.id_impuesto_3 + "]").attr(
+                    'selected', 'selected');
+            }
+            if (value.id_impuesto_4) {
+                $("#impuesto" + id + " option[value=" + value.id_impuesto_4 + "]").attr(
+                    'selected', 'selected');
+            }
+            if (value.id_impuesto_5) {
+                $("#impuesto" + id + " option[value=" + value.id_impuesto_5 + "]").attr(
+                    'selected', 'selected');
+            }
+            if (value.id_impuesto_6) {
+                $("#impuesto" + id + " option[value=" + value.id_impuesto_6 + "]").attr(
+                    'selected', 'selected');
+            }
+            if (value.id_impuesto_7) {
+                $("#impuesto" + id + " option[value=" + value.id_impuesto_7 + "]").attr(
+                    'selected', 'selected');
+            }
+            //MULTI IVA
+            $('#impuesto' + id).selectpicker('refresh');
+            $('.cantidades').trigger('click');
+        });
 
 
-                },
-                error: function(data){
+    },
+    error: function(data) {
 
-                    alert('Disculpe, estamos presentando problemas al tratar de enviar el formulario, intentelo mas tarde');
-                }
-            });
+        alert(
+            'Disculpe, estamos presentando problemas al tratar de enviar el formulario, intentelo mas tarde');
+    }
+});
 
 
-        }
+}
 
         function eliminarColumna(i) {
           $("#" + i).remove();
