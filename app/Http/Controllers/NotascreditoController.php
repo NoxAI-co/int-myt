@@ -945,10 +945,114 @@ class NotascreditoController extends Controller
                 $cliente->saldo_favor = $cliente->saldo_favor + $factura->pagado();
                 $cliente->save();
 
+                // $inner=array();
+                // for ($i=0; $i < count($request->factura) ; $i++) {
+                /*if ($request->monto_fact[$i]) {
+                        $cat='id_facturacion'.($i+1);
+                        $items=array();
+                        if($request->$cat){ //Comprobar que exixte ese id
+                            $items = NotaCreditoFactura::where('id', $request->$cat)->first();
+                        }
+
+                        if (!$items) {
+                            $items = new NotaCreditoFactura;
+                            $items->nota=$nota->id;
+                        }
+
+                        $factura = Factura::find($request->factura[$i]);
+                        if ($factura) {
+                            $inner[]=$factura->id;
+                            $items->factura=$factura->id;
+                            $items->pago=$this->precision($request->monto_fact[$i]);
+                            $items->save();
+                            if ($this->precision($factura->porpagar())<=0) {
+                                $factura->estatus=0;
+                                $factura->save();
+                            }
+                        }
+                    }
+                }
+                if (count($inner)>0) {
+                    NotaCreditoFactura::where('nota', $nota->id)->whereNotIn('factura', $inner)->delete();
+                }*/
+            }
+
+
+            /*$inner=array();
+            if ($request->fecha_dev){
+                //Recorro las devoluciones
+                for ($i=0; $i < count($request->fecha_dev);  $i++) {
+                    if ($request->montoa_dev[$i]) {
+                        $cat='id_devolucion'.($i+1);
+                        $editar=false;
+                        $items=array();
+                        if($request->$cat){ //Comprobar que exixte ese id
+                            $items = Devoluciones::where('id', $request->$cat)->first();
+                            $editar=true;
+                        }
+
+                        if (!$items) {
+                            $items = new Devoluciones;
+                            $items->nota=$nota->id;
+                        }
+                        $items->empresa=Auth::user()->empresa;
+                        $items->fecha=Carbon::parse($request->fecha_dev[$i])->format('Y-m-d');
+                        $items->monto=$this->precision($request->montoa_dev[$i]);
+                        $items->cuenta=$request->cuentaa_dev[$i];
+                        $items->observaciones=$request->descripciona_dev[$i];
+                        $items->save();
+
+                        $inner[]=$items->id;
+
+                        $gasto=array();
+                        if ($editar) {
+                            $gasto = Gastos::where('empresa', Auth::user()->empresa)->where('nro_devolucion', $items->id)->first();
+                        }
+
+                        if (!$gasto) {
+                            $gasto = new Gastos;
+                            $gasto->nro=Gastos::where('empresa',Auth::user()->empresa)->count()+1;
+                            $gasto->empresa=Auth::user()->empresa;
+                        }
+
+                        $gasto->beneficiario=$request->cliente;
+                        $gasto->cuenta=$request->cuentaa_dev[$i];
+                        $gasto->metodo_pago=$request->metodo_pago;
+                        $gasto->notas=$request->notas;
+                        $gasto->nota_credito=$nota->id;
+                        $gasto->total_credito=$this->precision($request->montoa_dev[$i]);
+                        $gasto->nro_devolucion=$items->id;
+                        $gasto->tipo=3;
+                        $gasto->fecha=Carbon::parse($request->fecha_dev[$i])->format('Y-m-d');
+                        $gasto->observaciones=$request->descripciona_dev[$i];
+                        $gasto->save();
+
+                        $gasto=Gastos::find($gasto->id);
+                        //gastos
+                        $this->up_transaccion(3, $gasto->id, $gasto->cuenta, $gasto->beneficiario, 2, $gasto->pago(), $gasto->fecha, $gasto->descripcion);
+                    }
+                }
+            }
+
+
+            $items=Devoluciones::where('nota', $nota->id);
+            if (count($inner)>0) { $items=$items->whereNotIn('id', $inner);  }
+            $items=$items->get();
+            foreach ($items as $key => $value) {
+                //gastos
+                $gasto = Gastos::where('empresa', Auth::user()->empresa)->where('nro_devolucion', $value->id)->first();
+                $this->destroy_transaccion(3, $gasto->id);
+                $gasto->delete();
+            }
+            $items=Devoluciones::where('nota', $nota->id);
+            if (count($inner)>0) { $items=$items->whereNotIn('id', $inner);  }
+            $items=$items->delete();*/
+
             $mensaje = 'Se ha modificado satisfactoriamente la nota de Crédito';
             return redirect('empresa/notascredito')->with('success', $mensaje)->with('nota_id', $nota->id);
         }
     }
+
 
     /**
      * FUNCION PARA Eliminar una nota de credito
