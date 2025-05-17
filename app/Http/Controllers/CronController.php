@@ -3182,8 +3182,8 @@ class CronController extends Controller
 
                 // envio de mensajes por whatsapp //
                 $file = [
-                    "mime" => "@file/pdf",
-                    "data" => $facturabase64,
+                    "mimeType" => "application/pdf",
+                    "file" => $facturabase64,
                 ];
 
                 $contact = [
@@ -3204,11 +3204,11 @@ class CronController extends Controller
         
                 $body = [
                     "contact" => $contact,
-                    "body" => $message,
-                    "file" => $file
+                    "message" => $message,
+                    "media" => $file
                 ];
 
-                $response = (object) $wapiService->sendMessageMedia($instance->uuid_whatsapp, $instance->api_key, $body);
+                $response = (object) $wapiService->sendMessageMedia($instance->uuid, $instance->api_key, $body);
                 if(isset($response->statusCode)) {
                     Log::error('No se pudo enviar el mensaje, por favor intente nuevamente.' . $contacto->nit);
                     // break;
