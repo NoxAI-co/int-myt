@@ -51,12 +51,27 @@ class ContactosController extends Controller
 
     public function index(Request $request)
     {
-        // return 'ok';
         $this->getAllPermissions(Auth::user()->id);
+        view()->share(['title' => 'Clientes', 'subseccion' => 'clientes']);
+        $busqueda = false;
+        if ($request->name_1 || $request->name_2 || $request->name_3 || isset($request->name_4) || $request->name_5) {
+            $busqueda = 'contactos.clientes';
+        }
+        $tipo = '/0';
+        $tipos_empresa = TipoEmpresa::where('empresa', Auth::user()->empresa)->get();
+        // $contactos = $this->busqueda($request, [0, 2]);
+        $totalContactos = Contacto::where('empresa', Auth::user()->empresa)->count();
+        // $contactos = Contacto::where('empresa', Auth::user()->empresa)->get();
+        $contactos = DB::table('contactos')->join('municipios', 'contactos.fk_idmunicipio', '=', 'municipios.id')->select('contactos.*', 'municipios.nombre as nombre_municipio')->get();
+        $tipo_usuario = 0;
         $tabla = Campos::join('campos_usuarios', 'campos_usuarios.id_campo', '=', 'campos.id')->where('campos_usuarios.id_modulo', 1)->where('campos_usuarios.id_usuario', Auth::user()->id)->where('campos_usuarios.estado', 1)->orderBy('campos_usuarios.orden', 'ASC')->get();
+        $etiquetas = Etiqueta::where('empresa_id', auth()->user()->empresa)->get();
+        $barrios = DB::table('barrios')->where('status',1)->get();
+
         view()->share(['invert' => true]);
 
-        return view('contactos.indexnew');
+        return view('contactos.indexnew')->with(compact('contactos', 'totalContactos', 'tipo_usuario', 'tabla', 'etiquetas','barrios'));
+
     }
 
     public function contactos(Request $request, $tipo_usuario)
