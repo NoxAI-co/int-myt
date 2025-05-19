@@ -268,6 +268,32 @@ class CRMController extends Controller
         $instance->save();
         return view('crm.whatsapp')->with(compact('instance'));
     }
+
+    public function whatsapp2(Request $request, WapiService $wapiService){
+        $this->getAllPermissions(auth()->user()->id);
+        $instance = Instance::where('company_id', auth()->user()->empresa)
+        ->where('type',2)
+        ->first();
+        if(!$instance) {
+            return view('crm.whatsapp2')->with(compact('instance'));
+        }
+        try {
+            $response = $wapiService->getInstance($instance->uuid);
+        } catch (ClientException $e) {
+            if($e->getResponse()->getStatusCode() === 404) {
+                return back()->withErrors([
+                    'instance_id' => 'Esta instancia no existe, valida el identificador con tu proveedor.'
+                ])->withInput($request->input());
+            }
+        }
+
+        $getResponse = json_decode($response);
+        $instance->status = $getResponse->data->status == "PAIRED" ? "PAIRED" : "UNPAIRED";
+        $instance->type = 2; //Es de CRM Whatsapp
+        $instance->save();
+        return view('crm.whatsapp2')->with(compact('instance'));
+
+    }
    /* public function whatsappActions(Request $request){
         $unique = uniqid();
         DB::table("instancia")
