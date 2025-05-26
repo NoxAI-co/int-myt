@@ -997,7 +997,7 @@ class OltController extends Controller
         $diferenciaHoras = "-";
 
         if (isset($onuStatus['last_status_change'])) {
-            if (!empty($onuStatus['last_status_change'])) {
+            if (!empty($onuStatus['last_status_change']) &&  $onuStatus['last_status_change'] !== "-") {
                 $lastStatusDate = Carbon::createFromFormat('Y-m-d H:i:s', $onuStatus['last_status_change']);
                 $now = Carbon::now();
                 $diferenciaHoras = $now->diffInHours($lastStatusDate);
