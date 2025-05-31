@@ -344,7 +344,7 @@ class NominaPeriodos extends Model
         }
 
         /* >>> Cálculo final del ibc seguridad social <<< */
-        $ibcSeguridadSocial['total'] = $subtotal = $licenciaPaga + $ibcSeguridadSocial['vacaciones'] + ($ibcSeguridadSocial['salario'] - $ibcSeguridadSocial['vacaciones']) + 
+        $ibcSeguridadSocial['total'] = $subtotal = $licenciaPaga + $ibcSeguridadSocial['vacaciones'] + ($ibcSeguridadSocial['salario'] - $ibcSeguridadSocial['vacaciones']) +
         $ibcSeguridadSocial['ingresosyExtras'] + $incapacidad_general;
 
         /* >>> Obtenemos los valores de salud y pension configurados desde el modulo de calculos fijos. <<< */
@@ -613,9 +613,9 @@ class NominaPeriodos extends Model
         }
 
         $totalidad['ibcSeguridadSocial']['total'] = $subtotal = $totalidad['pago']['licencias'] + $totalidad['ibcSeguridadSocial']['vacaciones'] + $totalDeducidoMenosVacaciones + $totalidad['ibcSeguridadSocial']['ingresosyExtras'];
-       
+
         $totalidad['retenciones']['salud'] = floatval($calculosFijosCollect->where('tipo', 'reten_salud')->first()->valor ?? 0);
-        
+
         $totalidad['retenciones']['pension'] = floatval($calculosFijosCollect->where('tipo', 'reten_pension')->first()->valor ?? 0);
         $totalidad['retenciones']['total'] += $totalidad['retenciones']['salud'] + $totalidad['retenciones']['pension'];
 
@@ -627,7 +627,7 @@ class NominaPeriodos extends Model
             if($totalidad['ibcSeguridadSocial']['total']){
 
                 if($this->nomina->persona->fk_salario_base == 2){
-                    
+
                     $totalidad['retenciones']['porcentajeSalud'] =  round($retencionesSalud * 100 / ($totalidad['ibcSeguridadSocial']['total'] * (70 / 100)));
                     $totalidad['retenciones']['porcentajePension'] =  round($retencionesPension * 100 / ($totalidad['ibcSeguridadSocial']['total'] * (70 / 100)));
                 }else{
@@ -648,16 +648,16 @@ class NominaPeriodos extends Model
         $subtotal += $calculosFijosCollect->where('simbolo', '+')->sum('valor');
         $subtotal -= $calculosFijosCollect->where('simbolo', '-')->sum('valor');
         $subtotal -= $deducciones = $totalidad['deducciones']['total'] = floatval($nominaDetalleUno->where('fk_nomina_cuenta', 4)->sum('valor_categoria') ?? 0);
-        
+
         $totalidad['pago']['salario'] = $totalidad['ibcSeguridadSocial']['salario'];
-        
+
         $totalidad['ibcSeguridadSocial']['total_ibcseguridad_social'] = $totalidad['ibcSeguridadSocial']['vacaciones'] +
         $totalidad['ibcSeguridadSocial']['ingresosyExtras'] + $totalidad['ibcSeguridadSocial']['incapacidades'] +
-        $totalidad['ibcSeguridadSocial']['licencias']; 
+        $totalidad['ibcSeguridadSocial']['licencias'];
 
         // dd($totalidad);
-        $totalidad['pago']['total'] = $totalidad['pago']['salario']  + 
-        $totalidad['salarioSubsidio']['subsidioTransporte'] + 
+        $totalidad['pago']['total'] = $totalidad['pago']['salario']  +
+        $totalidad['salarioSubsidio']['subsidioTransporte'] +
         $totalidad['ibcSeguridadSocial']['total_ibcseguridad_social'] -
         $totalidad['retenciones']['total'];
 
@@ -837,6 +837,5 @@ class NominaPeriodos extends Model
             // - $calculos_nomina_periodo['pago']['retencionesDeducciones'];
         }
     }
-
 
 }

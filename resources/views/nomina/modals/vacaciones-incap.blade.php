@@ -342,7 +342,7 @@
             if (tipo == 'general') {
                 const salarioPromedioDiario = salarioPromedio / 30; // Calcula el salario promedio diario
                 const valorIncapacidadDiaria = salarioPromedioDiario * (66.67 / 100); // Calcula el 66.67% del salario diario
-                
+
                 // Salario mínimo diario legal vigente
                 const salarioMinimoDiario = 1423500 / 30; // Puedes ajustar el salario mínimo mensual aquí
 

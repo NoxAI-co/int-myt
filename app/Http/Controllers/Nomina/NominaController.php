@@ -36,8 +36,9 @@ use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
 include_once(app_path() . '/../public/Spout/Autoloader/autoload.php');
 include_once(app_path() .'/../public/PHPExcel/Classes/PHPExcel.php');
 
-use PHPExcel; use PHPExcel_IOFactory; 
-use PHPExcel_Style_Alignment; 
+use PHPExcel;
+use PHPExcel_IOFactory;
+use PHPExcel_Style_Alignment;
 use PHPExcel_Style_Fill;
 use PHPExcel_Style_Border;
 use ZipArchive;
@@ -1992,17 +1993,17 @@ class NominaController extends Controller
         $diasV = 0;
         $dias = 0;
         foreach ($detalles as $detalle) {
-            
+
             if ($detalle->fecha_inicio) {
                 $fechaEmision = Carbon::parse($detalle->fecha_inicio);
                 $fechaExpiracion = Carbon::parse($detalle->fecha_fin);
-                
+
                 if($detalle->nombre == "VACACIONES"){
                     // Calcula los días entre las fechas excluyendo el día 31
                     $diasV += NominaPeriodos::diffDaysExcluding31($fechaEmision, $fechaExpiracion)
                         + ($detalle->nombre == 'VACACIONES' ? 0 : 1);
                 }
-                
+
                 // Suma los días compensados en dinero
                 $dias += $detalle->dias_compensados_dinero;
             }
@@ -2024,13 +2025,13 @@ class NominaController extends Controller
             ]
         ];
         $nominaPeriodo = NominaPeriodos::find($request->id);
-        
+
         if($diasV >= 16){
             // $nominaPeriodo->editValorTotal($calculosFijos,false);
         }else{
             $nominaPeriodo->editValorTotal($calculosFijos);
         }
-        
+
         $dias = $dias + $diasV;
 
         if ($nominaPeriodo) {
@@ -2753,6 +2754,10 @@ class NominaController extends Controller
             $totalidad['ibcSeguridadSocial']['incapacidades'] += $nomina->resumenTotal()['ibcSeguridadSocial']['incapacidades'];
             $totalidad['ibcSeguridadSocial']['salarioParcial'] += $nomina->resumenTotal()['ibcSeguridadSocial']['salarioParcial'];
             $totalidad['ibcSeguridadSocial']['licencias'] += $nomina->resumenTotal()['ibcSeguridadSocial']['licencias'];
+
+            $totalidad['ibcSeguridadSocial']['total_ibcseguridad_social'] = $totalidad['ibcSeguridadSocial']['vacaciones'] +
+            $totalidad['ibcSeguridadSocial']['ingresosyExtras'] + $totalidad['ibcSeguridadSocial']['incapacidades'] +
+            $totalidad['ibcSeguridadSocial']['licencias'];
 
             $totalidad['retenciones']['salud'] += $nomina->resumenTotal()['retenciones']['salud'];
             $totalidad['retenciones']['pension'] += $nomina->resumenTotal()['retenciones']['pension'];

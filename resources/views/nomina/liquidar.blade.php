@@ -316,7 +316,11 @@
                                             </td>
 
                                             <td>
-                                                <span id="pago-nomina-format-{{$nominaPeriodo->id}}">{{Auth::user()->empresaObj->moneda}} {{ App\Funcion::Parsear($nominaPeriodo->valor_total ? $nominaPeriodo->valor_total : 0) }} </span><input type="hidden" id="pago-nomina-{{$nomina->id}}" value="{{$nominaPeriodo->pago_empleado ? $nominaPeriodo->pago_empleado : $nominaPeriodo->valor_total}}">
+                                                <span id="pago-nomina-format-{{$nominaPeriodo->id}}">{{Auth::user()->empresaObj->moneda}}
+                                                    {{ App\Funcion::Parsear($nominaPeriodo->valor_total ? $nominaPeriodo->valor_total : 0) }}
+                                                </span>
+                                                <input type="hidden" id="pago-nomina-{{$nomina->id}}"
+                                                value="{{$nominaPeriodo->pago_empleado ? $nominaPeriodo->pago_empleado : $nominaPeriodo->valor_total}}">
                                             </td>
                                             <td>
                                                 {{-- @if(isset($_SESSION['permisos']['160'])) --}}
@@ -1156,19 +1160,20 @@
         var year = '{{$year}}';
         var periodo = '{{$periodo}}';
         var type = $("#periodo_quincenal").val();
-        
+
         if (window.location.pathname.split("/")[1] === "software") {
-            var url='/software/empresa/nomina/liquidar-nomina/' + periodo + '/' + year + '/' + true + '/' + type
-            }else{
+            var url = '/software/empresa/nomina/liquidar-nomina/' + periodo + '/' + year + '/' + true + '/' + type;
+
+        }else{
             var url = '/empresa/nomina/liquidar-nomina/' + periodo + '/' + year + '/' + true + '/' + type;
         }
-       
         $('#form-buscarnomina').attr('action', url);
         $('#form-buscarnomina').submit();
     }
 
 
     function refrescarPeriodo(idPeriodo){
+
         if (window.location.pathname.split("/")[1] === "software") {
             $.get('/software/empresa/nomina/refrescar/periodo-individual/liquidacion/'+idPeriodo, function(response){
             formatPago(response.valorTotal, response.idPeriodoNomina);
@@ -1248,15 +1253,8 @@
     }
 
     function guardarNotas(id, anclor) {
-
-        if (window.location.pathname.split("/")[1] === "software") {
-                var url = '/software/empresa/nomina/agregar-observacion-periodo';
-                }else{
-                var url = '/empresa/nomina/agregar-observacion-periodo';
-            }
-            
         $.ajax({
-            url: url,
+            url: `/empresa/nomina/agregar-observacion-periodo`,
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

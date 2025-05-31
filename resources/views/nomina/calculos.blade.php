@@ -158,7 +158,7 @@
                                     </tr>
                                     <tr>
                                         <td>Vacaciones, Incapacidades y Licencias</td>
-                                        
+
                                         <td>{{$moneda}} {{$nomina::parsear($totalidad['ibcSeguridadSocial']['total_ibcseguridad_social'])}}</td>
                                     </tr>
                                     <tr>

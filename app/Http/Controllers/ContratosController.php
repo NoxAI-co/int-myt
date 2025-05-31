@@ -3770,6 +3770,18 @@ class ContratosController extends Controller
                 if(Mikrotik::where('nombre', $request->mikrotik)->count() == 0){
                     $error->mikrotik = "El mikrotik ingresado no se encuentra en nuestra base de datos";
                 }
+                
+                if (count((array) $error)>0) {
+                    $fila["error"]='FILA '.$row;
+                    $error=(array) $error;
+                    var_dump($error);
+                    var_dump($fila);
+    
+                    array_unshift ( $error ,$fila);
+                    $result=(object) $error;
+                    return back()->withErrors($result)->withInput();
+                }
+
                 $miko = Mikrotik::where('nombre', $request->mikrotik)->first();
                 $mikoId = $miko->id;
 
