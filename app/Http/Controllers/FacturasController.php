@@ -4659,4 +4659,120 @@ class FacturasController extends Controller{
         return Response::download($path, "FV-{$factura->codigo}.xml", $headers);
     }
 
+    public function facturasWhatsappIndex(Request $request){
+
+        view()->share(['seccion' => 'facturas', 'title' => 'Envío Whatsapp', 'icon' =>'fas fa-plus', 'subseccion' => 'venta']);
+        $this->getAllPermissions(Auth::user()->id);
+
+        $empresa = Empresa::find(Auth::user()->empresa);
+
+        if(!$request->dia){
+            $dia = Carbon::now()->format('d');
+        }
+
+        if(!$request->fecha){
+            $request->fecha = Carbon::now()->format('Y-m-d');
+        }else{
+            $request->fecha = Carbon::parse($request->fecha)->format('Y-m-d');
+            $dia = Carbon::parse($request->fecha)->format('d');
+        }
+
+        if(isset($empresa->cron_fecha_whatsapp) && $empresa->cron_fecha_whatsapp != null){
+            $request->dia = $dia = Carbon::parse($empresa->cron_fecha_whatsapp)->format('d');
+            $request->fecha = Carbon::parse($empresa->cron_fecha_whatsapp)->format('Y-m-d');
+
+            $empresa->cron_fecha_whatsapp = $request->fecha;
+            $empresa->save();
+        }
+
+        $grupos_corte = GrupoCorte::where('status', 1)->where('fecha_factura',(int) $dia)->get();
+        $grupos_corte_array = array();
+        foreach($grupos_corte as $grupo){
+            array_push($grupos_corte_array,$grupo->id);
+        }
+
+        $totalFaltantes = Factura::
+        join('contracts as c','c.id','=','factura.contrato_id')
+        ->join('grupos_corte as gc','gc.id','=','c.grupo_corte')
+        ->where('factura.fecha',$request->fecha)
+        ->where('factura.whatsapp',0)
+        // ->whereIn('c.grupo_corte',$grupos_corte_array)
+        ->select('factura.*', 'gc.nombre as grupoNombre')->count('factura.id');
+
+        $facturas = Factura::
+        join('contracts as c','c.id','=','factura.contrato_id')
+        ->join('grupos_corte as gc','gc.id','=','c.grupo_corte')
+        ->where('factura.fecha',$request->fecha)
+        ->where('factura.whatsapp',0)
+        ->whereIn('c.grupo_corte',$grupos_corte_array)
+        ->select('factura.*', 'gc.nombre as grupoNombre')
+        ->paginate();
+
+        $sinTelefono = Factura::
+            join('contracts as c', 'c.id', '=', 'factura.contrato_id')
+            ->join('contactos as con', 'con.id', 'c.client_id')
+            ->where(function ($query) {
+                $query->whereNull('con.celular')
+                      ->WhereNull('con.telefono1');
+            })
+            ->where('factura.fecha', $request->fecha)
+            ->where('factura.whatsapp', 0)
+            ->whereIn('c.grupo_corte', $grupos_corte_array)
+            ->select('factura.*')
+            ->count();
+
+        $request->fecha = Carbon::parse($request->fecha)->format('d-m-Y');
+        return view('cronjobs.envio-whatsapp', compact('request','facturas','grupos_corte','totalFaltantes','empresa','sinTelefono'));
+    }
+
+    public function facturasWhastappSave(Request $request){
+        if($request->fecha){
+            $request->fecha = Carbon::parse($request->fecha)->format('Y-m-d');
+            $empresa = Empresa::Find(Auth::user()->empresa);
+            if($empresa){
+                $empresa->cron_fecha_whatsapp = $request->fecha;
+                $empresa->save();
+
+
+            }
+            return redirect('empresa/facturas/facturas-whatsapp-index')->with('success', 'Se ha guardado la fecha de envío de whatsapp correctamente');
+        }else{
+            return redirect('empresa/facturas/facturas-whatsapp-index')->with('danger', 'No se ha podido guardar la fecha de envío de whatsapp');
+        }
+    }
+
+    public function facturasWhastappEnvio(Request $request)
+    {
+        try {
+            $controller = new CronController();
+            $controller->envioFacturaWpp(new WapiService());
+
+            if ($request->ajax()) {
+                return response()->json(['status' => 'success', 'message' => 'Mensajes enviados con éxito.']);
+            }
+
+            return redirect()->route('facturas.whatsapp.index')
+                ->with('success', 'Mensajes enviados con éxito.');
+        } catch (\Throwable $th) {
+            \Log::error('Error WhatsApp: ' . $th->getMessage());
+
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => 'Error al enviar mensajes.'], 500);
+            }
+
+            return redirect()->route('facturas.whatsapp.index')
+                ->with('error', 'Ocurrió un error al enviar mensajes.');
+        }
+    }
+
+    public function facturasWhastappReiniciar(Request $request){
+
+        if($request->fecha){
+            Factura::where('fecha',date('Y-m-d',strtotime($request->fecha)))->where('empresa',Auth::user()->empresa)->update(['whatsapp' => 0]);
+            return redirect('empresa/facturas/facturas-whatsapp-index')->with('success', 'Se ha reiniciado el envio de facturas de la fecha ' . $request->fecha);
+        }else{
+            return redirect('empresa/facturas/facturas-whatsapp-index')->with('danger', 'No se ha podido reiniciar el envio de facturas');
+        }
+    }
+
 }

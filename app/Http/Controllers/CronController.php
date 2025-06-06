@@ -3135,13 +3135,23 @@ class CronController extends Controller
 
     public function envioFacturaWpp(WapiService $wapiService){
 
-        if(getdate()['mday'] == 01){
-            $dia = 1;
-        }else $dia = getdate()['mday'];
+        $empresa = Empresa::Find(1);
+        if($empresa->cron_fecha_whatsapp != null){
+            $fecha = $empresa->cron_fecha_whatsapp;
+        }else{
+            $fecha = date('Y-m-d');
+        }
+
+        //Reinicio de variable cron_fecha_whatsapp
+        $horaActual = Carbon::now()->format('H:i');
+        if ($horaActual >= '00:00' && $horaActual <= '03:00') {
+            $empresa->cron_fecha_whatsapp = Carbon::now()->format('Y-m-d');
+            $empresa->save();
+        }
 
         $empresa = Empresa::Find(1);
 
-        $grupos_corte = GrupoCorte::where('status', 1)->where('fecha_factura',$dia)->get();
+        $grupos_corte = GrupoCorte::where('status', 1)->get();
 
         if($grupos_corte->count() > 0){
 
@@ -3151,13 +3161,19 @@ class CronController extends Controller
                 array_push($grupos_corte_array,$grupo->id);
             }
 
-         $facturas = Factura::
-            join('contracts as c','c.id','=','factura.contrato_id')
-            ->where('factura.observaciones','LIKE','%Facturación Automática -%')->where('factura.fecha',date('Y-m-d'))
-            ->where('factura.whatsapp',0)
-            ->whereIn('c.grupo_corte',$grupos_corte_array)
+        $facturas = Factura::
+            join('contracts as c', 'c.id', '=', 'factura.contrato_id')
+            ->join('contactos as con', 'con.id', 'c.client_id')
+            ->where(function ($query) {
+                $query->whereNotNull('con.celular')
+                      ->orWhereNotNull('con.telefono1');
+            })
+            ->where('factura.fecha', $fecha)
+            ->where('factura.whatsapp', 0)
+            ->whereIn('c.grupo_corte', $grupos_corte_array)
             ->select('factura.*')
-            ->limit(45)->get();
+            ->limit(45)
+            ->get();
 
 
             foreach($facturas as $factura){
@@ -3166,7 +3182,7 @@ class CronController extends Controller
 
                 $facturaPDF = $this->getPdfFactura($factura->id);
                 $facturabase64 = base64_encode($facturaPDF);
-                $instance = Instance::where('company_id', $empresa->id)->first();
+                $instance = Instance::where('company_id', $empresa->id)->where('type',1)->first();
 
                 if(is_null($instance) || empty($instance)){
                     Log::error('Instancia no está creada.');
@@ -3185,9 +3201,19 @@ class CronController extends Controller
                     "mimeType" => "application/pdf",
                     "file" => $facturabase64,
                 ];
+                $celular = null;
+                if($contacto->celular != null && strlen($contacto->celular) > 9){
+                    $celular = $contacto->celular;
+                }else if($contacto->telefono1 != null && strlen($contacto->celular) > 9){
+                    $celular = $contacto->telefono1;
+                }else if($contacto->telefono2 != null && strlen($contacto->celular) > 9){
+                    $celular = $contacto->telefono2;
+                }
+
+                if($celular != null){
 
                 $contact = [
-                    "phone" =>  "57" . $contacto->celular,
+                    "phone" =>  "57" . $celular,
                     "name" => $contacto->nombre . " " . $contacto->apellido1
                 ];
 
@@ -3199,9 +3225,9 @@ class CronController extends Controller
                 if($estadoCuenta->saldoMesAnterior > 0){
                     $msg_deuda = "El total a deber es: " . Funcion::Parsear($estadoCuenta->saldoMesAnterior + $total);
                 }
-        
+
                 $message = "$nameEmpresa Le informa que su factura ha sido generada bajo el número $factura->codigo por un monto de $$total pesos. " . $msg_deuda;
-        
+
                 $body = [
                     "contact" => $contact,
                     "message" => $message,
@@ -3211,7 +3237,6 @@ class CronController extends Controller
                 $response = (object) $wapiService->sendMessageMedia($instance->uuid, $instance->api_key, $body);
                 if(isset($response->statusCode)) {
                     Log::error('No se pudo enviar el mensaje, por favor intente nuevamente.' . $contacto->nit);
-                    // break;
                 }
 
                 if(isset($response->scalar)){
@@ -3221,16 +3246,19 @@ class CronController extends Controller
                 if(isset($response->status) && $response->status != "success") {
                     Log::error('No se pudo enviar el mensaje, por favor intente nuevamente. ' . $contacto->nit);
                     // break;
+                }else{
+                    $factura->whatsapp = 1;
+                    $factura->save();
                 }
 
                 $archivo = public_path() . "/convertidor/" . $factura->codigo . ".pdf";
                 if (file_exists($archivo)) {
                     unlink($archivo);
                 }
-                $factura->whatsapp = 1;
-                $factura->save();
             }
-            Log::info("Lote de facturas enviadas por whatsapp correctamente.");
+        }
+        Log::info("Lote de facturas enviadas por whatsapp correctamente.");
+        //Validacion de ingresos creados y no habilitado el catv o internet
         }
     }
 

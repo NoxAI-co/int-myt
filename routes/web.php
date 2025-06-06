@@ -597,6 +597,11 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function() {
         Route::get('impresionmasiva/{facturas}', 'FacturasController@ImprimirMultiple');
         Route::get('exportar', 'FacturasController@exportar');
         Route::get('facturas_electronica/exportar', 'FacturasController@exportar');
+
+		Route::get('facturas-whatsapp-index', 'FacturasController@facturasWhatsappIndex')->name('cronjob.whatsapp-facturas-index');
+		Route::get('facturas-whatsapp-save', 'FacturasController@facturasWhastappSave')->name('cronjob.whatsapp-facturas-save');
+		Route::get('facturas-whatsapp-envio', 'FacturasController@facturasWhastappEnvio')->name('cronjob.whatsapp-facturas-envio');
+		Route::get('facturas-whatsapp-reiniciar', 'FacturasController@facturasWhastappReiniciar')->name('cronjob.whatsapp-facturas-reiniciar');
 	});
 	Route::resource('facturas', 'FacturasController');
 
