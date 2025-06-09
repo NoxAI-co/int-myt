@@ -298,7 +298,7 @@ class FacturasController extends Controller{
         $clientes = Contacto::join('factura as f', 'contactos.id', '=', 'f.cliente')->where('contactos.status', 1)->groupBy('f.cliente')->select('contactos.*')->orderBy('contactos.nombre','asc')->get();
 
         view()->share(['title' => 'Facturas de Venta', 'subseccion' => 'venta', 'precice' => true]);
-        $tipo = false;
+        $tipo = $tipo != '' ? ($tipo == 'cerradas' ? 'A' : 1) : null;
         $servidores = Mikrotik::where('empresa', $empresaActual)->get();
         $tabla = Campos::join('campos_usuarios', 'campos_usuarios.id_campo', '=', 'campos.id')->where('campos_usuarios.id_modulo', 4)->where('campos_usuarios.id_usuario', Auth::user()->id)->where('campos_usuarios.estado', 1)->orderBy('campos_usuarios.orden', 'ASC')->get();
         $municipios = DB::table('municipios')->orderBy('nombre', 'asc')->get();

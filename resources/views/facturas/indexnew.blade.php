@@ -227,6 +227,13 @@
 <script>
 	var tabla = $('#tabla-facturas');
 	window.addEventListener('load', function() {
+		@if($tipo)
+        // Set the initial filter state before DataTable initializationAdd commentMore actions
+        $('#estado').val('{{ $tipo }}').selectpicker('refresh');
+        $('#form-filter').removeClass('d-none');
+        $('#boton-filtrar').html('<i class="fas fa-times"></i> Cerrar');
+        @endif
+
 		var tabla= $('#tabla-facturas').DataTable({
 			responsive: true,
 			serverSide: true,
@@ -484,11 +491,11 @@
         window.location.href = window.location.pathname+'/exportar?codigo='+$('#codigo').val()+'&cliente='+$('#cliente').val()+'&municipio='+$('#municipio').val()+'&creacion='+$('#creacion').val()+'&vencimiento='+$('#vencimiento').val()+'&estado='+$('#estado').val()+'&tipo=1';
 	}
 
-	@if($tipo)
-	    $('#estado').val('{{ $tipo }}').selectpicker('refresh');
-	    abrirFiltrador();
-	    getDataTable();
-	@endif
+	// @if($tipo)
+	//     $('#estado').val('{{ $tipo }}').selectpicker('refresh');
+	//     abrirFiltrador();
+	//     getDataTable();
+	// @endif
 </script>
 @endsection
 
