@@ -134,7 +134,8 @@ class EmpresasController extends Controller
             'fec_inicio'     => $fecha_inicio,
             'fec_vencimiento'=> $fecha_final,
             'fec_corte'      => $fecha_final,
-            'created_at'     => Carbon::now()
+            'dia_facturacion' => Carbon::parse($fecha_inicio)->day,
+            'created_at'     => Carbon::now(),
         ]);
 
         /*

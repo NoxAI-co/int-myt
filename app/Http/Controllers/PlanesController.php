@@ -270,6 +270,7 @@ class PlanesController extends Controller
                     $suscripcion->id_empresa = $suscripcion_pago->id_empresa;
                     $suscripcion->fec_inicio = $fecha_inicio;
                     $suscripcion->fec_vencimiento = $fecha_final;
+                    $suscripcion->dia_facturacion = Carbon::parse($fecha_inicio)->day;
                     $suscripcion->created_at = Carbon::now();
                     $suscripcion->save();
                 }
@@ -678,6 +679,7 @@ class PlanesController extends Controller
                                 $suscripcion->id_empresa = $suscripcion_pago->id_empresa;
                                 $suscripcion->fec_inicio = $fecha_inicio;
                                 $suscripcion->fec_vencimiento = $fecha_final;
+                                $suscripcion->dia_facturacion = Carbon::parse($fecha_inicio)->day;
                                 $suscripcion->created_at = Carbon::now();
                                 $suscripcion->save();
                             }
@@ -819,6 +821,7 @@ class PlanesController extends Controller
                                 $suscripcion->id_empresa = $suscripcion_pago->id_empresa;
                                 $suscripcion->fec_inicio = $fecha_inicio;
                                 $suscripcion->fec_vencimiento = $fecha_final;
+                                $suscripcion->dia_facturacion = Carbon::parse($fecha_inicio)->day;
                                 $suscripcion->created_at = Carbon::now();
                                 $suscripcion->save();
                             }
@@ -881,6 +884,7 @@ class PlanesController extends Controller
                                 $suscripcion->id_empresa = $suscripcion_pago->id_empresa;
                                 $suscripcion->fec_inicio = Carbon::now();
                                 $suscripcion->fec_vencimiento = $fecha_final;
+                                $suscripcion->dia_facturacion = Carbon::parse($fecha_inicio)->day;
                                 $suscripcion->created_at = Carbon::now();
                                 $suscripcion->save();
                             }

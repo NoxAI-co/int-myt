@@ -32,6 +32,32 @@ class SuscripcionController extends Controller
         return view('suscripciones.suscripcionesIndex')->with(compact('suscripciones'));
     }
 
+    /**
+     * Validates if the subscription modal should be shown based on billing day and status
+     */
+    public function validateSubscription()
+    {
+        if (!Auth::check()) {
+            return response()->json(['showModal' => false]);
+        }
+
+        $empresa_id = Auth::user()->empresa;
+        $today = Carbon::now()->day;
+
+        $suscripcion = Suscripcion::where('id_empresa', $empresa_id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$suscripcion) {
+            return response()->json(['showModal' => false]);
+        }
+
+        // Check if today is the billing day and subscription is inactive (estado = 0)
+        $showModal = ($today == $suscripcion->dia_facturacion && $suscripcion->estado == 0);
+
+        return response()->json(['showModal' => $showModal]);
+    }
+
     public function indexPagos(){
         if(Auth::user()->rol == 1){
             $suscripcionesPagos = SuscripcionPago::all();
