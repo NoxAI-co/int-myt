@@ -453,10 +453,7 @@
                                      <p>Si desea seguir disfrutando de nuestros servicios adquiera alguno de nuestros planes.</p>
                                      <p>Medios de pago:</p>
                                      <ul class="list-unstyled">
-                                         <li><strong>Nequi:</strong> 3206909290 <strong>CC:</strong> 1045740096</li>
-                                         <li><strong>Cuenta de ahorros Bancolombia:</strong> 42081411021</li>
-                                         <li><strong>CC:</strong> 1001912928</li>
-                                         <li><strong>Representante legal:</strong> Ximena Herrera</li>
+                                         <li><strong>Cuenta de ahorros Bancolombia:</strong> 30682477039</li>
                                      </ul>
                                      <div class="text-center mt-3">
                                          <a href="https://wa.me/573206909290?text=Adjunto comprobante de pago para reactivar membresía" target="_blank" class="btn btn-success">
