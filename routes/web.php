@@ -357,6 +357,8 @@ Route::group(['prefix' => 'Olt'], function(){
     Route::get('view-onu/{sn?}','OltController@viewOnu')->name('olt.view-onu');
     Route::get('get-full-status/{sn?}','OltController@getFullOnuSignal')->name('olt.fullstatus');
     Route::get('show-running-config/{sn?}','OltController@runningConfig')->name('olt.running-config');
+	Route::get('vlan-oltid/{oltId?}', 'OltController@get_VLAN')->name('olt.get-vlan-oltid');
+	Route::post('update-vlan', 'OltController@update_vlan')->name('olt.update-vlan-sn');
 });
 
 Route::group(['prefix' => 'siigo'], function () {
