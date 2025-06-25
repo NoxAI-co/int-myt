@@ -430,7 +430,11 @@
             </tr>
             <tr>
                 <th class="right smalltd">PERIODO COBRADO</th>
+                @if($factura->periodo_cobrado_text != null || $factura->periodo_cobrado_text != "")
+                <td style="border-bottom: 2px solid #ccc;">{{$factura->periodo_cobrado_text}}</td>
+                @else
                 <td style="border-bottom: 2px solid #ccc;">{{$factura->periodoCobradoTexto()}} {{$factura->diasCobradosProrrateo()}} días</td>
+                @endif
             </tr>
             <tr>
                 <th class="right smalltd">ESTADO FACTURA</th>
