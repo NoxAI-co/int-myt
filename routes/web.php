@@ -359,6 +359,7 @@ Route::group(['prefix' => 'Olt'], function(){
     Route::get('show-running-config/{sn?}','OltController@runningConfig')->name('olt.running-config');
 	Route::get('vlan-oltid/{oltId?}', 'OltController@get_VLAN')->name('olt.get-vlan-oltid');
 	Route::post('update-vlan', 'OltController@update_vlan')->name('olt.update-vlan-sn');
+	Route::post('update-ethernet-port', 'OltController@update_ethernet_port')->name('olt.update-ethernet-port');
 });
 
 Route::group(['prefix' => 'siigo'], function () {

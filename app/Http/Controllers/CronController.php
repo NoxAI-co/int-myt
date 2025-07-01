@@ -696,7 +696,7 @@ class CronController extends Controller
                     $join->on('cs.nro', '=', 'fcs.contrato_nro')
                          ->orOn('cs.id', '=', 'f.contrato_id');
                 })->
-                select('contactos.id', 'contactos.nombre', 'contactos.nit', 'f.id as factura', 'f.estatus', 'f.suspension', 'cs.state', 'f.contrato_id')->
+                select('contactos.id', 'contactos.nombre', 'contactos.nit', 'f.id as factura', 'f.estatus', 'f.suspension', 'cs.state', 'f.contrato_id','cs.grupo_corte')->
                 where('f.estatus',1)->
                 whereIn('f.tipo', [1,2])->
                 where('contactos.status',1)->
@@ -705,14 +705,14 @@ class CronController extends Controller
                 where('cs.fecha_suspension', null)->
                 where('cs.server_configuration_id','!=',null)-> //se comenta por que tambien se peuden canclear planes de tv que no estan con servidor
                 whereDate('f.vencimiento', '<=', now())->
-                orderBy('f.id', 'desc')->
+                orderBy('contactos.updated_at', 'asc')->
                 take(40)->
                 get();
 
         }else{
             $contactos = Contacto::join('factura as f','f.cliente','=','contactos.id')->
             join('contracts as cs','cs.client_id','=','contactos.id')->
-            select('contactos.id', 'contactos.nombre', 'contactos.nit', 'f.id as factura', 'f.estatus', 'f.suspension', 'cs.state', 'f.contrato_id')->
+            select('contactos.id', 'contactos.nombre', 'contactos.nit', 'f.id as factura', 'f.estatus', 'f.suspension', 'cs.state', 'f.contrato_id','cs.grupo_corte')->
             where('f.estatus',1)->
             whereIn('f.tipo', [1,2])->
             where('contactos.status',1)->
@@ -729,6 +729,9 @@ class CronController extends Controller
 
                 //** Desarrollo nuevo: 
                 //** Analizar la cantidad de facturas abiertas del contrato y el grupo de corte
+                $contacto->updated_at = now();
+                $contacto->save();
+                
                 $grupo_corte = null;
                 $cant_fac_grupo_corte = 1;
                 $cantFacturasVencidas = 1;

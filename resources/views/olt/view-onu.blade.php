@@ -345,13 +345,30 @@
                                 <tbody>
                                     @foreach ($ethernetPorts as $port)
                                     <tr>
-                                        <td>{{ $port['name'] }}</td>
-                                        <td>{{ $port['adminState'] }}</td>
-                                        <td>{{ $port['mode'] }}</td>
+                                        <td>{{ $port['port'] }}</td>
+                                        <td>{{ $port['admin_state'] }}</td>
+                                        <td>
+                                            @if($port['mode'] == "Access")
+                                            {{ $port['mode'] }} VLAN: {{ $port['vlan'] }}
+                                            @elseif($port['mode'] == "Hybrid")
+                                            {{$port['mode']}}: Def-VLAN {{$port['vlan']}} + TAG {{$port['allowed_vlans']}}
+                                            @elseif ($port['mode'] == "Trunk")
+                                            {{$port['mode']}} VLANs: {{$port['allowed_vlans']}}
+                                            @else
+                                            {{ $port['mode'] }}
+                                            @endif  
+                                        </td>
                                         <td>{{ $port['dhcp'] }}</td>
                                         <td>
-                                            <span class="badge badge-info ml-1">Prontamente!</span></a>
-                                            {{-- <a href="#">+ Configure</a> --}}
+                                            {{-- <span class="badge badge-info ml-1">Prontamente!</span></a> --}}
+                                            <a href="#" onclick="
+                                            openModalEthernet(
+                                                                `{{$port['port']}}`, 
+                                                                `{{$port['admin_state']}}`, 
+                                                                `{{$port['mode']}}`, 
+                                                                `{{$port['dhcp']}}`
+                                                            )"
+                                            >+ Configure</a>
                                         </td>
                                     </tr>
                                     @endforeach
@@ -442,6 +459,8 @@
     </div>
   </div>
 
+  @include('olt.modals.ethernet-port')
+
 @endsection
 
 @section('scripts')
@@ -451,6 +470,7 @@
     let add_vlans = [];        // VLANs añadidas
     let remove_vlans = [];     // VLANs eliminadas
 
+    // FUNCIONES VLAN ATACCHED.
     function openVlanModal(oltId, selectedVlans = []) {
         initialVlans = [...selectedVlans]; // Guardamos copia original
         add_vlans = [];
@@ -482,13 +502,13 @@
             }
         });
     }
+
     $('#vlan-select').on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
         const currentVlans = $(this).val() || []; // siempre un array
 
         add_vlans = currentVlans.filter(vlan => !initialVlans.includes(vlan));
         remove_vlans = initialVlans.filter(vlan => !currentVlans.includes(vlan));
     });
-
 
     function update_vlan(){
 
@@ -527,6 +547,22 @@
             }
         });
     }
+    // FUNCIONES VLAN ATACCHED.
+
+    // FUNCIONES ETHERNET PORTS
+    function openModalEthernet(name, adminState, mode, dhcp) {
+
+        console.log(name); 
+        console.log(adminState);
+        console.log(mode);
+        console.log(dhcp);
+
+        $("#ethernetName").text(name)
+
+        $("#ethernetModal").modal('show');
+
+    }
+    // FUNCIONES ETHERNET PORTS
 
 
     $(document).ready(function() {
@@ -954,4 +990,106 @@
         });
     }
  </script>
+
+{{-- Scripts de Ethernet ports --}}
+<script>
+    function toggleFields() {
+        const status = $('input[name="status"]:checked').val();
+        const mode = $('input[name="mode"]:checked').val();
+    
+        // Ocultar todos los grupos
+        $('#vlan-id-group').hide();
+        $('#allowed-vlans-group').hide();
+        $('#dhcp-group').hide();
+        // Si el puerto está apagado, no mostramos nada
+        if (status === 'shutdown'){
+            $('#options-mode').hide();
+            return;
+        } else{
+            $('#options-mode').show();
+        }
+    
+        // Mostrar según el modo seleccionado
+        switch (mode) {
+            case 'LAN':
+            case 'Transparent':
+                $('#dhcp-group').show();
+                break;
+            case 'Access':
+                $('#dhcp-group').show();
+                $('#vlan-id-group').show();
+                break;
+            case 'Hybrid':
+                $('#dhcp-group').show();
+                $('#vlan-id-group').show();
+                $('#allowed-vlans-group').show();
+                break;
+            case 'Trunk':
+                $('#vlan-id-group').show();
+                $('#allowed-vlans-group').show();
+                break;
+        }
+    }
+    
+    // Cuando cambian los radios
+    $(document).on('change', 'input[name="status"], input[name="mode"]', function () {
+        toggleFields();
+    });
+    
+    // Cuando se abre el modal
+    $('#ethernetModal').on('shown.bs.modal', function () {
+        toggleFields();
+    });
+
+    function update_ethernet(){
+
+        let status = $('input[name="status"]:checked').val();
+        let mode = $('input[name="mode"]:checked').val();
+
+        let dhcp = $('#dhcp-select').val();
+        let allowedVlans = $("#allowed-vlans-select").val();
+        let vlanId = $('#vlan-id-select').val();
+
+        let ethernetPort = $("#ethernetName").text();
+
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/update-ethernet-port';
+        }else{
+            var url = '/Olt/update-ethernet-port';
+        }
+
+        $.ajax({
+            url: url,
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            method: 'post',
+            data: {
+                ethernet_port: ethernetPort,
+                status: status,
+                mode: mode,
+                dhcp: dhcp,
+                allowed_vlans: allowedVlans,
+                vlan: vlanId,
+                sn: `{{ $details['sn'] }}`
+            },
+            success: function (data) {	
+                if(data.status == true){
+                    Swal.fire({
+                        title: 'Ethernet actualizado correctamente!',
+                        type: 'success', 
+                        showConfirmButton: false,
+                        allowOutsideClick: false, 
+                    });
+                    $('#ethernetModal').modal('hide');
+                    location.reload(); // Recargar la página para reflejar los cambios
+                    
+                }else{
+                    Swal.close();
+                    alert("Hubo un error comuniquese con soporte.")
+                }
+            }
+        });
+
+
+    }
+    </script>
 @endsection
