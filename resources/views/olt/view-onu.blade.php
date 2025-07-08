@@ -114,10 +114,10 @@
                             <span class="value"><a href="#" onclick="modalMoveOnu()">{{ $details['olt_name'] }}</a></span>
                         </li>
                         <li><span class="title">Board:</span> 
-                            <span class="value">{{ $details['board'] }}</span> 
+                            <span class="value"><a href="#" onclick="modalMoveOnu()">{{ $details['board'] }}</a></span> 
                         </li>
                         <li><span class="title">Port:</span> 
-                            <span class="value">{{ $details['port'] }}</span> 
+                            <span class="value"><a href="#" onclick="modalMoveOnu()">{{ $details['port'] }}</a></span> 
                         </li>
                         <li><span class="title">ONU:</span> 
                             <span class="value">{{ $details['pon_type'] . "/" . $details['board'] . "/" . 
@@ -1104,6 +1104,13 @@
         }else{
             var url = '/Olt/get-modal-onu';
         }
+
+        // Mostrar preloader antes de enviar
+        Swal.fire({
+            title: 'Cargando información...',
+            type:'info',
+            allowOutsideClick: false
+        });
         
         $.ajax({
             url: url,
