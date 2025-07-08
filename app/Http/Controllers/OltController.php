@@ -955,7 +955,6 @@ class OltController extends Controller
     {
 
         $sn = $request->sn;
-        // $sn = "CIOT096B956C";
         $this->getAllPermissions(Auth::user()->id);
         view()->share(['title' => $sn, 'icon' => '', 'seccion' => '']);
 
@@ -1019,7 +1018,6 @@ class OltController extends Controller
         }
 
         $ethernetPorts = isset($details['ethernet_ports']) ? $details['ethernet_ports'] : [];
-
         return view('olt.view-onu', compact(
             'details',
             'image_onu_type',
@@ -1263,4 +1261,95 @@ class OltController extends Controller
 
     }
 
+    public function getPorts($olt_id){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $empresa->adminOLT . '/api/system/get_olt_pon_ports_details/' . $olt_id,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_HTTPHEADER => array(
+                'X-Token: ' . $empresa->smartOLT
+            ),
+        ));
+
+        $response = json_decode(curl_exec($curl), true);
+        curl_close($curl);
+
+        return $response;
+    }
+
+    public function getBoards($olt_id){
+        $empresa = Empresa::Find(Auth::user()->empresa);
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $empresa->adminOLT . '/api/system/get_olt_cards_details/' . $olt_id,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_HTTPHEADER => array(
+                'X-Token: ' . $empresa->smartOLT
+            ),
+        ));
+
+        $response = json_decode(curl_exec($curl), true);
+        curl_close($curl);
+
+        return $response;
+    }
+
+
+    public function getModalMoveOnu(Request $request){
+        
+        try {
+            $olt = $this->getOlts();
+            $board = $this->getBoards($request->olt_id);
+            $ports = [];
+
+            $board = array_filter($board['response'], function ($item) {
+                return isset($item['type']) && $item['type'] === 'GTGH';
+            });
+            
+            return response()->json([
+                'status' => true,
+                'olts' => $olt,
+                'boards' => array_values($board),
+                'ports' => $ports,
+                'sn' => $request->sn
+            ]);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function updateMoveOnuModal(Request $request){
+        
+        $response = $this->moveOnuSpecified($request->olt_id, $request->board, $request->port, $request->sn);
+
+        if (isset($response['response']) && $response['status'] == true) {
+            return response()->json([
+                'status' => 200
+            ]);
+        } else {
+            return response()->json([
+                'status' => 400
+            ]);
+        }
+    }
 }

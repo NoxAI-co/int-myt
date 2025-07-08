@@ -360,6 +360,11 @@ Route::group(['prefix' => 'Olt'], function(){
 	Route::get('vlan-oltid/{oltId?}', 'OltController@get_VLAN')->name('olt.get-vlan-oltid');
 	Route::post('update-vlan', 'OltController@update_vlan')->name('olt.update-vlan-sn');
 	Route::post('update-ethernet-port', 'OltController@update_ethernet_port')->name('olt.update-ethernet-port');
+	
+	// Modales
+	Route::get('get-modal-onu', 'OltController@getModalMoveOnu')->name('olt.get-modal-onu');
+	Route::post('move-onu-modal', 'OltController@updateMoveOnuModal')->name('olt.update-modal-onu');
+
 });
 
 Route::group(['prefix' => 'siigo'], function () {

@@ -111,7 +111,7 @@
                 <div class="col-md-6">
                     <ul class="list-unstyled">
                         <li><span class="title">OLT:</span> 
-                            <span class="value"><a href="#">{{ $details['olt_name'] }}</a></span>
+                            <span class="value"><a href="#" onclick="modalMoveOnu()">{{ $details['olt_name'] }}</a></span>
                         </li>
                         <li><span class="title">Board:</span> 
                             <span class="value">{{ $details['board'] }}</span> 
@@ -460,6 +460,7 @@
   </div>
 
   @include('olt.modals.ethernet-port')
+  @include('olt.modals.move-onu')
 
 @endsection
 
@@ -989,6 +990,7 @@
             }
         });
     }
+
  </script>
 
 {{-- Scripts de Ethernet ports --}}
@@ -1091,5 +1093,146 @@
 
 
     }
-    </script>
+</script>
+
+{{-- Scripts MOVE ONU --}}
+<script>
+    function modalMoveOnu() {
+
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url='/software/Olt/get-modal-onu';
+        }else{
+            var url = '/Olt/get-modal-onu';
+        }
+        
+        $.ajax({
+            url: url,
+            method: 'GET',
+            data: {
+                sn: `{{ $details['sn'] }}`,
+                olt_id: `{{ $details['olt_id'] }}`
+            },
+            success: function(response) {
+                console.log(response);
+
+                const selectOlt = $('#olt-select');
+                const selectBoard = $('#board-select');
+                const selectPort = $('#port-select');
+
+                selectOlt.empty();
+                selectBoard.empty();
+                selectPort.empty();
+
+                const dataOlt = response.olts.response;
+                const dataBoard = response.boards;
+
+                // Llenar OLTs
+                dataOlt.forEach(function(item) {
+                    const option = new Option(item.name, item.id);
+                    if (item.id == `{{ $details['olt_id'] }}`) {
+                        option.selected = true;
+                    }
+                    selectOlt.append(option);
+                });
+
+                // Llenar Boards
+                dataBoard.forEach(function(item) {
+                    const option = new Option(`Slot ${item.slot}`, item.slot);
+                    if (item.slot == `{{ $details['board'] }}`) {
+                        option.selected = true;
+                    }
+                    selectBoard.append(option);
+                });
+
+                // Obtener board seleccionada
+                const selectedBoardSlot = `{{ $details['board'] }}`;
+                const selectedBoard = dataBoard.find(b => b.slot == selectedBoardSlot);
+
+                if (selectedBoard && selectedBoard.ports) {
+                    const portCount = parseInt(selectedBoard.ports);
+                    for (let i = 0; i < portCount; i++) {
+                        const option = new Option(i, i);
+                        if (i == `{{ $details['port'] }}`) {
+                            option.selected = true;
+                        }
+                        selectPort.append(option);
+                    }
+                }
+
+                // Refrescar selects de Bootstrap Select
+                selectOlt.selectpicker('refresh');
+                selectBoard.selectpicker('refresh');
+                selectPort.selectpicker('refresh');
+
+                // Mostrar modal
+                $("#moveOnuModal").modal('show');
+            },
+            error: function() {
+                alert('Error al cargar OLTs');
+            }
+        });
+    }
+
+
+    function update_move_onu() {
+
+let board = $('#board-select').val();
+let port = $('#port-select').val();
+let olt = $('#olt-select').val();
+let sn = `{{ $details['sn'] }}`;
+
+if (window.location.pathname.split("/")[1] === "software") {
+    var url = '/software/Olt/move-onu-modal';
+} else {
+    var url = '/Olt/move-onu-modal';
+}
+
+// Mostrar preloader antes de enviar
+Swal.fire({
+    title: 'Moviendo ONU...',
+    type:'info',
+    html: 'Por favor espera mientras se actualiza la información.',
+    allowOutsideClick: false,
+    didOpen: () => {
+        Swal.showLoading();
+    }
+});
+
+$.ajax({
+    url: url,
+    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+    method: 'post',
+    data: {
+        sn: sn,
+        board: board,
+        port: port,
+        olt_id: olt
+    },
+    success: function (data) {
+        if (data.status == 200) {
+            Swal.fire({
+                title: '¡ONU movida correctamente!',
+                type: 'success',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                timer: 2000
+            });
+            $('#moveOnuModal').modal('hide');
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            Swal.close();
+            alert("Hubo un error, comuníquese con soporte.");
+        }
+    },
+    error: function () {
+        Swal.close();
+        alert("Error en la conexión con el servidor.");
+    }
+});
+}
+
+
+</script>
 @endsection

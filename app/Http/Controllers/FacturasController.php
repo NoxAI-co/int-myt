@@ -4394,7 +4394,7 @@ class FacturasController extends Controller{
         } catch (\Throwable $th) {
             return response()->json([
                 'success' => false,
-                'text'    => 'Emisión en lote terminó con errores',
+                'text'    => 'Emisión en lote terminó con errores ' . $th->getMessage(),
             ]);
         }
     }
