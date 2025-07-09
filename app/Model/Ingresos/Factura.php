@@ -157,6 +157,11 @@ class Factura extends Model
             if ($estatus == 2) {
                 return 'warning';
             }
+            
+            if($estatus ==1 && $this->pagado()){
+                return 'info';
+            }
+
             return $estatus == 1 ? 'danger' : 'success';
         }
 
@@ -196,6 +201,10 @@ class Factura extends Model
                     return "Cerrada con nota crédito";
                 }
             }
+        }
+
+        if($estatus == 1 && $this->pagado()){
+                return "Abonada";
         }
 
         if ($isId) {
