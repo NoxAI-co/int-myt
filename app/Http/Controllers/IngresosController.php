@@ -591,6 +591,7 @@ class IngresosController extends Controller
 
                                         $contrato->state = 'enabled';
                                         $contrato->save();
+                                        $msjMoroso = "IP sacada de morosos";
                                     }else{
                                         $msjMoroso = 'No se pudo conectar al Mikrotik, por favor verifique la configuración del servidor.';    
                                     }
