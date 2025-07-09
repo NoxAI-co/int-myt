@@ -283,6 +283,7 @@ class IngresosController extends Controller
             
             $user = Auth::user();
             $empresa = Empresa::Find($user->empresa);
+            $msjMoroso = "";
 
             // Verificamos si la suma es mayor que 0
             if($request->anticipo == 1){
@@ -590,6 +591,8 @@ class IngresosController extends Controller
 
                                         $contrato->state = 'enabled';
                                         $contrato->save();
+                                    }else{
+                                        $msjMoroso = 'No se pudo conectar al Mikrotik, por favor verifique la configuración del servidor.';    
                                     }
                                 }
                             }
@@ -991,7 +994,7 @@ class IngresosController extends Controller
                 DB::commit();
 
                 $mensaje = 'SE HA CREADO SATISFACTORIAMENTE EL PAGO';
-                return redirect('empresa/ingresos/'.$ingreso->id)->with('success', $mensaje)->with('factura_id', $ingreso->id)->with('tirilla', $tirilla);
+                return redirect('empresa/ingresos/'.$ingreso->id)->with('success', $mensaje . " " . $msjMoroso)->with('factura_id', $ingreso->id)->with('tirilla', $tirilla);
             }
 
         } catch (\Throwable $th) {
