@@ -3189,12 +3189,12 @@ class CronController extends Controller
 
                 if(is_null($instance) || empty($instance)){
                     Log::error('Instancia no está creada.');
-                    return;
+                    break;
                 }
 
                 if($instance->status !== "PAIRED") {
                     Log::error('La instancia de whatsapp no está conectada, por favor conectese a whatsapp y vuelva a intentarlo.');
-                    return;
+                    break;
                 }
 
                 $contacto = $factura->cliente();
@@ -3262,7 +3262,7 @@ class CronController extends Controller
         }
             Log::info("Lote de facturas enviadas por whatsapp correctamente.");
         }
-        
+
         //Validacion de ingresos creados y no habilitado el catv o internet
         $this->refreshCorteIntertTV();
     }
