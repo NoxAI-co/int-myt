@@ -310,7 +310,7 @@ class Contrato extends Model
 
     
     public function cantidadFacturasVencidas (){
-        return $facturasAbiertas = Factura::leftJoin('facturas_contratos as fc', 'fc.factura_id', 'factura.id')
+        $facturasAbiertas = Factura::leftJoin('facturas_contratos as fc', 'fc.factura_id', 'factura.id')
         ->leftJoin('contracts as c', 'c.nro', 'fc.contrato_nro')
         ->select('factura.id')
         ->where(function ($query) {
@@ -320,7 +320,17 @@ class Contrato extends Model
         ->whereDate('factura.vencimiento', '<=', now())
         ->where('factura.estatus', 1)
         ->groupBy('factura.id') // Agrupar por ID de factura
-        ->get()->count();
+        ->get();
+
+        //De esas facturas que obtuvimos miramos cuales tienen abonos, las que tengan no deben contar.
+        $facturasSinAbonos = [];
+        foreach($facturasAbiertas as $fa){
+            $totalAbonos = IngresosFactura::where('factura', $fa->id)->sum('pago');
+            if($totalAbonos == 0){
+                $facturasSinAbonos[] = $fa;
+            }
+        }
+        return count($facturasSinAbonos);
     }
 
     public function facturasDirectas()
