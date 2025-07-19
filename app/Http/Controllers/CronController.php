@@ -845,6 +845,10 @@ class CronController extends Controller
                                         $API->write('/ip/firewall/address-list/remove', false);
                                         $API->write('=.id='.$ARRAYS[0]['.id']);
                                         $READ = $API->read();
+
+                                        $contrato->state = 'enabled';
+                                        $contrato->update();
+
                                     }
                                     #ELIMINAMOS DE MOROSOS#
 
@@ -855,10 +859,6 @@ class CronController extends Controller
                                         )
                                     );
                                     #AGREGAMOS A IP_AUTORIZADAS#
-
-                                    $contrato->state = 'enabled';
-
-                                    $contrato->update();
                                     $API->disconnect();
                                     }
                                 }
