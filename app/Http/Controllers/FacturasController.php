@@ -4322,7 +4322,7 @@ class FacturasController extends Controller{
                 return back()->with('success', "EL MENSAJE HA SIDO ENVIADO DE MANERA EXITOSA");
     }
 
-    public function convertirelEctronica($facturaId, $masivo=false){
+    public function convertirelEctronica($facturaId, $masivo=false, $ingreso=false){
         $factura = Factura::find($facturaId);
         $num = Factura::where('empresa',1)->orderby('nro','asc')->get()->last();
 
@@ -4345,12 +4345,13 @@ class FacturasController extends Controller{
         $factura->tipo = 2;
         $factura->fecha=Carbon::now()->format('Y-m-d');
         $factura->save();
-        if($masivo == false){
+        if($masivo == false && $ingreso == false){
             return back()->with('success','Factura con el nuevo código: '.$factura->codigo. ' convertida correctamente.');
         }
     }
 
     public function conversionmasivaElectronica($facturas){
+        
         $facturas = explode(",", $facturas);
         for ($i=0; $i < count($facturas) ; $i++) {
             $this->convertirelEctronica($facturas[$i],1);

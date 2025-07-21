@@ -386,6 +386,11 @@ class IngresosController extends Controller
                             $factura = Factura::find($request->factura_pendiente[$key]);
                             //si tiene el tipo 2 es por que desean emitir la(s) factura(s).
                             if($factura->emitida != 1){
+
+                                if($factura->tipo == 1){
+                                    $conversion = app(FacturasController::class)->convertirelEctronica($factura->id,0,1);
+                                }
+
                                 $emision = app(FacturasController::class)->xmlFacturaVentaMasivo($factura->id);
                             }
                         }
