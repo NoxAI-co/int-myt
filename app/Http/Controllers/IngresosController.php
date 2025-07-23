@@ -476,7 +476,7 @@ class IngresosController extends Controller
                             }
 
                             if($contrato){
-                                $msjMoroso = $this->funcionesPagoMK($contrato,$empresa);
+                                $msjMoroso = $this->funcionesPagoMK($contrato,$empresa,$ingreso);
                                 if($msjMoroso != ""){
                                     $ingreso->revalidacion_enable = 1;
                                     $ingreso->save();
@@ -957,7 +957,7 @@ class IngresosController extends Controller
         }
     }
 
-    public function funcionesPagoMK($contrato,$empresa){
+    public function funcionesPagoMK($contrato,$empresa,$ingreso){
 
         $mensaje = "";
 
@@ -984,22 +984,20 @@ class IngresosController extends Controller
                     $READ = $API->read();
 
                     $mensaje = "- Se ha sacado la ip de morosos.";
+
+                    $ingreso->revalidacion_enable_internet = 1;
+                    $ingreso->save();
+
+                    $contrato->state = 'enabled';
+                    $contrato->save();
+
                 }
-                #ELIMINAMOS DE MOROSOS#
-
-                #AGREGAMOS A IP_AUTORIZADAS#
-                $API->comm("/ip/firewall/address-list/add", array(
-                    "address" => $contrato->ip,
-                    "list" => 'ips_autorizadas'
-                    )
-                );
-                #AGREGAMOS A IP_AUTORIZADAS#
-
                 $API->disconnect();
-
-                $contrato->state = 'enabled';
-                $contrato->save();
+                #ELIMINAMOS DE MOROSOS#
             }
+        }else{
+            $ingreso->revalidacion_enable_internet = 1;
+            $ingreso->save();
         }
         /* * * API MK * * */
 
@@ -1025,9 +1023,16 @@ class IngresosController extends Controller
             $response = json_decode($response);
 
             if(isset($response->status) && $response->status == true){
+
+                $ingreso->revalidacion_enable_tv = 1;
+                $ingreso->save();
+
                 $contrato->state_olt_catv = 1;
                 $contrato->save();
             }
+        }else{
+            $ingreso->revalidacion_enable_tv = 1;
+            $ingreso->save();
         }
         /* * * API CATV * * */
 
