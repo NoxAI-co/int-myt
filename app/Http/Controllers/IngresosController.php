@@ -476,7 +476,7 @@ class IngresosController extends Controller
                             }
 
                             if($contrato){
-                                $msjMoroso = $this->funcionesPagoMK($contrato);
+                                $msjMoroso = $this->funcionesPagoMK($contrato,$empresa);
                                 if($msjMoroso != ""){
                                     $ingreso->revalidacion_enable = 1;
                                     $ingreso->save();
@@ -957,7 +957,7 @@ class IngresosController extends Controller
         }
     }
 
-    public function funcionesPagoMK($contrato){
+    public function funcionesPagoMK($contrato,$empresa){
 
         $mensaje = "";
 
