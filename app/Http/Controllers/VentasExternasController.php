@@ -238,7 +238,7 @@ class VentasExternasController extends Controller{
                     VentasExternasAdjunto::create([
                         'venta_externa_id' => $contacto->id,
                         'nombre_archivo' => $nombreOriginal,
-                        'ruta_archivo' => 'adjuntos/ventas_externas/' . $nombreArchivo,
+                        'ruta_archivo' => 'software/adjuntos/ventas_externas/' . $nombreArchivo,
                         'tipo_documento' => 'documento' . ($index + 1)
                     ]);
                 }
@@ -339,7 +339,7 @@ class VentasExternasController extends Controller{
                         VentasExternasAdjunto::create([
                             'venta_externa_id' => $contacto->id,
                             'nombre_archivo' => $nombreOriginal,
-                            'ruta_archivo' => 'adjuntos/ventas_externas/' . $nombreArchivo,
+                            'ruta_archivo' => 'software/adjuntos/ventas_externas/' . $nombreArchivo,
                             'tipo_documento' => 'documento_adicional_' . ($adjuntosExistentes + $index + 1)
                         ]);
                     }
