@@ -477,10 +477,6 @@ class IngresosController extends Controller
 
                             if($contrato){
                                 $msjMoroso = $this->funcionesPagoMK($contrato,$empresa,$ingreso);
-                                if($msjMoroso != ""){
-                                    $ingreso->revalidacion_enable = 1;
-                                    $ingreso->save();
-                                }
                             }
 
                             /*
