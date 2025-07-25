@@ -380,7 +380,7 @@
         
         function cargarAdjuntosExistentes() {
             $.ajax({
-                url: `/empresa/ventas-externas/adjuntos/{{$contacto->id}}`,
+                url: `/software/empresa/ventas-externas/adjuntos/{{$contacto->id}}`,
                 method: 'GET',
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 success: function(data) {
@@ -438,7 +438,7 @@
         function eliminarAdjunto(adjuntoId) {
             if (confirm('¿Está seguro de que desea eliminar este adjunto?')) {
                 $.ajax({
-                    url: `/empresa/ventas-externas/adjuntos/eliminar/${adjuntoId}`,
+                    url: `/software/empresa/ventas-externas/adjuntos/eliminar/${adjuntoId}`,
                     method: 'DELETE',
                     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                     success: function(data) {

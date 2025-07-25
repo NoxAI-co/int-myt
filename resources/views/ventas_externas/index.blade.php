@@ -381,7 +381,7 @@
 
     function verAdjuntos(id) {
         $.ajax({
-            url: `/empresa/ventas-externas/adjuntos/${id}`,
+            url: `/software/empresa/ventas-externas/adjuntos/${id}`,
             method: 'GET',
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             success: function(data) {

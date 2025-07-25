@@ -162,13 +162,6 @@ class VentasExternasController extends Controller{
     }
 
     public function store(Request $request){
-        // Validaciones de archivos
-        $request->validate([
-            'adjunto1' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
-            'adjunto2' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
-            'adjunto3' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
-        ]);
-
         $contacto = VentasExternas::where('nit', $request->nit)->where('empresa', Auth::user()->empresa)->first();
 
         if ($contacto) {
@@ -275,12 +268,6 @@ class VentasExternasController extends Controller{
     }
 
     public function update(Request $request, $id){
-        // Validaciones de nuevos archivos
-        $request->validate([
-            'nuevo_adjunto1' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
-            'nuevo_adjunto2' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
-            'nuevo_adjunto3' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
-        ]);
 
         $contacto = VentasExternas::where('id',$id)->where('empresa',Auth::user()->empresa)->first();
         if ($contacto) {
