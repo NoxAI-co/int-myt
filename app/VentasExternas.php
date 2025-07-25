@@ -17,6 +17,7 @@ use DB; use Auth; use StdClass;
 use App\Contrato;
 use App\Radicado;
 use App\Canal;
+use App\VentasExternasAdjunto;
 
 class VentasExternas extends Model
 {
@@ -116,5 +117,10 @@ class VentasExternas extends Model
             return Auth::user()->empresa()->codigo;
         }
         return $campo;
+    }
+    
+    public function adjuntos()
+    {
+        return $this->hasMany(VentasExternasAdjunto::class, 'venta_externa_id');
     }
 }

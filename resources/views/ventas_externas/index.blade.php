@@ -378,5 +378,67 @@
             }
         })
     }
+
+    function verAdjuntos(id) {
+        $.ajax({
+            url: `/empresa/ventas-externas/adjuntos/${id}`,
+            method: 'GET',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function(data) {
+                let html = '<div class="row">';
+                
+                if (data.adjuntos.length === 0) {
+                    html += '<div class="col-12"><p class="text-center text-muted">No hay documentos adjuntos para esta venta externa.</p></div>';
+                } else {
+                    data.adjuntos.forEach(function(adjunto) {
+                        html += `
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file fa-2x mb-2 text-info"></i>
+                                        <h6 class="card-title">${adjunto.nombre_archivo}</h6>
+                                        <small class="text-muted">${adjunto.tipo_documento}</small><br>
+                                        <a href="/${adjunto.ruta_archivo}" target="_blank" class="btn btn-sm btn-primary mt-2">
+                                            <i class="fas fa-download"></i> Descargar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += '</div>';
+                
+                $('#adjuntosModal .modal-body').html(html);
+                $('#adjuntosModal .modal-title').text(`Adjuntos de ${data.venta_externa}`);
+                $('#adjuntosModal').modal('show');
+            },
+            error: function() {
+                alert('Error al cargar los adjuntos');
+            }
+        });
+    }
 </script>
+
+<!-- Modal para mostrar adjuntos -->
+<div class="modal fade" id="adjuntosModal" tabindex="-1" role="dialog" aria-labelledby="adjuntosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="adjuntosModalLabel">Documentos Adjuntos</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- El contenido se carga dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection

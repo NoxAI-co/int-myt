@@ -29,6 +29,7 @@ use App\Campos;
 use App\Canal;
 use App\Model\Inventario\Inventario;
 use App\Oficina;
+use App\VentasExternasAdjunto;
 
 class VentasExternasController extends Controller{
     public function __construct(){
@@ -161,6 +162,13 @@ class VentasExternasController extends Controller{
     }
 
     public function store(Request $request){
+        // Validaciones de archivos
+        $request->validate([
+            'adjunto1' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
+            'adjunto2' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
+            'adjunto3' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
+        ]);
+
         $contacto = VentasExternas::where('nit', $request->nit)->where('empresa', Auth::user()->empresa)->first();
 
         if ($contacto) {
@@ -218,6 +226,32 @@ class VentasExternasController extends Controller{
 
         $contacto->save();
 
+        // Procesar adjuntos
+        $adjuntos = ['adjunto1', 'adjunto2', 'adjunto3'];
+        foreach ($adjuntos as $index => $adjunto) {
+            if ($request->hasFile($adjunto)) {
+                $file = $request->file($adjunto);
+                
+                // Validar el archivo
+                if ($file->isValid()) {
+                    $nombreOriginal = $file->getClientOriginalName();
+                    $extension = $file->getClientOriginalExtension();
+                    $nombreArchivo = time() . '_' . ($index + 1) . '_' . $contacto->id . '.' . $extension;
+                    
+                    // Mover el archivo a la carpeta de destino
+                    $rutaArchivo = $file->move(public_path('adjuntos/ventas_externas'), $nombreArchivo);
+                    
+                    // Guardar en la base de datos
+                    VentasExternasAdjunto::create([
+                        'venta_externa_id' => $contacto->id,
+                        'nombre_archivo' => $nombreOriginal,
+                        'ruta_archivo' => 'adjuntos/ventas_externas/' . $nombreArchivo,
+                        'tipo_documento' => 'documento' . ($index + 1)
+                    ]);
+                }
+            }
+        }
+
         $mensaje = 'SE HA CREADO SATISFACTORIAMENTE LA VENTA EXTERNA';
         return redirect('empresa/ventas-externas')->with('success', $mensaje);
     }
@@ -241,6 +275,13 @@ class VentasExternasController extends Controller{
     }
 
     public function update(Request $request, $id){
+        // Validaciones de nuevos archivos
+        $request->validate([
+            'nuevo_adjunto1' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
+            'nuevo_adjunto2' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
+            'nuevo_adjunto3' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx,doc|max:5120', // 5MB
+        ]);
+
         $contacto = VentasExternas::where('id',$id)->where('empresa',Auth::user()->empresa)->first();
         if ($contacto) {
             $contacto->empresa           = Auth::user()->empresa;
@@ -277,6 +318,46 @@ class VentasExternasController extends Controller{
             $contacto->plan_velocidad    = $request->plan;
             $contacto->costo_instalacion = $request->costo_instalacion;
             $contacto->save();
+
+            // Procesar nuevos adjuntos
+            $nuevosAdjuntos = ['nuevo_adjunto1', 'nuevo_adjunto2', 'nuevo_adjunto3'];
+            $adjuntosExistentes = VentasExternasAdjunto::where('venta_externa_id', $contacto->id)->count();
+            
+            // Verificar límite total de adjuntos (máximo 10 por ejemplo)
+            $adjuntosASubir = 0;
+            foreach ($nuevosAdjuntos as $adjunto) {
+                if ($request->hasFile($adjunto)) {
+                    $adjuntosASubir++;
+                }
+            }
+            
+            if (($adjuntosExistentes + $adjuntosASubir) > 10) {
+                return redirect()->back()->with('danger', 'No se pueden agregar más adjuntos. Límite máximo: 10 archivos por venta externa.');
+            }
+            
+            foreach ($nuevosAdjuntos as $index => $adjunto) {
+                if ($request->hasFile($adjunto)) {
+                    $file = $request->file($adjunto);
+                    
+                    // Validar el archivo
+                    if ($file->isValid()) {
+                        $nombreOriginal = $file->getClientOriginalName();
+                        $extension = $file->getClientOriginalExtension();
+                        $nombreArchivo = time() . '_' . ($adjuntosExistentes + $index + 1) . '_' . $contacto->id . '.' . $extension;
+                        
+                        // Mover el archivo a la carpeta de destino
+                        $rutaArchivo = $file->move(public_path('adjuntos/ventas_externas'), $nombreArchivo);
+                        
+                        // Guardar en la base de datos
+                        VentasExternasAdjunto::create([
+                            'venta_externa_id' => $contacto->id,
+                            'nombre_archivo' => $nombreOriginal,
+                            'ruta_archivo' => 'adjuntos/ventas_externas/' . $nombreArchivo,
+                            'tipo_documento' => 'documento_adicional_' . ($adjuntosExistentes + $index + 1)
+                        ]);
+                    }
+                }
+            }
 
             return redirect('empresa/ventas-externas')->with('success', 'SE HA MODIFICADO SATISFACTORIAMENTE LA VENTA EXTERNA');
         }
@@ -363,5 +444,48 @@ class VentasExternasController extends Controller{
             'correctos' => $succ,
             'state'     => 'aprobadas'
         ]);
+    }
+    
+    public function adjuntos($id) {
+        $ventaExterna = VentasExternas::where('id', $id)->where('empresa', Auth::user()->empresa)->first();
+        
+        if (!$ventaExterna) {
+            return response()->json(['error' => 'Venta externa no encontrada'], 404);
+        }
+        
+        $adjuntos = VentasExternasAdjunto::where('venta_externa_id', $id)->get();
+        
+        return response()->json([
+            'adjuntos' => $adjuntos,
+            'venta_externa' => $ventaExterna->nombre . ' ' . $ventaExterna->apellido1
+        ]);
+    }
+    
+    public function eliminarAdjunto($id) {
+        $adjunto = VentasExternasAdjunto::find($id);
+        
+        if (!$adjunto) {
+            return response()->json(['error' => 'Adjunto no encontrado'], 404);
+        }
+        
+        // Verificar que pertenece a la empresa del usuario
+        $ventaExterna = VentasExternas::where('id', $adjunto->venta_externa_id)
+                                     ->where('empresa', Auth::user()->empresa)
+                                     ->first();
+        
+        if (!$ventaExterna) {
+            return response()->json(['error' => 'No autorizado'], 403);
+        }
+        
+        // Eliminar el archivo físico
+        $rutaCompleta = public_path($adjunto->ruta_archivo);
+        if (file_exists($rutaCompleta)) {
+            unlink($rutaCompleta);
+        }
+        
+        // Eliminar el registro de la base de datos
+        $adjunto->delete();
+        
+        return response()->json(['success' => true, 'message' => 'Adjunto eliminado correctamente']);
     }
 }

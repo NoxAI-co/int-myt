@@ -369,7 +369,18 @@ class ContactosController extends Controller
             $user_app = DB::table('usuarios_app')->where('id_cliente', $contacto->id)->where('status', 1)->first();
             $contratos = Contrato::where('client_id', $contacto->id)->where('status', 1)->get();
 
-            return view('contactos.show')->with(compact('contacto', 'id', 'user_app', 'contratos'));
+            // Si es venta externa, cargar información adicional
+            $ventaExternaInfo = null;
+            if ($contacto->venta_externa == 1) {
+                $ventaExternaInfo = [
+                    'canal' => $contacto->canal_externa(),
+                    'vendedor' => $contacto->vendedor_externa(),
+                    'plan' => $contacto->plan_externa(),
+                    'costo_instalacion' => $contacto->costo_instalacion
+                ];
+            }
+
+            return view('contactos.show')->with(compact('contacto', 'id', 'user_app', 'contratos', 'ventaExternaInfo'));
         }
 
         return redirect('empresa/contactos')->with('danger', 'CLIENTE NO ENCONTRADO, INTENTE NUEVAMENTE');

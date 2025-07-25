@@ -336,6 +336,38 @@
 							<td>{{$contacto->observaciones}}</td>
 						</tr>
 						@endif
+
+						{{-- Información de Venta Externa --}}
+						@if($contacto->venta_externa == 1)
+						<tr>
+							<th class="bg-th text-center" colspan="2" style="font-size: 1em;"><strong>INFORMACIÓN DE VENTA EXTERNA</strong></th>
+						</tr>
+						@if($contacto->canal_externa)
+						<tr>
+							<th width="20%">Canal de Venta</th>
+							<td>{{$contacto->canal_externa()}}</td>
+						</tr>
+						@endif
+						@if($contacto->vendedor_externa)
+						<tr>
+							<th width="20%">Vendedor</th>
+							<td>{{$contacto->vendedor_externa()}}</td>
+						</tr>
+						@endif
+						@if($contacto->plan_velocidad)
+						<tr>
+							<th width="20%">Plan Seleccionado</th>
+							<td>{{$contacto->plan_externa()}}</td>
+						</tr>
+						@endif
+						@if($contacto->costo_instalacion)
+						<tr>
+							<th width="20%">Costo de Instalación</th>
+							<td>${{number_format($contacto->costo_instalacion, 0, ',', '.')}}</td>
+						</tr>
+						@endif
+						@endif
+						{{-- Fin Información de Venta Externa --}}
 					</tbody>
 				</table>
 			</div>

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
 
-	<form method="POST" action="{{ route('ventas-externas.update', $contacto->id) }}" style="padding: 2% 3%;" role="form" class="forms-sample" id="form-contacto">
+	<form method="POST" action="{{ route('ventas-externas.update', $contacto->id) }}" style="padding: 2% 3%;" role="form" class="forms-sample" id="form-contacto" enctype="multipart/form-data">
   		<input name="_method" type="hidden" value="PATCH">
   		{{ csrf_field() }}
   		<input type="hidden"  id="idmunicipio" value="{{ $contacto->fk_idmunicipio }}">
@@ -303,6 +303,48 @@
   		</div>
 
 		<small>Los campos marcados con <span class="text-danger">*</span> son obligatorios</small>
+  		
+  		<hr>
+  		
+  		<!-- Sección para mostrar adjuntos existentes -->
+  		<div class="row">
+  			<div class="col-md-12">
+  				<h5><i class="fas fa-paperclip"></i> Documentos Adjuntos Existentes</h5>
+  				<div id="adjuntos-existentes">
+  					<!-- Los adjuntos se cargarán aquí -->
+  				</div>
+  			</div>
+  		</div>
+  		
+  		<!-- Sección para agregar nuevos adjuntos -->
+  		<div class="row mt-4">
+  			<div class="col-md-12">
+  				<h5><i class="fas fa-plus"></i> Agregar Nuevos Documentos</h5>
+  				<p class="text-muted">Puedes agregar hasta 3 documentos adicionales (PDF, JPG, PNG, DOCX - Máximo 5MB cada uno)</p>
+  				<div class="alert alert-info">
+  					<small><i class="fas fa-info-circle"></i> Total de adjuntos permitidos por venta externa: <strong>10 archivos</strong></small>
+  				</div>
+  			</div>
+  		</div>
+
+  		<div class="row">
+  			<div class="form-group col-md-4">
+  				<label class="control-label">Nuevo Documento 1</label>
+  				<input type="file" class="form-control-file" name="nuevo_adjunto1" id="nuevo_adjunto1" accept=".pdf,.jpg,.jpeg,.png,.docx,.doc">
+  				<small class="text-muted">Máximo 5MB</small>
+  			</div>
+  			<div class="form-group col-md-4">
+  				<label class="control-label">Nuevo Documento 2</label>
+  				<input type="file" class="form-control-file" name="nuevo_adjunto2" id="nuevo_adjunto2" accept=".pdf,.jpg,.jpeg,.png,.docx,.doc">
+  				<small class="text-muted">Máximo 5MB</small>
+  			</div>
+  			<div class="form-group col-md-4">
+  				<label class="control-label">Nuevo Documento 3</label>
+  				<input type="file" class="form-control-file" name="nuevo_adjunto3" id="nuevo_adjunto3" accept=".pdf,.jpg,.jpeg,.png,.docx,.doc">
+  				<small class="text-muted">Máximo 5MB</small>
+  			</div>
+  		</div>
+  		
   		<hr>
   		<div class="row" style="text-align: right;">
   			<div class="col-md-12">
@@ -326,6 +368,126 @@
                 if (option == 6) {
                     searchDV($("#tip_iden").val());
                 }
+                
+            // Cargar adjuntos existentes
+            cargarAdjuntosExistentes();
+            
+            // Agregar event listeners para los nuevos adjuntos
+            $('#nuevo_adjunto1, #nuevo_adjunto2, #nuevo_adjunto3').on('change', function() {
+                mostrarVistaPrevia(this);
             });
+        });
+        
+        function cargarAdjuntosExistentes() {
+            $.ajax({
+                url: `/empresa/ventas-externas/adjuntos/{{$contacto->id}}`,
+                method: 'GET',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function(data) {
+                    let html = '<div class="row">';
+                    
+                    if (data.adjuntos.length === 0) {
+                        html += '<div class="col-12"><p class="text-muted">No hay documentos adjuntos para esta venta externa.</p></div>';
+                    } else {
+                        data.adjuntos.forEach(function(adjunto) {
+                            html += `
+                                <div class="col-md-3 mb-3" id="adjunto-${adjunto.id}">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-file fa-2x mb-2 text-info"></i>
+                                            <h6 class="card-title" style="font-size: 0.8rem;">${adjunto.nombre_archivo}</h6>
+                                            <small class="text-muted">${adjunto.tipo_documento}</small><br>
+                                            <div class="mt-2">
+                                                <a href="/${adjunto.ruta_archivo}" target="_blank" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-download"></i> Ver
+                                                </a>
+                                                <button onclick="eliminarAdjunto(${adjunto.id})" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    html += '</div>';
+                    
+                    // Agregar contador de adjuntos
+                    const totalAdjuntos = data.adjuntos.length;
+                    const adjuntosRestantes = 10 - totalAdjuntos;
+                    html += `
+                        <div class="alert alert-light">
+                            <small>
+                                <i class="fas fa-paperclip"></i> 
+                                Adjuntos actuales: <strong>${totalAdjuntos}</strong> | 
+                                Disponibles: <strong>${adjuntosRestantes}</strong>
+                            </small>
+                        </div>
+                    `;
+                    
+                    $('#adjuntos-existentes').html(html);
+                },
+                error: function() {
+                    $('#adjuntos-existentes').html('<p class="text-danger">Error al cargar los adjuntos</p>');
+                }
+            });
+        }
+        
+        function eliminarAdjunto(adjuntoId) {
+            if (confirm('¿Está seguro de que desea eliminar este adjunto?')) {
+                $.ajax({
+                    url: `/empresa/ventas-externas/adjuntos/eliminar/${adjuntoId}`,
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    success: function(data) {
+                        if (data.success) {
+                            $('#adjunto-' + adjuntoId).fadeOut(300, function() {
+                                $(this).remove();
+                                // Recargar la sección de adjuntos existentes para actualizar el contador
+                                cargarAdjuntosExistentes();
+                            });
+                            alert('Adjunto eliminado correctamente');
+                        } else {
+                            alert('Error al eliminar el adjunto');
+                        }
+                    },
+                    error: function() {
+                        alert('Error al eliminar el adjunto');
+                    }
+                });
+            }
+        }
+        
+        function mostrarVistaPrevia(input) {
+            if (input.files && input.files[0]) {
+                const archivo = input.files[0];
+                const tamaño = archivo.size / 1024 / 1024; // Convertir a MB
+                
+                // Obtener el contenedor de vista previa
+                let previsualizacion = $(input).siblings('.vista-previa');
+                if (previsualizacion.length === 0) {
+                    previsualizacion = $('<div class="vista-previa mt-2"></div>');
+                    $(input).after(previsualizacion);
+                }
+                
+                let html = `
+                    <div class="alert alert-info p-2">
+                        <small>
+                            <i class="fas fa-file"></i> 
+                            <strong>${archivo.name}</strong><br>
+                            Tamaño: ${tamaño.toFixed(2)} MB
+                        </small>
+                `;
+                
+                if (tamaño > 5) {
+                    html += `<br><span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Archivo muy grande (máximo 5MB)</span>`;
+                }
+                
+                html += `</div>`;
+                previsualizacion.html(html);
+            }
+        }
 	</script>
 @endsection

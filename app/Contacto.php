@@ -19,6 +19,7 @@ use App\Contrato;
 use App\Model\Ingresos\Ingreso;
 use App\Radicado;
 use App\Oficina;
+use App\Canal;
 
 class Contacto extends Model
 {
@@ -31,7 +32,7 @@ class Contacto extends Model
      */
     protected $fillable = [
         'empresa', 'nombre', 'apellido1', 'apellido2', 'nit', 'tip_iden', 'tipo_contacto', 'tipo_empresa', 'direccion', 'saldo_favor', 'ciudad', 'telefono1', 'telefono2', 'fax', 'celular', 'estrato', 'observaciones', 'email', 'status', 'created_at', 'updated_at' , 'vendedor', 'lista_precio','dv',
-        'tipo_persona','responsableiva','plan','contrato', 'serial_onu', 'imgA', 'imgB', 'imgC', 'imgD', 'fecha_contrato', 'referencia_asignacion','boton_emision','monitoreo','refiere','combo_int_tv','referencia_1','referencia_2','cierra_venta','usuario_wifi','contrasena_wifi','ip_receptora','puerto_receptor'
+        'tipo_persona','responsableiva','plan','contrato', 'serial_onu', 'imgA', 'imgB', 'imgC', 'imgD', 'fecha_contrato', 'referencia_asignacion','boton_emision','monitoreo','refiere','combo_int_tv','referencia_1','referencia_2','cierra_venta','usuario_wifi','contrasena_wifi','ip_receptora','puerto_receptor','venta_externa','canal_externa','vendedor_externa','plan_velocidad','costo_instalacion'
     ];
 
     protected $appends = ['usado', 'contract', 'details'];
@@ -392,5 +393,44 @@ class Contacto extends Model
         }
         return $barrio;
 
+    }
+
+    public function vendedor_externa(){
+        if($this->vendedor_externa){
+            $vendedor = \App\Vendedor::where('id',$this->vendedor_externa)->first();
+            return $vendedor ? $vendedor->nombre : 'N/A';
+        }
+        return 'N/A';
+    }
+
+    public function canal_externa(){
+        if($this->canal_externa){
+            $canal = \App\Canal::where('id',$this->canal_externa)->first();
+            return $canal ? $canal->nombre : 'N/A';
+        }
+        return 'N/A';
+    }
+
+    public function plan_externa(){
+        if($this->plan_velocidad){
+            $plan = \App\Model\Inventario\Inventario::where('id',$this->plan_velocidad)->first();
+            if($plan) {
+                $precio = number_format($plan->precio, 0, ',', '.');
+                return $plan->producto . ' - $' . $precio;
+            }
+            return 'N/A';
+        }
+        return 'N/A';
+    }
+
+    public function precio_plan_externa(){
+        if($this->plan_velocidad){
+            $plan = \App\Model\Inventario\Inventario::where('id',$this->plan_velocidad)->first();
+            if($plan) {
+                return '$' . number_format($plan->precio, 0, ',', '.');
+            }
+            return 'N/A';
+        }
+        return 'N/A';
     }
 }
