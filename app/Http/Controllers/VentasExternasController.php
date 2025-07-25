@@ -101,7 +101,7 @@ class VentasExternasController extends Controller{
         }
 
         $contactos->where('empresa', auth()->user()->empresa);
-        $contactos->where('tipo_contacto', 3);
+        $contactos->whereIn('tipo_contacto', [0, 3]);
         $contactos->where('contactos.status', 1);
         $contactos->where('contactos.venta_externa', 1);
 

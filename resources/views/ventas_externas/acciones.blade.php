@@ -10,7 +10,9 @@
     <a href="{{route('ventas-externas.edit', $id)}}" class="btn btn-outline-primary btn-icons" title="Editar"><i class="fas fa-edit"></i></a>
 @endif
 @if(isset($session['803']))
+    @if(isset($venta_externa) &&  $venta_externa == 1 && $tipo_contacto == 3)
     <button class="btn btn-outline-success btn-icons" title="Aprobar Venta Externa" type="submit" onclick="confirmar('aprobar-{{$id}}', '¿Está seguro que desea aprobar esta venta externa?', 'Los cambios realizados no se pueden revertir');"><i class="fas fa-check"></i></button>
+    @endif
 @endif
 
 @if(isset($session['816']))
