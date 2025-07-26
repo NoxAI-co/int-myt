@@ -3164,7 +3164,7 @@ class CronController extends Controller
                     if ($err) {
                         $factura->response = 'Error cURL: ' . $err;
                         $factura->save();
-                        return back()->with('danger', 'Error cURL: ' . $err);
+                        
                     } else {
                         $response = json_decode($result, true);
                         if (isset($response['error']) || isset($response['errors'])) {
@@ -3174,7 +3174,7 @@ class CronController extends Controller
                             }
                             $factura->response = $msj;
                             $factura->save();
-                            return back()->with('danger', 'Envío Fallido: ' . $msj);
+                     
                         } else {
                             $msj = 'SMS enviado correctamente con Hablame v5';
                             if (isset($response['status'])) {
@@ -3182,12 +3182,12 @@ class CronController extends Controller
                             }
                             $factura->response = $msj;
                             $factura->save();
-                            return back()->with('success', 'Envío Éxitoso: ' . $msj);
+                       
                         }
                     }
                 } else {
                     $mensaje = 'EL MENSAJE NO SE PUDO ENVIAR PORQUE FALTA LA CLAVE API (X-Hablame-Key) EN LA CONFIGURACIÓN DEL SERVICIO';
-                    return back()->with('danger', $mensaje);
+  
                 }
             }elseif($servicio->nombre == 'SmsEasySms'){
                 if($servicio->user && $servicio->pass){
