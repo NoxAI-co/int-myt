@@ -3063,7 +3063,7 @@ class CronController extends Controller
         $bulk = '';
         $empresa = Empresa::find(1);
         $facturas = Factura::where('fecha', $fecha)->where('estatus', 1)->get();
-
+        
         foreach ($facturas as $factura) {
             if($factura->cliente()->celular){
                 $numero = str_replace('+','',$factura->cliente()->celular);
@@ -3127,67 +3127,99 @@ class CronController extends Controller
                 }
             } elseif ($servicio->nombre == 'Hablame SMS v5') {
                 if ($servicio->api_key) {
-                    $post = [
-                        'priority' => false,
-                        'certificate' => false,
-                        'from' => $servicio->numero ? $servicio->numero : 'SMS',
-                        'flash' => false,
-                        'messages' => [
-                            [
+                    // Para Hablame SMS v5 enviamos todos los SMS en una sola petición
+                    $messages = [];
+                    
+                    foreach ($facturas as $factura) {
+                        if($factura->cliente()->celular){
+                            $numero = str_replace('+','',$factura->cliente()->celular);
+                            $numero = str_replace(' ','',$numero);
+                            $numero = '57'.$numero;
+
+                            // Preparar mensaje personalizado
+                            $mensajePersonalizado = $mensaje;
+                            if($empresa->sms_factura_generada){
+                                $nombreCliente = trim($factura->cliente()->nombre.' '.$factura->cliente()->apellidos());
+                                $nombreEmpresa = $empresa->nombre;
+                                $codigoFactura = $factura->codigo ?? $factura->nro;
+                                $valorFactura =  $factura->totalAPI($empresa->id)->total;
+                                $fechaVencimiento = date('d-m-Y', strtotime($factura->vencimiento));
+
+                                $mensajePersonalizado = $empresa->sms_factura_generada;
+                                $mensajePersonalizado = str_replace("{cliente}", $nombreCliente, $mensajePersonalizado);
+                                $mensajePersonalizado = str_replace("{empresa}", $nombreEmpresa, $mensajePersonalizado);
+                                $mensajePersonalizado = str_replace("{factura}", $codigoFactura, $mensajePersonalizado);
+                                $mensajePersonalizado = str_replace("{valor}", $valorFactura, $mensajePersonalizado);
+                                $mensajePersonalizado = str_replace("{vencimiento}", $fechaVencimiento, $mensajePersonalizado);
+                            }elseif($empresa->nombre == 'FIBRACONEXION S.A.S.' || $empresa->nit == '900822955' || $empresa->nombre == 'Almeidas Comunicaciones S.A.S' ||  $empresa->nit == '901044772'){
+                                $fullname = $factura->cliente()->nombre.' '.$factura->cliente()->apellidos();
+                                $mensajePersonalizado = trim($fullname).'. '.$empresa->nombre.' le informa que su factura de servicio de internet. Tiene como fecha de vencimiento: '.date('d-m-Y', strtotime($factura->vencimiento)).' Total a pagar '.$factura->totalAPI($empresa->id)->total;
+                            }else{
+                                $mensajePersonalizado = "Hola, ".$empresa->nombre." le informa que su factura de internet ha sido generada. ".$empresa->slogan;
+                            }
+
+                            // Agregar mensaje al array
+                            $messages[] = [
                                 'to' => $numero,
-                                'text' => $mensaje
-                            ]
-                        ]
-                    ];
-
-                    $curl = curl_init();
-                    curl_setopt_array($curl, array(
-                        CURLOPT_URL => 'https://www.hablame.co/api/sms/v5/send',
-                        CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_ENCODING => '',
-                        CURLOPT_MAXREDIRS => 10,
-                        CURLOPT_TIMEOUT => 0,
-                        CURLOPT_FOLLOWLOCATION => true,
-                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                        CURLOPT_CUSTOMREQUEST => 'POST',
-                        CURLOPT_POSTFIELDS => json_encode($post),
-                        CURLOPT_HTTPHEADER => array(
-                            'X-Hablame-Key: ' . $servicio->api_key,
-                            'accept: application/json',
-                            'content-type: application/json'
-                        ),
-                    ));
-                    $result = curl_exec($curl);
-                    $err = curl_error($curl);
-                    curl_close($curl);
-
-                    if ($err) {
-                        $factura->response = 'Error cURL: ' . $err;
-                        $factura->save();
-                        
-                    } else {
-                        $response = json_decode($result, true);
-                        if (isset($response['error']) || isset($response['errors'])) {
-                            $msj = isset($response['error']) ? $response['error'] : 'Error en el envío';
-                            if (isset($response['errors'])) {
-                                $msj = is_array($response['errors']) ? implode(', ', $response['errors']) : $response['errors'];
-                            }
-                            $factura->response = $msj;
-                            $factura->save();
-                     
-                        } else {
-                            $msj = 'SMS enviado correctamente con Hablame v5';
-                            if (isset($response['status'])) {
-                                $msj = 'SMS enviado - Status: ' . $response['status'];
-                            }
-                            $factura->response = $msj;
-                            $factura->save();
-                       
+                                'text' => $mensajePersonalizado
+                            ];
                         }
                     }
+
+                    // Solo enviar si hay mensajes para enviar
+                    if(!empty($messages)){
+                        $post = [
+                            'priority' => false,
+                            'certificate' => false,
+                            'from' => $servicio->numero ? $servicio->numero : 'SMS',
+                            'flash' => false,
+                            'messages' => $messages
+                        ];
+
+                        $curl = curl_init();
+                        curl_setopt_array($curl, array(
+                            CURLOPT_URL => 'https://www.hablame.co/api/sms/v5/send',
+                            CURLOPT_RETURNTRANSFER => true,
+                            CURLOPT_ENCODING => '',
+                            CURLOPT_MAXREDIRS => 10,
+                            CURLOPT_TIMEOUT => 60,
+                            CURLOPT_FOLLOWLOCATION => true,
+                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                            CURLOPT_CUSTOMREQUEST => 'POST',
+                            CURLOPT_POSTFIELDS => json_encode($post),
+                            CURLOPT_HTTPHEADER => array(
+                                'X-Hablame-Key: ' . $servicio->api_key,
+                                'accept: application/json',
+                                'content-type: application/json'
+                            ),
+                        ));
+                        $result = curl_exec($curl);
+                        $err = curl_error($curl);
+                        curl_close($curl);
+
+                        if ($err) {
+                            Log::error("Error SMS Hablame v5 bulk: " . $err);
+                        } else {
+                            $response = json_decode($result, true);
+                            if (isset($response['error']) || isset($response['errors'])) {
+                                $msj = isset($response['error']) ? $response['error'] : 'Error en el envío bulk';
+                                if (isset($response['errors'])) {
+                                    $msj = is_array($response['errors']) ? implode(', ', $response['errors']) : $response['errors'];
+                                }
+                                Log::error("Error SMS Hablame v5 bulk: " . $msj);
+                            } else {
+                                $totalEnviados = count($messages);
+                                Log::info("SMS Hablame v5 bulk enviado correctamente - Total: {$totalEnviados} mensajes");
+                                if(isset($response['data'])){
+                                    Log::info("Respuesta API: " . json_encode($response['data']));
+                                }
+                            }
+                        }
+                    } else {
+                        Log::info("No hay mensajes para enviar en SMS Hablame v5");
+                    }
                 } else {
-                    $mensaje = 'EL MENSAJE NO SE PUDO ENVIAR PORQUE FALTA LA CLAVE API (X-Hablame-Key) EN LA CONFIGURACIÓN DEL SERVICIO';
-  
+                    Log::error('EL MENSAJE NO SE PUDO ENVIAR PORQUE FALTA LA CLAVE API (X-Hablame-Key) EN LA CONFIGURACIÓN DEL SERVICIO');
                 }
             }elseif($servicio->nombre == 'SmsEasySms'){
                 if($servicio->user && $servicio->pass){
