@@ -702,70 +702,6 @@ class IngresosController extends Controller
                                     $err  = curl_error($curl);
                                     curl_close($curl);
                                 }
-                            } elseif ($servicio->nombre == 'Hablame SMS v5') {
-                                if ($servicio->api_key) {
-                                    $post = [
-                                        'priority' => false,
-                                        'certificate' => false,
-                                        'from' => $servicio->numero ? $servicio->numero : 'SMS',
-                                        'flash' => false,
-                                        'messages' => [
-                                            [
-                                                'to' => $numero,
-                                                'text' => $mensaje
-                                            ]
-                                        ]
-                                    ];
-
-                                    $curl = curl_init();
-                                    curl_setopt_array($curl, array(
-                                        CURLOPT_URL => 'https://www.hablame.co/api/sms/v5/send',
-                                        CURLOPT_RETURNTRANSFER => true,
-                                        CURLOPT_ENCODING => '',
-                                        CURLOPT_MAXREDIRS => 10,
-                                        CURLOPT_TIMEOUT => 0,
-                                        CURLOPT_FOLLOWLOCATION => true,
-                                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                                        CURLOPT_CUSTOMREQUEST => 'POST',
-                                        CURLOPT_POSTFIELDS => json_encode($post),
-                                        CURLOPT_HTTPHEADER => array(
-                                            'X-Hablame-Key: ' . $servicio->api_key,
-                                            'accept: application/json',
-                                            'content-type: application/json'
-                                        ),
-                                    ));
-                                    $result = curl_exec($curl);
-                                    $err = curl_error($curl);
-                                    curl_close($curl);
-
-                                    if ($err) {
-                                        $factura->response = 'Error cURL: ' . $err;
-                                        $factura->save();
-                                        return back()->with('danger', 'Error cURL: ' . $err);
-                                    } else {
-                                        $response = json_decode($result, true);
-                                        if (isset($response['error']) || isset($response['errors'])) {
-                                            $msj = isset($response['error']) ? $response['error'] : 'Error en el envío';
-                                            if (isset($response['errors'])) {
-                                                $msj = is_array($response['errors']) ? implode(', ', $response['errors']) : $response['errors'];
-                                            }
-                                            $factura->response = $msj;
-                                            $factura->save();
-                                            return back()->with('danger', 'Envío Fallido: ' . $msj);
-                                        } else {
-                                            $msj = 'SMS enviado correctamente con Hablame v5';
-                                            if (isset($response['status'])) {
-                                                $msj = 'SMS enviado - Status: ' . $response['status'];
-                                            }
-                                            $factura->response = $msj;
-                                            $factura->save();
-                                            return back()->with('success', 'Envío Éxitoso: ' . $msj);
-                                        }
-                                    }
-                                } else {
-                                    $mensaje = 'EL MENSAJE NO SE PUDO ENVIAR PORQUE FALTA LA CLAVE API (X-Hablame-Key) EN LA CONFIGURACIÓN DEL SERVICIO';
-                                    return back()->with('danger', $mensaje);
-                                }
                             }elseif($servicio->nombre == 'SmsEasySms'){
                                 if($servicio->user && $servicio->pass){
                                     $post['to'] = array('57'.$numero);
@@ -1879,71 +1815,7 @@ class IngresosController extends Controller
                                         $err  = curl_error($curl);
                                         curl_close($curl);
                                     }
-                                } elseif ($servicio->nombre == 'Hablame SMS v5') {
-                                    if ($servicio->api_key) {
-                                        $post = [
-                                            'priority' => false,
-                                            'certificate' => false,
-                                            'from' => $servicio->numero ? $servicio->numero : 'SMS',
-                                            'flash' => false,
-                                            'messages' => [
-                                                [
-                                                    'to' => $numero,
-                                                    'text' => $mensaje
-                                                ]
-                                            ]
-                                        ];
-
-                                        $curl = curl_init();
-                                        curl_setopt_array($curl, array(
-                                            CURLOPT_URL => 'https://www.hablame.co/api/sms/v5/send',
-                                            CURLOPT_RETURNTRANSFER => true,
-                                            CURLOPT_ENCODING => '',
-                                            CURLOPT_MAXREDIRS => 10,
-                                            CURLOPT_TIMEOUT => 0,
-                                            CURLOPT_FOLLOWLOCATION => true,
-                                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                                            CURLOPT_CUSTOMREQUEST => 'POST',
-                                            CURLOPT_POSTFIELDS => json_encode($post),
-                                            CURLOPT_HTTPHEADER => array(
-                                                'X-Hablame-Key: ' . $servicio->api_key,
-                                                'accept: application/json',
-                                                'content-type: application/json'
-                                            ),
-                                        ));
-                                        $result = curl_exec($curl);
-                                        $err = curl_error($curl);
-                                        curl_close($curl);
-
-                                        if ($err) {
-                                            $factura->response = 'Error cURL: ' . $err;
-                                            $factura->save();
-                                            return back()->with('danger', 'Error cURL: ' . $err);
-                                        } else {
-                                            $response = json_decode($result, true);
-                                            if (isset($response['error']) || isset($response['errors'])) {
-                                                $msj = isset($response['error']) ? $response['error'] : 'Error en el envío';
-                                                if (isset($response['errors'])) {
-                                                    $msj = is_array($response['errors']) ? implode(', ', $response['errors']) : $response['errors'];
-                                                }
-                                                $factura->response = $msj;
-                                                $factura->save();
-                                                return back()->with('danger', 'Envío Fallido: ' . $msj);
-                                            } else {
-                                                $msj = 'SMS enviado correctamente con Hablame v5';
-                                                if (isset($response['status'])) {
-                                                    $msj = 'SMS enviado - Status: ' . $response['status'];
-                                                }
-                                                $factura->response = $msj;
-                                                $factura->save();
-                                                return back()->with('success', 'Envío Éxitoso: ' . $msj);
-                                            }
-                                        }
-                                    } else {
-                                        $mensaje = 'EL MENSAJE NO SE PUDO ENVIAR PORQUE FALTA LA CLAVE API (X-Hablame-Key) EN LA CONFIGURACIÓN DEL SERVICIO';
-                                        return back()->with('danger', $mensaje);
-                                    }
-                                }elseif($servicio->nombre == 'SmsEasySms'){
+                                } elseif($servicio->nombre == 'SmsEasySms'){
                                     if($servicio->user && $servicio->pass){
                                         $post['to'] = array('57'.$numero);
                                         $post['text'] = $mensaje;
