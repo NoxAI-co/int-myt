@@ -2367,6 +2367,12 @@ class ContratosController extends Controller
         $i=4;
         $letra=0;
 
+                
+        $barrios = [];
+        if(isset($request->barrio)){
+            $barrios = array_map('intval', explode(',', $request->barrio));
+        }
+
         $contratos = Contrato::query()
             ->select(
                 'contracts.*',
@@ -2455,8 +2461,8 @@ class ContratosController extends Controller
             });
         }
         if($request->barrio != null){
-            $contratos->where(function ($query) use ($request) {
-                $query->orWhere('contactos.barrio_id', 'like', "%{$request->barrio}%");
+            $contratos->where(function ($query) use ($request,$barrios) {
+                $query->orWhereIn('contactos.barrio_id',$barrios);
             });
         }
         if($request->celular != null){
