@@ -1315,11 +1315,13 @@ class FacturasController extends Controller{
                 $bodega = Bodega::where('empresa',$user->empresa)->where('id', $factura->bodega)->first();
                 $items = ItemsFactura::join('inventario as inv', 'inv.id', '=', 'items_factura.producto')->select('items_factura.*')->where('items_factura.factura',$factura->id)->where('inv.tipo_producto', 1)->get();
                 foreach ($items as $item) {
-                    $ajuste=ProductosBodega::where('empresa', $user->empresa)->where('bodega', $bodega->id)->where('producto', $item->producto)->first();
-                    if ($ajuste) {
-                        $ajuste->nro+=$item->cant;
-                        $ajuste->save();
-                    }
+                    if($bodega){
+                        $ajuste=ProductosBodega::where('empresa', $user->empresa)->where('bodega', $bodega->id)->where('producto', $item->producto)->first();
+                       if ($ajuste) {
+                       $ajuste->nro+=$item->cant;
+                       $ajuste->save();
+                       }
+                   }
                 }
 
                 //Modificacion de los datos de la factura

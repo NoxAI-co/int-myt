@@ -438,7 +438,13 @@ class IngresosController extends Controller
             }
 
             if(isset($request->uso_saldo) && $request->uso_saldo){
-                $request->cuenta = Banco::where('empresa',$user->empresa)->where('nombre','like','Saldos a favor')->first()->id;
+                $banco_favor = Banco::where('empresa',$user->empresa)->where('nombre','like','Saldos a favor')->first();
+                if($banco_favor){
+                    $request->cuenta = $banco_favor->id;
+                }else{
+                    $mensaje='DISCULPE, NO SE ENCUENTRA REGISTRADO UN BANCO CON EL NOMBRE "SALDOS A FAVOR"';
+                    return back()->with('danger', $mensaje)->withInput();  
+                }
             }
 
             $ingreso = new Ingreso;
