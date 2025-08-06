@@ -1363,20 +1363,15 @@ public function forma_pago()
                 $inicioCorte =  $inicioCorte->subMonth();
             }
             else{
-                if($empresa->periodo_facturacion == 1){
-
-                    //validacion 29 de febrero para que tome 28
-                    $diafinValidar = Carbon::parse($finCorte)->format('d');
-                    $mesfinValidar = Carbon::parse($finCorte)->format('m');
-                    $yearfinValidar = Carbon::parse($finCorte)->format('Y');
-                    
-                    if($diafinValidar == 29 && $mesfinValidar==1){
-                        $finCorte = $diafinValidar-1  ."-" . $mesfinValidar . "-" . $yearfinValidar;
-                    }
-                    
-
-                    $finCorte = Carbon::parse($finCorte)->addMonth();
-                    $inicioCorte =  $inicioCorte->addMonth();
+                if ($empresa->periodo_facturacion == 1) {
+                    $corteActual = Carbon::createFromDate(
+                        Carbon::parse($this->fecha)->year,
+                        Carbon::parse($this->fecha)->month,
+                        $grupo->fecha_corte
+                    )->addMonth(); // Corte del mes siguiente
+                
+                    $inicioCorte = $corteActual->copy(); // Día del corte
+                    $finCorte = $corteActual->copy()->addMonth()->subDay(); // Un día antes del siguiente corte
                 }
             }
             //se comenta por que etsaba creando conflicto

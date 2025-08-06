@@ -952,9 +952,11 @@ class IngresosController extends Controller
 
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error($th->getMessage());
             return back()->with('danger', $th->getMessage());
         }catch (\Exception $exception){
             DB::rollBack();
+            Log::error($exception->getMessage());
             return back()->with('danger', $exception->getMessage());
         }
     }
