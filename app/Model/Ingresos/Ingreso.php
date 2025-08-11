@@ -355,7 +355,7 @@ class Ingreso extends Model
                 $nro->caja+= 1;
                 $caja=$nro->caja;
                 $nro->save();
-            }
+            } 
 
             $this->nro = $caja;
             $this->save();
