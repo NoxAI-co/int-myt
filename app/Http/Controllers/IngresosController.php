@@ -1187,9 +1187,9 @@ class IngresosController extends Controller
         $this->getAllPermissions(Auth::user()->id);
 
         $ingreso = Ingreso::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
-        $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
         
         if ($ingreso) {
+            $ingreso->uniqueNroFresh(); //si el nro ya existe le coloca uno nuevo.
             if ($ingreso->tipo==1) {
                 $titulo='Pago a facturas de venta';
                 $items = IngresosFactura::where('ingreso',$ingreso->id)->get();
