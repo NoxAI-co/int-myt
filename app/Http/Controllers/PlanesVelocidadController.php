@@ -209,12 +209,12 @@ class PlanesVelocidadController extends Controller
             return back()->with('error', 'Debe asociar la mikrotik');
         }
 
-        if(isset($request->default_venta_externa) && $request->default_venta_externa == 1){
-            $count = Inventario::where('default_venta_externa',1)->count();
-            if($count > 0){
-                return back()->with('error', 'Ya existe un plan con la venta externa por defecto, por favor desactive la venta externa por defecto de ese plan para poder continuar');
-            }
-        }
+        // if(isset($request->default_venta_externa) && $request->default_venta_externa == 1){
+        //     $count = Inventario::where('default_venta_externa',1)->count();
+        //     if($count > 0){
+        //         return back()->with('error', 'Ya existe un plan con la venta externa por defecto, por favor desactive la venta externa por defecto de ese plan para poder continuar');
+        //     }
+        // }
 
         $num_microtik = count($request->mikrotik);
         for ($i=0; $i < count($request->mikrotik) ; $i++) {
@@ -450,12 +450,12 @@ class PlanesVelocidadController extends Controller
                 'mikrotik' => 'required|max:200',
             ]);
 
-            if(isset($request->default_venta_externa) && $request->default_venta_externa == 1){
-                $count = Inventario::where('default_venta_externa',1)->where('id','<>',$plan->item)->count();
-                if($count > 0){
-                    return back()->with('error', 'Ya existe un plan con la venta externa por defecto, por favor desactive la venta externa por defecto de ese plan para poder continuar');
-                }
-            }
+            // if(isset($request->default_venta_externa) && $request->default_venta_externa == 1){
+            //     $count = Inventario::where('default_venta_externa',1)->where('id','<>',$plan->item)->count();
+            //     if($count > 0){
+            //         return back()->with('error', 'Ya existe un plan con la venta externa por defecto, por favor desactive la venta externa por defecto de ese plan para poder continuar');
+            //     }
+            // }
 
             $plan->mikrotik = $request->mikrotik;
             $plan->name = $request->name;
