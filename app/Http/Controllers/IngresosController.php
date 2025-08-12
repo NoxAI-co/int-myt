@@ -1118,6 +1118,8 @@ class IngresosController extends Controller
 
         //mandamos por parametro el ingreso y el 1 (guardar)
         PucMovimiento::ingreso($ingreso,1,0);
+
+        DB::commit();
     }
 
     public function updateIngresoPucCategoria($request,$id){
