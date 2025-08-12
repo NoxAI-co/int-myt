@@ -30,7 +30,8 @@ class Inventario extends Model
      */
     protected $fillable = [
         'empresa', 'producto', 'ref', 'precio', 'descripcion', 'impuesto', 'id_impuesto', 'imagen', 'nro', 'categoria',
-        'inicial', 'unidad', 'status',  'created_at', 'updated_at', 'tipo_producto', 'publico', 'costo_unidad', 'lista', 'link', 'type'
+        'inicial', 'unidad', 'status',  'created_at', 'updated_at', 'tipo_producto', 'publico', 'costo_unidad', 'lista',
+        'link', 'type', 'default_venta_externa'
     ];
     public function status(){
       return $this->status==1?'Activo':'Inactivo';

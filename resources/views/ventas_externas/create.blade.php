@@ -205,7 +205,7 @@
                 <label class="control-label">Planes</label>
                 <select class="form-control  selectpicker" name="plan" id="plan" required="" title="Seleccione" data-live-search="true" data-size="5" onchange="validateCountry(this.value)">
                     @foreach($planes as $plan)
-                      <option value="{{$plan->id}}">{{$plan->producto}}</option>
+                      <option value="{{$plan->id}}" {{ $plan->default_venta_externa == 1 ? 'selected' : '' }}>{{$plan->producto}}</option>
                     @endforeach
                 </select>
             </div>

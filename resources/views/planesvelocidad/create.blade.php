@@ -43,6 +43,19 @@
     	}
     </style>
 
+	@if(Session::has('error'))
+	<div class="alert alert-danger" >
+		{{Session::get('error')}}
+	</div>
+
+	<script type="text/javascript">
+		setTimeout(function(){
+			$('.alert').hide();
+			$('.active_table').attr('class', ' ');
+		}, 10000);
+	</script>
+	@endif
+
     <form method="POST" action="{{ route('planes-velocidad.store') }}" style="padding: 2% 3%;" role="form" class="forms-sample" novalidate id="form-retencion" >
 	    {{ csrf_field() }}
 	    <ul class="nav nav-pills mb-5" id="pills-tab" role="tablist">
@@ -152,6 +165,16 @@
           			    </select>
         	            <span class="help-block error">
         	                <strong>{{ $errors->first('tipo_plan') }}</strong>
+        	            </span>
+        	        </div>
+					<div class="col-md-3 form-group">
+        	            <label class="control-label">Por defecto en ventas externas? <span class="text-danger">*</span></label>
+        	            <select class="form-control selectpicker" name="default_venta_externa" id="default_venta_externa" required="" title="Seleccione">
+        	                <option {{old('default_venta_externa')==1?'selected':''}} value="1">Si</option>
+        	                <option {{old('default_venta_externa')==0?'selected':''}} value="0" selected>No</option>
+          			    </select>
+        	            <span class="help-block error">
+        	                <strong>{{ $errors->first('default_venta_externa') }}</strong>
         	            </span>
         	        </div>
         	   </div>

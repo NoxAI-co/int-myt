@@ -208,6 +208,14 @@ class PlanesVelocidadController extends Controller
         if($request->mikrotik == null){
             return back()->with('error', 'Debe asociar la mikrotik');
         }
+
+        if(isset($request->default_venta_externa) && $request->default_venta_externa == 1){
+            $count = Inventario::where('default_venta_externa',1)->count();
+            if($count > 0){
+                return back()->with('error', 'Ya existe un plan con la venta externa por defecto, por favor desactive la venta externa por defecto de ese plan para poder continuar');
+            }
+        }
+
         $num_microtik = count($request->mikrotik);
         for ($i=0; $i < count($request->mikrotik) ; $i++) {
             $inventario                = new Inventario;
@@ -226,24 +234,12 @@ class PlanesVelocidadController extends Controller
             $inventario->lista         = 0;
             $inventario->type_autoretencion = isset($request->tipo_autoretencion) ? $request->tipo_autoretencion : null;
             $inventario->type          = 'PLAN';
+            $inventario->default_venta_externa = isset($request->default_venta_externa) ? $request->default_venta_externa : 0;
+            
             $inventario->save();
 
             $plan = new PlanesVelocidad;
             $plan->mikrotik = $request->mikrotik[$i];
-
-            // if ((!empty($request->mikrotik[1])) && (isset($request->mikrotik[1]))) {
-
-            //     $plan->mikrotik1 = $request->mikrotik[1];
-            // }
-            // if (!empty($request->mikrotik[2]) && (isset($request->mikrotik[2]))) {
-            //     $plan->mikrotik2 = $request->mikrotik[2];
-            // }
-            // if (!empty($request->mikrotik[3]) && (isset($request->mikrotik[3]))) {
-            //     $plan->mikrotik3 = $request->mikrotik[3];
-            // }
-            // if (!empty($request->mikrotik[4]) && (isset($request->mikrotik[4]))) {
-            //     $plan->mikrotik4 = $request->mikrotik[4];
-            // }
 
             $plan->name = $request->name;
             $plan->price = $request->price;
@@ -454,20 +450,14 @@ class PlanesVelocidadController extends Controller
                 'mikrotik' => 'required|max:200',
             ]);
 
-            $plan->mikrotik = $request->mikrotik;
-            // if ((!empty($request->mikrotik[1])) && (isset($request->mikrotik[1]))) {
+            if(isset($request->default_venta_externa) && $request->default_venta_externa == 1){
+                $count = Inventario::where('default_venta_externa',1)->where('id','<>',$plan->item)->count();
+                if($count > 0){
+                    return back()->with('error', 'Ya existe un plan con la venta externa por defecto, por favor desactive la venta externa por defecto de ese plan para poder continuar');
+                }
+            }
 
-            //     $plan->mikrotik1 = $request->mikrotik[1];
-            // }
-            // if (!empty($request->mikrotik[2]) && (isset($request->mikrotik[2]))) {
-            //     $plan->mikrotik2 = $request->mikrotik[2];
-            // }
-            // if (!empty($request->mikrotik[3]) && (isset($request->mikrotik[3]))) {
-            //     $plan->mikrotik3 = $request->mikrotik[3];
-            // }
-            // if (!empty($request->mikrotik[4]) && (isset($request->mikrotik[4]))) {
-            //     $plan->mikrotik4 = $request->mikrotik[4];
-            // }
+            $plan->mikrotik = $request->mikrotik;
             $plan->name = $request->name;
             $plan->price = $request->price;
             $plan->upload = $request->upload.''.$request->inicial_download;
@@ -498,6 +488,7 @@ class PlanesVelocidadController extends Controller
             $inventario->id_impuesto = ($request->tipo_plan == 2) ? 1 : 2;
             $inventario->impuesto    = ($request->tipo_plan == 2) ? 19 : 0;
             $inventario->type_autoretencion = isset($request->tipo_autoretencion) ? $request->tipo_autoretencion : null;
+            $inventario->default_venta_externa = isset($request->default_venta_externa) ? $request->default_venta_externa : 0;
             $inventario->save();
 
             $services = array();
