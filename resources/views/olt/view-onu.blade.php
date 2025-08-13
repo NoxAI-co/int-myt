@@ -81,7 +81,7 @@
             flex: 0 0 15%; /* Asigna un 30% del espacio al título */
             text-align: right;
         }
-        
+
 
         .list-unstyled li span.value {
             color: #007bff; /* Color azul similar al ejemplo */
@@ -109,50 +109,50 @@
         <div class="card-header bg-primary text-white">
             ONU Status Overview
         </div>
-        
+
         <div class="card-body container">
             <div class="row">
                 <!-- OLT Details -->
                 <div class="col-md-6">
                     <ul class="list-unstyled">
-                        <li><span class="title">OLT:</span> 
+                        <li><span class="title">OLT:</span>
                             <span class="value strong"><a href="#" onclick="modalMoveOnu()">{{ $details['olt_name'] }}</a></span>
                         </li>
-                        <li><span class="title">Board:</span> 
-                            <span class="value strong"><a href="#" onclick="modalMoveOnu()">{{ $details['board'] }}</a></span> 
+                        <li><span class="title">Board:</span>
+                            <span class="value strong"><a href="#" onclick="modalMoveOnu()">{{ $details['board'] }}</a></span>
                         </li>
-                        <li><span class="title">Port:</span> 
-                            <span class="value strong"><a href="#" onclick="modalMoveOnu()">{{ $details['port'] }}</a></span> 
+                        <li><span class="title">Port:</span>
+                            <span class="value strong"><a href="#" onclick="modalMoveOnu()">{{ $details['port'] }}</a></span>
                         </li>
-                        <li><span class="title">ONU:</span> 
-                            <span class="value">{{ $details['pon_type'] . "/" . $details['board'] . "/" . 
+                        <li><span class="title">ONU:</span>
+                            <span class="value">{{ $details['pon_type'] . "/" . $details['board'] . "/" .
                             $details['port'] . ":" . $details['onu'] }}</span>
                         </li>
-                        <li><span class="title">SN:</span> 
+                        <li><span class="title">SN:</span>
                             <span class="value"><a href="#">{{ $details['sn'] }}</a></span>
                         </li>
-                        <li><span class="title">ONU Type:</span> 
+                        <li><span class="title">ONU Type:</span>
                             <span class="value"><a href="#">{{ $details['onu_type_name'] }}</a></span>
                         </li>
-                        <li><span class="title">Zone:</span> 
-                            <span class="value strong"><a href="#" onclick="modalLocationDetails()">{{ $details['zone_name'] }}</a></span> 
+                        <li><span class="title">Zone:</span>
+                            <span class="value strong"><a href="#" onclick="modalLocationDetails()">{{ $details['zone_name'] }}</a></span>
                         </li>
                         <li><span class="title">ODB (Splitter):</span>
-                            <span class="value">None</span> 
+                            <span class="value">None</span>
                         </li>
-                        <li><span class="title">Name:</span> 
+                        <li><span class="title">Name:</span>
                             <span class="value">{{ $details['name'] }}</span>
                         </li>
                         <li><span class="title">Address or Comment:</span>
-                            <span class="value">{{ $details['address'] }}</span> 
+                            <span class="value">{{ $details['address'] }}</span>
                         </li>
-                        <li><span class="title">Contact:</span> 
+                        <li><span class="title">Contact:</span>
                             <span class="value">{{ $details['contact'] }}</span>
                         </li>
-                        <li><span class="title">Authorization Date:</span> 
+                        <li><span class="title">Authorization Date:</span>
                             {{-- <span class="value"><a href="#">History</a></span> --}}
                         </li>
-                        <li><span class="title">ONU External ID:</span> 
+                        <li><span class="title">ONU External ID:</span>
                             {{-- <span class="value"><a href="#">{{ $details['unique_external_id'] }}</a></span> --}}
                             <span class="value">{{ $details['unique_external_id'] }}</span>
                         </li>
@@ -163,39 +163,39 @@
                 <div class="col-md-6">
                     <img src="{{ $image_onu_type }}" alt="wifi modem" class="img-fluid mb-4">
                     <ul class="list-unstyled">
-                        <li><span class="title">Status:</span> 
+                        <li><span class="title">Status:</span>
 
                             <span class="value">
-                                {{ $onuStatus['onu_status'] }} 
+                                {{ $onuStatus['onu_status'] }}
 
                                 @switch($onuStatus['onu_status'])
                                     @case('Online')
-                                        <i class="fas fa-globe-americas" style="color:#4db14b"></i> 
+                                        <i class="fas fa-globe-americas" style="color:#4db14b"></i>
                                         @break
                                     @case('Power fail')
-                                        <i class="fas fa-plug" style="color:#6e7175"></i> 
+                                        <i class="fas fa-plug" style="color:#6e7175"></i>
                                         @break
                                     @case('LOS')
-                                        <i class="fas fa-unlink" style="color:#ff0000"></i> 
+                                        <i class="fas fa-unlink" style="color:#ff0000"></i>
                                         @break
                                     @case('Offline')
-                                        <i class="fas fa-globe-americas" style="color:gray"></i> 
+                                        <i class="fas fa-globe-americas" style="color:gray"></i>
                                         @break
                                     @case('Admin Disabled')
-                                        <i class="fas fa-ban" style="color:gray"></i> 
+                                        <i class="fas fa-ban" style="color:gray"></i>
                                         @break
-                                
+
                                     @default
-                                        
+
                                 @endswitch
 
                                 ({{ $diferenciaHoras }})
-                                
-                            </span> 
-            
+
+                            </span>
+
                         </li>
 
-                        <li><span class="title">ONU/OLT Rx Signal:</span> 
+                        <li><span class="title">ONU/OLT Rx Signal:</span>
                             <span class="value" style="display:inline-flex">
                                 <span id="onu_signal_value">{{ $onlySignal['onu_signal_value'] }}</span>
                                 @switch($onlySignal['onu_signal'])
@@ -203,16 +203,16 @@
                                     @case('Good')
                                         <i class="fas fa-signal" style="color:#4db14b; margin-left:4px;margin-top:2px"></i>
                                         @break
-                                    
+
                                         @case('Warning')
                                         <i class="fas fa-signal" style="color:darkorange; margin-left:4px;margin-top:2px"></i>
                                         @break
-                                        
+
                                         @case('Critical')
                                         <i class="fas fa-signal" style="color:red; margin-left:4px;margin-top:2px"></i>
                                         @break
                                     @default
-                                        
+
                                 @endswitch
 
                                 <span id="distance" style="margin-left:5px;margin-top:0px">
@@ -235,13 +235,13 @@
                         </li>
                         <li><span class="title">ONU Mode:</span> <span class="value">{{ $details['mode'] }} - WAN vlan: {{ $details['vlan'] }}</span>
                         </li>
-                        <li><span class="title">TR069:</span> 
+                        <li><span class="title">TR069:</span>
                             <span class="value">{{ $details['tr069_profile'] }}</span>
                         </li>
-                        <li><span class="title">Mgmt IP:</span> 
+                        <li><span class="title">Mgmt IP:</span>
                             <span class="value">{{ $details['mgmt_ip_mode'] }}</span>
                         </li>
-                        <li><span class="title">WAN Setup Mode:</span> 
+                        <li><span class="title">WAN Setup Mode:</span>
                             {{-- <span class="value"><a href="#">Setup via ONU webpage</a></span>  --}}
                         </li>
                     </ul>
@@ -257,7 +257,7 @@
                           {{-- segunda version --}}
                           <span class="value">
                             {{-- <span class="badge badge-info ml-1">Prontamente!</span></a> --}}
-                            
+
                                 <button class="btn btn-primary" onclick="getFullstatus()">Get Status
                                     <div id="preloader-status" style="display: none;width: 19px;">
                                         <img src="https://i.gifer.com/ZZ5H.gif" alt="Cargando..." style="width:18px;" />
@@ -272,21 +272,21 @@
                                 <button class="btn btn-success">LIVE!</button> --}}
 
                                 <div class="container" id="full-status-div" style="display:none;">
-                                    
+
                                     <pre id="pre-text"></pre>
                                 </div>
 
                                 <div class="container" id="show-running-div" style="display:none;">
-                                   
+
                                     <pre id="pre-text-running"></pre>
                                 </div>
                            </span>
-                          
+
                         </li>
                     </ul>
                 </div>
             </div>
-            
+
             <!-- Traffic and Signal Charts -->
             <div class="mt-4">
                 <h5>Traffic/Signal</h5>
@@ -299,10 +299,10 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-md-12">
             <ul class="list-unstyled mt-4">
-                <li>                
+                <li>
                     <span class="title-2">Speed Profiles:</span>
                     <span class="value">
                         <span class="badge badge-info ml-1">Prontamente!</span></a>
@@ -330,8 +330,8 @@
                 </li>
             </ul>
         </div>
-            
-           
+
+
             <div class="col-md-12">
                 <ul class="list-unstyled">
                     <li>
@@ -361,16 +361,16 @@
                                             {{$port['mode']}} VLANs: {{$port['allowed_vlans']}}
                                             @else
                                             {{ $port['mode'] }}
-                                            @endif  
+                                            @endif
                                         </td>
                                         <td>{{ $port['dhcp'] }}</td>
                                         <td>
                                             {{-- <span class="badge badge-info ml-1">Prontamente!</span></a> --}}
                                             <a href="#" onclick="
                                             openModalEthernet(
-                                                                `{{$port['port']}}`, 
-                                                                `{{$port['admin_state']}}`, 
-                                                                `{{$port['mode']}}`, 
+                                                                `{{$port['port']}}`,
+                                                                `{{$port['admin_state']}}`,
+                                                                `{{$port['mode']}}`,
                                                                 `{{$port['dhcp']}}`
                                                             )"
                                             >+ Configure</a>
@@ -422,7 +422,7 @@
                 </li>
             </ul>
         </div>
-    
+
         </div>
     </div>
 </div>
@@ -559,7 +559,7 @@
     // FUNCIONES ETHERNET PORTS
     function openModalEthernet(name, adminState, mode, dhcp) {
 
-        console.log(name); 
+        console.log(name);
         console.log(adminState);
         console.log(mode);
         console.log(dhcp);
@@ -614,7 +614,7 @@
                         rx = response['full_status_json']['Optical status']['ONU Rx'];
                         ry = response['full_status_json']['Optical status']['OLT Rx'];
                     }
-                   
+
                     $('#distance').text("(" + distance + "m)");
                     $('#onu_signal_value').text(rx + " / " + ry);
 
@@ -728,19 +728,19 @@
 
                 //procesando solicitud
                 msg_procesando();
-        
+
             $.ajax({
                 url: url,
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 method: 'post',
                 data: {sn},
-                success: function (data) {	
+                success: function (data) {
                     if(data.status == 200){
                         Swal.fire({
                             title: 'Dispositivo reiniciado correctamente!',
-                            type: 'success', 
+                            type: 'success',
                             showConfirmButton: false,
-                            allowOutsideClick: false, 
+                            allowOutsideClick: false,
                         });
                         let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
                         window.location.href = url;
@@ -774,19 +774,19 @@
             if (result.value) {
 
                 msg_procesando();
-        
+
             $.ajax({
                 url: url,
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 method: 'post',
                 data: {sn},
-                success: function (data) {	
+                success: function (data) {
                     if(data.status == 200){
                         Swal.fire({
                             title: 'ONU resincronizada correctamente!',
-                            type: 'success', 
+                            type: 'success',
                             showConfirmButton: false,
-                            allowOutsideClick: false, 
+                            allowOutsideClick: false,
                         });
                         let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
                         window.location.href = url;
@@ -820,19 +820,19 @@
             if (result.value) {
 
                 msg_procesando();
-        
+
             $.ajax({
                 url: url,
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 method: 'post',
                 data: {sn},
-                success: function (data) {	
+                success: function (data) {
                     if(data.status == 200){
                         Swal.fire({
                             title: 'ONU restaurada correctamente!',
-                            type: 'success', 
+                            type: 'success',
                             showConfirmButton: false,
-                            allowOutsideClick: false, 
+                            allowOutsideClick: false,
                         });
                         let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
                         window.location.href = url;
@@ -866,19 +866,19 @@
             if (result.value) {
 
                 msg_procesando();
-        
+
             $.ajax({
                 url: url,
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 method: 'post',
                 data: {sn},
-                success: function (data) {	
+                success: function (data) {
                     if(data.status == 200){
                         Swal.fire({
                             title: 'ONU desactivada correctamente!',
-                            type: 'success', 
+                            type: 'success',
                             showConfirmButton: false,
-                            allowOutsideClick: false, 
+                            allowOutsideClick: false,
                         });
                         let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
                         window.location.href = url;
@@ -912,19 +912,19 @@
             if (result.value) {
 
                 msg_procesando();
-        
+
             $.ajax({
                 url: url,
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 method: 'post',
                 data: {sn},
-                success: function (data) {	
+                success: function (data) {
                     if(data.status == 200){
                         Swal.fire({
                             title: 'ONU activada correctamente!',
-                            type: 'success', 
+                            type: 'success',
                             showConfirmButton: false,
-                            allowOutsideClick: false, 
+                            allowOutsideClick: false,
                         });
                         let url = `{{ route('olt.view-onu') }}?sn=${sn}`;
                         window.location.href = url;
@@ -958,19 +958,19 @@
             if (result.value) {
 
                 msg_procesando();
-        
+
             $.ajax({
                 url: url,
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 method: 'post',
                 data: {sn},
-                success: function (data) {	
+                success: function (data) {
                     if(data.status == 200){
                         Swal.fire({
                             title: 'ONU eliminada correctamente!',
-                            type: 'success', 
+                            type: 'success',
                             showConfirmButton: false,
-                            allowOutsideClick: false, 
+                            allowOutsideClick: false,
                         });
                         let url = `{{ route('olt.unconfigured') }}?olt=${olt_id}`;
                         window.location.href = url;
@@ -988,9 +988,9 @@
         Swal.fire({
             title: 'Cargando...',
             text: 'Por favor espera mientras se procesa la solicitud.',
-            type: 'info', 
+            type: 'info',
             showConfirmButton: false,
-            allowOutsideClick: false, 
+            allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading(); // Muestra el preloader de carga
             }
@@ -1004,7 +1004,7 @@
     function toggleFields() {
         const status = $('input[name="status"]:checked').val();
         const mode = $('input[name="mode"]:checked').val();
-    
+
         // Ocultar todos los grupos
         $('#vlan-id-group').hide();
         $('#allowed-vlans-group').hide();
@@ -1016,7 +1016,7 @@
         } else{
             $('#options-mode').show();
         }
-    
+
         // Mostrar según el modo seleccionado
         switch (mode) {
             case 'LAN':
@@ -1038,12 +1038,12 @@
                 break;
         }
     }
-    
+
     // Cuando cambian los radios
     $(document).on('change', 'input[name="status"], input[name="mode"]', function () {
         toggleFields();
     });
-    
+
     // Cuando se abre el modal
     $('#ethernetModal').on('shown.bs.modal', function () {
         toggleFields();
@@ -1079,17 +1079,17 @@
                 vlan: vlanId,
                 sn: `{{ $details['sn'] }}`
             },
-            success: function (data) {	
+            success: function (data) {
                 if(data.status == true){
                     Swal.fire({
                         title: 'Ethernet actualizado correctamente!',
-                        type: 'success', 
+                        type: 'success',
                         showConfirmButton: false,
-                        allowOutsideClick: false, 
+                        allowOutsideClick: false,
                     });
                     $('#ethernetModal').modal('hide');
                     location.reload(); // Recargar la página para reflejar los cambios
-                    
+
                 }else{
                     Swal.close();
                     alert("Hubo un error comuniquese con soporte.")
@@ -1105,9 +1105,9 @@
 <script>
 
     function modalLocationDetails(){
-        
+
         var url = `{{ route('olt.get-modal-location') }}`
-        
+
         // Mostrar preloader antes de enviar
         Swal.fire({
             title: 'Cargando información...',
@@ -1130,7 +1130,7 @@
             type:'info',
             allowOutsideClick: false
         });
-        
+
         $.ajax({
             url: url,
             method: 'GET',
@@ -1153,22 +1153,28 @@
                 const dataBoard = response.boards;
 
                 // Llenar OLTs
-                dataOlt.forEach(function(item) {
-                    const option = new Option(item.name, item.id);
-                    if (item.id == `{{ $details['olt_id'] }}`) {
-                        option.selected = true;
-                    }
-                    selectOlt.append(option);
-                });
-
+                if(dataOlt.length > 0){
+                    dataOlt.forEach(function(item) {
+                        const option = new Option(item.name, item.id);
+                        if (item.id == `{{ $details['olt_id'] }}`) {
+                            option.selected = true;
+                        }
+                        selectOlt.append(option);
+                    });
+                    selectOlt.selectpicker('refresh');
+                }
+      
                 // Llenar Boards
-                dataBoard.forEach(function(item) {
-                    const option = new Option(`Slot ${item.slot}`, item.slot);
-                    if (item.slot == `{{ $details['board'] }}`) {
-                        option.selected = true;
-                    }
-                    selectBoard.append(option);
-                });
+                if(dataBoard.length > 0){
+                    dataBoard.forEach(function(item) {
+                        const option = new Option(`Slot ${item.slot}`, item.slot);
+                        if (item.slot == `{{ $details['board'] }}`) {
+                            option.selected = true;
+                        }
+                        selectBoard.append(option);
+                    });
+                    selectBoard.selectpicker('refresh');
+                }
 
                 // Obtener board seleccionada
                 const selectedBoardSlot = `{{ $details['board'] }}`;
@@ -1183,12 +1189,8 @@
                         }
                         selectPort.append(option);
                     }
+                    selectPort.selectpicker('refresh');
                 }
-
-                // Refrescar selects de Bootstrap Select
-                selectOlt.selectpicker('refresh');
-                selectBoard.selectpicker('refresh');
-                selectPort.selectpicker('refresh');
 
                 // Mostrar modal
                 $("#moveOnuModal").modal('show');

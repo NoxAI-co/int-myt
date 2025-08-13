@@ -1128,11 +1128,54 @@ class CronController extends Controller
 
                     //1. debemos primero mirar si los contrsatos existen en la tabla detalle, si no hacemos el proceso antiguo
                     $contratos = Contrato::whereIn('nro',$facturaContratos)->get();
+
                     if(!$contratos){
                         if($factura->contrato_id != null){
                             $contratos = Contrato::where('id',$factura->contrato_id)->get();
                         }else{
                             $contratos = Contrato::where('id',$contacto->contrato_id)->get();
+                        }
+                    }
+
+                    $promesaExtendida = DB::table('promesa_pago')->where('factura', $factura->id)->where('vencimiento', '>=', $fecha)->count();
+                    if($promesaExtendida > 0){
+                        
+                        foreach($contratos as $contrato){
+
+                            if($contrato->state_olt_catv == false){
+
+                                    if($contrato->olt_sn_mac != null){
+
+                                        $curl = curl_init();
+
+                                        curl_setopt_array($curl, array(
+                                        CURLOPT_URL => $empresa->adminOLT.'/api/onu/enable_catv/'.$contrato->olt_sn_mac,
+                                        CURLOPT_RETURNTRANSFER => true,
+                                        CURLOPT_ENCODING => '',
+                                        CURLOPT_MAXREDIRS => 10,
+                                        CURLOPT_TIMEOUT => 0,
+                                        CURLOPT_FOLLOWLOCATION => true,
+                                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                                        CURLOPT_CUSTOMREQUEST => 'POST',
+                                        CURLOPT_HTTPHEADER => array(
+                                            'X-token: '.$empresa->smartOLT
+                                        ),
+                                        ));
+
+                                        $response = curl_exec($curl);
+                                        $response = json_decode($response);
+
+                                        curl_close($curl);
+
+                                        if(isset($response->status) && $response->status == true){
+                                            $contrato->state_olt_catv = false;
+                                            $contrato->save();
+                                        }
+                                }
+
+                            }
+
+                            continue;
                         }
                     }
 
