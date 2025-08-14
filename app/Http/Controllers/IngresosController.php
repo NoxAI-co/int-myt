@@ -502,7 +502,9 @@ class IngresosController extends Controller
                             }
 
                             if($contrato){
-                                $msjMoroso = $this->funcionesPagoMK($contrato,$empresa,$ingreso);
+                                if($empresa->consultas_mk == 1){
+                                    $msjMoroso = $this->funcionesPagoMK($contrato,$empresa,$ingreso);
+                                }
                             }
 
                             /*

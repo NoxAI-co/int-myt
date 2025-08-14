@@ -631,41 +631,31 @@ class ContratosController extends Controller
         $servicio = $cliente->nombre.' '.$cliente->apellido1.' '.$cliente->apellido2;
 
         if ($mikrotik) {
+
             $API = new RouterosAPI();
             $API->port = $mikrotik->puerto_api;
             $registro = false;
             $getall = '';
             //$API->debug = true;
 
-            if ($API->connect($mikrotik->ip,$mikrotik->usuario,$mikrotik->clave)) {
+            $nro = Numeracion::where('empresa', 1)->first();
 
-                $nro = Numeracion::where('empresa', 1)->first();
+            if (isset($empresa->separar_numeracion) && $empresa->separar_numeracion == 1) {
+                $contratoMk = Contrato::where('server_configuration_id', $request->server_configuration_id)
+                    ->orderBy('nro', 'desc')
+                    ->first();
 
-                if (isset($empresa->separar_numeracion) && $empresa->separar_numeracion == 1) {
-                    $contratoMk = Contrato::where('server_configuration_id', $request->server_configuration_id)
-                        ->orderBy('nro', 'desc')
-                        ->first();
-
-                    if ($contratoMk) {
-                        $nro_contrato = $contratoMk->nro + 1;
-                    }
-
-                    $existe = Contrato::where('nro', $nro_contrato)->count();
-                    while ($existe > 0) {
-                        $nro_contrato++;
-                        $existe = Contrato::where('nro', $nro_contrato)->count();
-                    }
-                } else {
-                    $nro_contrato = $nro->contrato;
-
-                    while (true) {
-                        $numero = Contrato::where('nro', $nro_contrato)->count();
-                        if ($numero == 0) {
-                            break;
-                        }
-                        $nro_contrato++;
-                    }
+                if ($contratoMk) {
+                    $nro_contrato = $contratoMk->nro + 1;
                 }
+
+                $existe = Contrato::where('nro', $nro_contrato)->count();
+                while ($existe > 0) {
+                    $nro_contrato++;
+                    $existe = Contrato::where('nro', $nro_contrato)->count();
+                }
+            } else {
+                $nro_contrato = $nro->contrato;
 
                 while (true) {
                     $numero = Contrato::where('nro', $nro_contrato)->count();
@@ -674,6 +664,10 @@ class ContratosController extends Controller
                     }
                     $nro_contrato++;
                 }
+            }
+
+        if($empresa->consultas_mk == 1){
+            if ($API->connect($mikrotik->ip,$mikrotik->usuario,$mikrotik->clave)) {
 
                 $rate_limit = '';
                 $priority        = $plan->prioridad;
@@ -883,79 +877,68 @@ class ContratosController extends Controller
 
                 $API->disconnect();
 
-                $contrato = new Contrato();
-                $contrato->plan_id                 = $request->plan_id;
-                $contrato->nro                     = $nro_contrato;
-                $contrato->servicio                = $this->normaliza($servicio).'-'.$nro_contrato;
-                $contrato->client_id               = $request->client_id;
-                $contrato->server_configuration_id = $request->server_configuration_id;
-                $contrato->ip                      = $request->ip;
-                $contrato->ip_new                  = $request->ip_new;
-                $contrato->usuario                 = $request->usuario;
-                $contrato->password                = $request->password;
-                $contrato->conexion                = $request->conexion;
-                $contrato->simple_queue            = $request->simple_queue;
-                $contrato->interfaz                = $request->interfaz;
-                $contrato->local_address           = $request->local_address;
-                $contrato->direccion_local_address = $request->direccion_local_address;
-                $contrato->local_address_new       = $request->local_address_new;
-                $contrato->profile                 = $request->profile;
-                $contrato->local_adress_pppoe      = $ppoe_local_adress;
-                $contrato->mac_address             = $request->mac_address;
-                $contrato->id_vlan                 = $request->id_vlan;
-                $contrato->name_vlan               = $request->name_vlan;
-                $contrato->marca_router            = $request->marca_router;
-                $contrato->modelo_router           = $request->modelo_router;
-                $contrato->marca_antena            = $request->marca_antena;
-                $contrato->modelo_antena           = $request->modelo_antena;
-                $contrato->grupo_corte             = $request->grupo_corte;
-                $contrato->facturacion             = $request->facturacion;
-                $contrato->ip_autorizada           = $ip_autorizada;
-                $contrato->empresa                 = $empresa->id;
-                $contrato->puerto_conexion         = $request->puerto_conexion;
-                $contrato->latitude                = $request->latitude;
-                $contrato->longitude               = $request->longitude;
-                $contrato->contrato_permanencia    = $request->contrato_permanencia;
-                $contrato->serial_onu              = $request->serial_onu;
-                $contrato->linea                   = $request->linea;
-                $contrato->descuento               = $request->descuento;
-                $contrato->vendedor                = $request->vendedor;
-                $contrato->canal                   = $request->canal;
-                $contrato->address_street          = $request->address_street;
-                $contrato->tecnologia              = $request->tecnologia;
-                $contrato->tipo_contrato           = $request->tipo_contrato;
-                $contrato->iva_factura             = $request->iva_factura;
-                $contrato->observaciones           = $request->observaciones;
-                $contrato->usuario_wifi            = $request->usuario_wifi ;
-                $contrato->contrasena_wifi         = $request->contrasena_wifi;
-                $contrato->ip_receptora            = $request->ip_receptora;
-                $contrato->puerto_receptor         = $request->puerto_receptor;
-                
-                if($request->olt_sn_mac && $empresa->adminOLT != null && isset($request->state_olt_catv)){
+            }else {
+                    $mensaje='NO SE HA PODIDO CREAR EL CONTRATO DE SERVICIOS';
+                    return redirect('empresa/contratos')->with('danger', $mensaje);
+            }
+        }
 
-                    $contrato->olt_sn_mac          = $request->olt_sn_mac;
-                    $curl = curl_init();
+            $contrato = new Contrato();
+            $contrato->plan_id                 = $request->plan_id;
+            $contrato->nro                     = $nro_contrato;
+            $contrato->servicio                = $this->normaliza($servicio).'-'.$nro_contrato;
+            $contrato->client_id               = $request->client_id;
+            $contrato->server_configuration_id = $request->server_configuration_id;
+            $contrato->ip                      = $request->ip;
+            $contrato->ip_new                  = $request->ip_new;
+            $contrato->usuario                 = $request->usuario;
+            $contrato->password                = $request->password;
+            $contrato->conexion                = $request->conexion;
+            $contrato->simple_queue            = $request->simple_queue;
+            $contrato->interfaz                = $request->interfaz;
+            $contrato->local_address           = $request->local_address;
+            $contrato->direccion_local_address = $request->direccion_local_address;
+            $contrato->local_address_new       = $request->local_address_new;
+            $contrato->profile                 = $request->profile;
+            $contrato->local_adress_pppoe      = $ppoe_local_adress;
+            $contrato->mac_address             = $request->mac_address;
+            $contrato->id_vlan                 = $request->id_vlan;
+            $contrato->name_vlan               = $request->name_vlan;
+            $contrato->marca_router            = $request->marca_router;
+            $contrato->modelo_router           = $request->modelo_router;
+            $contrato->marca_antena            = $request->marca_antena;
+            $contrato->modelo_antena           = $request->modelo_antena;
+            $contrato->grupo_corte             = $request->grupo_corte;
+            $contrato->facturacion             = $request->facturacion;
+            $contrato->ip_autorizada           = $ip_autorizada;
+            $contrato->empresa                 = $empresa->id;
+            $contrato->puerto_conexion         = $request->puerto_conexion;
+            $contrato->latitude                = $request->latitude;
+            $contrato->longitude               = $request->longitude;
+            $contrato->contrato_permanencia    = $request->contrato_permanencia;
+            $contrato->serial_onu              = $request->serial_onu;
+            $contrato->linea                   = $request->linea;
+            $contrato->descuento               = $request->descuento;
+            $contrato->vendedor                = $request->vendedor;
+            $contrato->canal                   = $request->canal;
+            $contrato->address_street          = $request->address_street;
+            $contrato->tecnologia              = $request->tecnologia;
+            $contrato->tipo_contrato           = $request->tipo_contrato;
+            $contrato->iva_factura             = $request->iva_factura;
+            $contrato->observaciones           = $request->observaciones;
+            $contrato->usuario_wifi            = $request->usuario_wifi ;
+            $contrato->contrasena_wifi         = $request->contrasena_wifi;
+            $contrato->ip_receptora            = $request->ip_receptora;
+            $contrato->puerto_receptor         = $request->puerto_receptor;
+            
+            if($request->olt_sn_mac && $empresa->adminOLT != null && isset($request->state_olt_catv)){
 
-                    if($request->state_olt_catv == 1){
-                        curl_setopt_array($curl, array(
-                            CURLOPT_URL => $empresa->adminOLT.'/api/onu/enable_catv/'.$contrato->olt_sn_mac,
-                            CURLOPT_RETURNTRANSFER => true,
-                            CURLOPT_ENCODING => '',
-                            CURLOPT_MAXREDIRS => 10,
-                            CURLOPT_TIMEOUT => 0,
-                            CURLOPT_FOLLOWLOCATION => true,
-                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                            CURLOPT_CUSTOMREQUEST => 'POST',
-                            CURLOPT_HTTPHEADER => array(
-                                'X-token: '.$empresa->smartOLT
-                            ),
-                            ));
-                            
-                    }else if($request->state_olt_catv == 0){
-                        $curl = curl_init();
+                $contrato->olt_sn_mac          = $request->olt_sn_mac;
+                $curl = curl_init();
 
-                        curl_setopt_array($curl, array(
-                        CURLOPT_URL => $empresa->adminOLT.'/api/onu/disable_catv/'.$contrato->olt_sn_mac,
+                if($request->state_olt_catv == 1){
+                    curl_setopt_array($curl, array(
+                        CURLOPT_URL => $empresa->adminOLT.'/api/onu/enable_catv/'.$contrato->olt_sn_mac,
                         CURLOPT_RETURNTRANSFER => true,
                         CURLOPT_ENCODING => '',
                         CURLOPT_MAXREDIRS => 10,
@@ -967,107 +950,121 @@ class ContratosController extends Controller
                             'X-token: '.$empresa->smartOLT
                         ),
                         ));
-                    } 
-                    //
-                    
-                    $response = curl_exec($curl);
-                    $response = json_decode($response);
+                        
+                }else if($request->state_olt_catv == 0){
+                    $curl = curl_init();
 
-                    if(isset($response->status) && $response->status == false){
-                        return redirect('empresa/contratos')->with('danger', 'EL CONTRATO NO HA SIDO ACTUALIZADO POR QUE FALLÓ LA HABILITACIÓN DEL CATV');
-                    }else{
-                        if($response->status == true && $request->state_olt_catv == 0){
-                            $contrato->state_olt_catv = 0;
-                        }else{
-                            $contrato->state_olt_catv = 1;
-                        }
-                    }
+                    curl_setopt_array($curl, array(
+                    CURLOPT_URL => $empresa->adminOLT.'/api/onu/disable_catv/'.$contrato->olt_sn_mac,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_HTTPHEADER => array(
+                        'X-token: '.$empresa->smartOLT
+                    ),
+                    ));
+                } 
+                //
+                
+                $response = curl_exec($curl);
+                $response = json_decode($response);
 
-                }
-              
-
-                if($request->tipo_suspension_no == 1){
-                    $contrato->tipo_nosuspension = 1;
-                    $contrato->fecha_desde_nosuspension = $request->fecha_desde_nosuspension;
-                    $contrato->fecha_hasta_nosuspension = $request->fecha_hasta_nosuspension;
-                }
-
-                if($request->factura_individual){
-                    $contrato->factura_individual = $request->factura_individual;
-                }
-
-                if($request->ap){
-                    $ap = AP::find($request->ap);
-                    $contrato->nodo    = $ap->nodo;
-                    $contrato->ap      = $request->ap;
-                }
-
-                if($request->servicio_tv){
-                    $contrato->servicio_tv = $request->servicio_tv;
-                }
-
-                if($request->oficina){
-                    $contrato->oficina = $request->oficina;
-                }
-
-                if($request->contrato_permanencia_meses){
-                    $contrato->contrato_permanencia_meses = $request->contrato_permanencia_meses;
-                }
-
-                if($request->costo_reconexion){
-                    $contrato->costo_reconexion = $request->costo_reconexion;
-                }
-
-                ### DOCUMENTOS ADJUNTOS ###
-
-                if($request->adjunto_a) {
-                    $file = $request->file('adjunto_a');
-                    $nombre =  $file->getClientOriginalName();
-                    Storage::disk('documentos')->put($nombre, \File::get($file));
-                    $contrato->adjunto_a = $nombre;
-                    $contrato->referencia_a = $request->referencia_a;
-                }
-                if($request->adjunto_b) {
-                    $file = $request->file('adjunto_b');
-                    $nombre =  $file->getClientOriginalName();
-                    Storage::disk('documentos')->put($nombre, \File::get($file));
-                    $contrato->adjunto_b = $nombre;
-                    $contrato->referencia_b = $request->referencia_b;
-                }
-                if($request->adjunto_c) {
-                    $file = $request->file('adjunto_c');
-                    $nombre =  $file->getClientOriginalName();
-                    Storage::disk('documentos')->put($nombre, \File::get($file));
-                    $contrato->adjunto_c = $nombre;
-                    $contrato->referencia_c = $request->referencia_c;
-                }
-                if($request->adjunto_d) {
-                    $file = $request->file('adjunto_d');
-                    $nombre =  $file->getClientOriginalName();
-                    Storage::disk('documentos')->put($nombre, \File::get($file));
-                    $contrato->adjunto_d = $nombre;
-                    $contrato->referencia_d = $request->referencia_d;
-                }
-
-                ### DOCUMENTOS ADJUNTOS ###
-
-                $contrato->creador = Auth::user()->nombres;
-                $contrato->save();
-
-                $nro->contrato = $nro_contrato + 1;
-                $nro->save();
-
-                if($registro){
-                    $mensaje='SE HA CREADO SATISFACTORIAMENTE EL CONTRATO DE SERVICIOS EN EL SISTEMA Y LA MIKROTIK';
+                if(isset($response->status) && $response->status == false){
+                    return redirect('empresa/contratos')->with('danger', 'EL CONTRATO NO HA SIDO ACTUALIZADO POR QUE FALLÓ LA HABILITACIÓN DEL CATV');
                 }else{
-                    $mensaje='SE HA CREADO SATISFACTORIAMENTE EL CONTRATO DE SERVICIOS';
+                    if($response->status == true && $request->state_olt_catv == 0){
+                        $contrato->state_olt_catv = 0;
+                    }else{
+                        $contrato->state_olt_catv = 1;
+                    }
                 }
 
-                return redirect('empresa/contratos/'.$contrato->id)->with('success', $mensaje);
-            } else {
-                $mensaje='NO SE HA PODIDO CREAR EL CONTRATO DE SERVICIOS';
-                return redirect('empresa/contratos')->with('danger', $mensaje);
             }
+            
+
+            if($request->tipo_suspension_no == 1){
+                $contrato->tipo_nosuspension = 1;
+                $contrato->fecha_desde_nosuspension = $request->fecha_desde_nosuspension;
+                $contrato->fecha_hasta_nosuspension = $request->fecha_hasta_nosuspension;
+            }
+
+            if($request->factura_individual){
+                $contrato->factura_individual = $request->factura_individual;
+            }
+
+            if($request->ap){
+                $ap = AP::find($request->ap);
+                $contrato->nodo    = $ap->nodo;
+                $contrato->ap      = $request->ap;
+            }
+
+            if($request->servicio_tv){
+                $contrato->servicio_tv = $request->servicio_tv;
+            }
+
+            if($request->oficina){
+                $contrato->oficina = $request->oficina;
+            }
+
+            if($request->contrato_permanencia_meses){
+                $contrato->contrato_permanencia_meses = $request->contrato_permanencia_meses;
+            }
+
+            if($request->costo_reconexion){
+                $contrato->costo_reconexion = $request->costo_reconexion;
+            }
+
+            ### DOCUMENTOS ADJUNTOS ###
+
+            if($request->adjunto_a) {
+                $file = $request->file('adjunto_a');
+                $nombre =  $file->getClientOriginalName();
+                Storage::disk('documentos')->put($nombre, \File::get($file));
+                $contrato->adjunto_a = $nombre;
+                $contrato->referencia_a = $request->referencia_a;
+            }
+            if($request->adjunto_b) {
+                $file = $request->file('adjunto_b');
+                $nombre =  $file->getClientOriginalName();
+                Storage::disk('documentos')->put($nombre, \File::get($file));
+                $contrato->adjunto_b = $nombre;
+                $contrato->referencia_b = $request->referencia_b;
+            }
+            if($request->adjunto_c) {
+                $file = $request->file('adjunto_c');
+                $nombre =  $file->getClientOriginalName();
+                Storage::disk('documentos')->put($nombre, \File::get($file));
+                $contrato->adjunto_c = $nombre;
+                $contrato->referencia_c = $request->referencia_c;
+            }
+            if($request->adjunto_d) {
+                $file = $request->file('adjunto_d');
+                $nombre =  $file->getClientOriginalName();
+                Storage::disk('documentos')->put($nombre, \File::get($file));
+                $contrato->adjunto_d = $nombre;
+                $contrato->referencia_d = $request->referencia_d;
+            }
+
+            ### DOCUMENTOS ADJUNTOS ###
+
+            $contrato->creador = Auth::user()->nombres;
+            $contrato->save();
+
+            $nro->contrato = $nro_contrato + 1;
+            $nro->save();
+
+            if($registro){
+                $mensaje='SE HA CREADO SATISFACTORIAMENTE EL CONTRATO DE SERVICIOS EN EL SISTEMA Y LA MIKROTIK';
+            }else{
+                $mensaje='SE HA CREADO SATISFACTORIAMENTE EL CONTRATO DE SERVICIOS';
+            }
+
+            return redirect('empresa/contratos/'.$contrato->id)->with('success', $mensaje);
+            
         }else{
             $nro = Numeracion::where('empresa', 1)->first();
             $nro_contrato = $nro->contrato;
@@ -1336,6 +1333,7 @@ class ContratosController extends Controller
                 $API->port = $mikrotik->puerto_api;
                 //$API->debug = true;
 
+                if($empresa->contratos_mk == 1){
                 if ($API->connect($mikrotik->ip,$mikrotik->usuario,$mikrotik->clave)) {
                     ## ELIMINAMOS DE MK ##
                     if($contrato->conexion == 1){
@@ -1543,6 +1541,7 @@ class ContratosController extends Controller
                 }
 
                 $API->disconnect();
+            }
 
                 if($registro){
                     $grupo = GrupoCorte::find($request->grupo_corte);
