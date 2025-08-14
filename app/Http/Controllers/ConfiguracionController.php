@@ -1945,6 +1945,20 @@ class ConfiguracionController extends Controller
     }
   }
 
+  public function contratoNumeracion(Request $request){
+    $empresa = Empresa::find(auth()->user()->empresa);
+
+    if ($request->separar_numeracion == 0) {
+      $empresa->separar_numeracion = 1;
+      $empresa->save();
+      return 1;
+    } else {
+      $empresa->separar_numeracion = 0;
+      $empresa->save();
+      return 0;
+    }
+  }
+
   public function facturacionSmsAutomatica(Request $request)
   {
     $empresa = Empresa::find(auth()->user()->empresa);

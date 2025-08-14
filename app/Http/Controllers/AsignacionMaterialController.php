@@ -47,7 +47,7 @@ class AsignacionMaterialController extends Controller{
 
         $inventario = \DB::table('inventario')
             ->join('productos_bodegas', 'inventario.id', '=', 'productos_bodegas.producto')
-            ->where('inventario.type', 'MATERIAL')
+            // ->where('inventario.type', 'MATERIAL')
             ->where('inventario.tipo_producto', 1)
             ->select(
                 'inventario.id','inventario.tipo_producto','inventario.type','inventario.producto','inventario.ref',
@@ -130,7 +130,7 @@ class AsignacionMaterialController extends Controller{
         $bodega = Bodega::where('empresa',$empresa->id)->where('status', 1)->first();
         $inventario = \DB::table('inventario')
             ->join('productos_bodegas', 'inventario.id', '=', 'productos_bodegas.producto')
-            ->where('inventario.type', 'MATERIAL')
+            // ->where('inventario.type', 'MATERIAL')
             ->where('inventario.tipo_producto', 1)
             ->select(
                 'inventario.id','inventario.tipo_producto','inventario.type','inventario.producto','inventario.ref',

@@ -271,6 +271,8 @@ class FacturasController extends Controller{
     }
 
     public function index(Request $request){
+
+        $user = auth()->user();
         $this->getAllPermissions(Auth::user()->id);
         $empresaActual = auth()->user()->empresa;
 
@@ -278,7 +280,9 @@ class FacturasController extends Controller{
 
         view()->share(['title' => 'Facturas de Venta', 'subseccion' => 'venta', 'precice' => true]);
         $tipo = false;
-        $servidores = Mikrotik::where('empresa', $empresaActual)->get();
+
+        $userServer = $user->servidores->pluck('id')->toArray();
+        $servidores = Mikrotik::where('empresa', $empresaActual)->whereIn('id',$userServer)->get();
 
         $tabla = Campos::join('campos_usuarios', 'campos_usuarios.id_campo', '=', 'campos.id')
         ->where('campos_usuarios.id_modulo', 4)
@@ -311,13 +315,16 @@ class FacturasController extends Controller{
     */
     public function index_electronica(){
 
+        $user = auth()->user();
         $this->getAllPermissions(Auth::user()->id);
         $empresaActual = auth()->user()->empresa;
 
         $clientes = Contacto::join('factura as f', 'contactos.id', '=', 'f.cliente')->where('contactos.status', 1)->groupBy('f.cliente')->select('contactos.*')->orderBy('contactos.nombre','asc')->get();
         $municipios = DB::table('municipios')->orderBy('nombre', 'asc')->get();
         $tabla = Campos::join('campos_usuarios', 'campos_usuarios.id_campo', '=', 'campos.id')->where('campos_usuarios.id_modulo', 4)->where('campos_usuarios.id_usuario', Auth::user()->id)->where('campos_usuarios.estado', 1)->orderBy('campos_usuarios.orden', 'ASC')->get();
-        $servidores = Mikrotik::where('empresa', $empresaActual)->get();
+        
+        $userServer = $user->servidores->pluck('id')->toArray();
+        $servidores = Mikrotik::where('empresa', $empresaActual)->whereIn('id',$userServer)->get();
 
         view()->share(['title' => 'Facturas de Venta Electrónica', 'subseccion' => 'venta-electronica']);
         return view('facturas-electronica.index', compact('clientes', 'municipios', 'tabla','servidores'));
@@ -328,9 +335,10 @@ class FacturasController extends Controller{
     */
     public function facturas_electronica(Request $request){
 
-        $modoLectura = auth()->user()->modo_lectura();
+        $user = auth()->user();
+        $modoLectura = $user->modo_lectura();
         $identificadorEmpresa = auth()->user()->empresa;
-        $moneda = auth()->user()->empresa()->moneda;
+        $moneda = $user->empresa()->moneda;
 
         $orderByDefault = null;
         $orderDefault = null;
@@ -362,16 +370,17 @@ class FacturasController extends Controller{
             '),
             'factura.id', '=', 'fc.factura_id'
         )
-        ->leftJoin('contracts as cs', 'cs.nro', '=', 'fc.contrato_nro')
-        ->leftJoin('mikrotik as mk', 'mk.id', '=', 'cs.server_configuration_id')
+        ->leftJoin('contracts as cs1', 'cs1.nro', '=', 'fc.contrato_nro')
+        ->leftJoin('contracts as cs2', 'cs2.id', '=', 'factura.contrato_id')
+        ->leftJoin('mikrotik as mk', 'mk.id', '=', 'cs1.server_configuration_id')
         ->select(
             'mk.nombre as servidor',
-            'cs.server_configuration_id',
-            'cs.opciones_dian',
-            'cs.address_street as direccion',
-            'cs.nro as contrato',
+            'cs1.server_configuration_id',
+            'cs1.opciones_dian',
+            'cs1.address_street as direccion',
+            'cs1.nro as contrato',
+            'cs1.servicio_tv',
             'c.email as emailcliente',
-            'c.nit as nitcliente',
             'c.celular as celularcliente',
             'c.nombre as nombrecliente',
             'c.apellido1 as ape1cliente',
@@ -387,6 +396,8 @@ class FacturasController extends Controller{
             'factura.codigo',
             'factura.fecha',
             'factura.vencimiento',
+            'factura.siigo_id',
+            'factura.siigo_name',
             'em.api_key_siigo as api_key_siigo',
             DB::raw('v.nombre as nombrevendedor'),
               DB::raw('
@@ -404,8 +415,42 @@ class FacturasController extends Controller{
         ')
         )
         ->selectRaw("CAST(REGEXP_REPLACE(factura.codigo, '[^0-9]', '') AS UNSIGNED) as codigo_numerico")
+        ->where('tipo','!=',3)
         ->groupBy('factura.id')
         ->orderByRaw("CAST(REGEXP_REPLACE(factura.codigo, '[^0-9]', '') AS UNSIGNED) DESC");
+
+        if ($user->servidores->count() > 0) {
+            $servers = $user->servidores->pluck('id')->toArray();
+
+            $facturas->where(function ($query) use ($servers) {
+                $query
+                    // Caso 1: Contrato asociado con servidor del usuario
+                    ->where(function ($q) use ($servers) {
+                        $q->whereIn('cs1.server_configuration_id', $servers)
+                          ->orWhereIn('cs2.server_configuration_id', $servers);
+                    })
+                    // Caso 2: Contrato NO en servidores del usuario, pero con servicio TV
+                    ->orWhere(function ($q) use ($servers) {
+                        $q->where(function ($notInServers) use ($servers) {
+                            $notInServers->where(function ($sub) use ($servers) {
+                                $sub->whereNotIn('cs1.server_configuration_id', $servers)
+                                    ->orWhereNull('cs1.server_configuration_id');
+                            })->where(function ($sub2) use ($servers) {
+                                $sub2->whereNotIn('cs2.server_configuration_id', $servers)
+                                     ->orWhereNull('cs2.server_configuration_id');
+                            });
+                        })->where(function ($hasTv) {
+                            $hasTv->whereNotNull('cs1.servicio_tv')
+                                  ->orWhereNotNull('cs2.servicio_tv');
+                        });
+                    })
+                    // Caso 3: Factura sin contrato asociado
+                    ->orWhere(function ($q) {
+                        $q->whereNull('cs1.id')->whereNull('cs2.id');
+                    });
+            });
+        }
+
 
         if ($request->filtro == true) {
 
@@ -469,16 +514,12 @@ class FacturasController extends Controller{
             }
         }
 
-        // if(auth()->user()->rol == 8){
-        //     $facturas=$facturas->where('factura.estatus', 1);
-        // }
-
         $facturas->where('factura.empresa', $identificadorEmpresa);
         $facturas->where('factura.tipo', 2)->where('factura.lectura',1);
 
         if(Auth::user()->empresa()->oficina){
-            if(auth()->user()->oficina){
-                $facturas->where('cs.oficina', auth()->user()->oficina);
+            if($user->oficina){
+                $facturas->where('cs.oficina', $user->oficina);
             }
         }
 
@@ -540,9 +581,11 @@ class FacturasController extends Controller{
     }
 
     public function facturas(Request $request){
-        $modoLectura = auth()->user()->modo_lectura();
-        $identificadorEmpresa = auth()->user()->empresa;
-        $moneda = auth()->user()->empresa()->moneda;
+
+        $user = auth()->user();
+        $modoLectura = $user->modo_lectura();
+        $identificadorEmpresa = $user->empresa;
+        $moneda = $user->empresa()->moneda;
 
         $orderByDefault = null;
         $orderDefault = null;
@@ -562,32 +605,37 @@ class FacturasController extends Controller{
         ->join('empresas as em', 'em.id', '=', 'factura.empresa')
         ->join('items_factura as if', 'factura.id', '=', 'if.factura')
         ->leftJoin('vendedores as v', 'factura.vendedor', '=', 'v.id')
+        ->leftJoin('barrios as barrio','barrio.id','c.barrio_id')
         ->leftJoin(
             DB::raw('
                 (SELECT factura_id, contrato_nro
-                 FROM (
-                     SELECT fc.factura_id, fc.contrato_nro, ROW_NUMBER() OVER (PARTITION BY fc.factura_id ORDER BY fc.id ASC) AS rn
-                     FROM facturas_contratos fc
-                 ) ranked
-                 WHERE ranked.rn = 1
+                FROM (
+                    SELECT fc.factura_id, fc.contrato_nro, ROW_NUMBER() OVER (PARTITION BY fc.factura_id ORDER BY fc.id ASC) AS rn
+                    FROM facturas_contratos fc
+                ) ranked
+                WHERE ranked.rn = 1
                 ) as fc
             '),
             'factura.id', '=', 'fc.factura_id'
         )
-        ->leftJoin('contracts as cs', 'cs.nro', '=', 'fc.contrato_nro')
-        ->leftJoin('mikrotik as mk', 'mk.id', '=', 'cs.server_configuration_id')
+        ->leftJoin('contracts as cs1', 'cs1.nro', '=', 'fc.contrato_nro')
+        ->leftJoin('contracts as cs2', 'cs2.id', '=', 'factura.contrato_id')
+        ->leftJoin('mikrotik as mk', 'mk.id', '=', 'cs1.server_configuration_id')
         ->select(
+            'barrio.nombre as barrio',
             'mk.nombre as servidor',
-            'cs.server_configuration_id',
-            'cs.opciones_dian',
-            'cs.address_street as direccion',
-            'cs.nro as contrato',
+            'cs1.server_configuration_id',
+            'cs1.opciones_dian',
+            'cs1.servicio_tv',
+            'cs1.address_street as direccion',
+            'cs1.nro as contrato',
             'c.email as emailcliente',
             'c.nit as nitcliente',
             'c.celular as celularcliente',
             'c.nombre as nombrecliente',
             'c.apellido1 as ape1cliente',
             'c.apellido2 as ape2cliente',
+            DB::raw('c.direccion as direccioncliente'),
             'factura.tipo',
             'factura.cliente',
             'factura.emitida',
@@ -598,11 +646,12 @@ class FacturasController extends Controller{
             'factura.estatus',
             'factura.codigo',
             'factura.fecha',
+            'factura.siigo_id',
+            'factura.siigo_name',
             'factura.vencimiento',
-            'factura.vencimiento as barrio',
             'em.api_key_siigo as api_key_siigo',
             DB::raw('v.nombre as nombrevendedor'),
-              DB::raw('
+                DB::raw('
             SUM((if.cant * if.precio) - (if.precio * (if(if.desc, if.desc, 0) / 100) * if.cant) + (if.precio - (if.precio * (if(if.desc, if.desc, 0) / 100))) * (if.impuesto / 100) * if.cant) as total
         '),
                 DB::raw('
@@ -617,8 +666,41 @@ class FacturasController extends Controller{
         ')
         )
         ->selectRaw("CAST(REGEXP_REPLACE(factura.codigo, '[^0-9]', '') AS UNSIGNED) as codigo_numerico")
+        ->where('tipo','!=',3)
         ->groupBy('factura.id')
         ->orderByRaw("CAST(REGEXP_REPLACE(factura.codigo, '[^0-9]', '') AS UNSIGNED) DESC");
+
+        if ($user->servidores->count() > 0) {
+            $servers = $user->servidores->pluck('id')->toArray();
+
+            $facturas->where(function ($query) use ($servers) {
+                $query
+                    // Caso 1: Contrato asociado con servidor del usuario
+                    ->where(function ($q) use ($servers) {
+                        $q->whereIn('cs1.server_configuration_id', $servers)
+                          ->orWhereIn('cs2.server_configuration_id', $servers);
+                    })
+                    // Caso 2: Contrato NO en servidores del usuario, pero con servicio TV
+                    ->orWhere(function ($q) use ($servers) {
+                        $q->where(function ($notInServers) use ($servers) {
+                            $notInServers->where(function ($sub) use ($servers) {
+                                $sub->whereNotIn('cs1.server_configuration_id', $servers)
+                                    ->orWhereNull('cs1.server_configuration_id');
+                            })->where(function ($sub2) use ($servers) {
+                                $sub2->whereNotIn('cs2.server_configuration_id', $servers)
+                                     ->orWhereNull('cs2.server_configuration_id');
+                            });
+                        })->where(function ($hasTv) {
+                            $hasTv->whereNotNull('cs1.servicio_tv')
+                                  ->orWhereNotNull('cs2.servicio_tv');
+                        });
+                    })
+                    // Caso 3: Factura sin contrato asociado
+                    ->orWhere(function ($q) {
+                        $q->whereNull('cs1.id')->whereNull('cs2.id');
+                    });
+            });
+        }
 
         if ($request->filtro == true) {
 
@@ -675,7 +757,7 @@ class FacturasController extends Controller{
             }
         }
 
-        if(auth()->user()->rol == 8){
+        if($user->rol == 8){
             $facturas=$facturas->where('factura.estatus', 1);
         }
 
@@ -684,8 +766,8 @@ class FacturasController extends Controller{
                  ->where('factura.lectura',1);
 
         if(Auth::user()->empresa()->oficina){
-            if(auth()->user()->oficina){
-                $facturas->where('cs.oficina', auth()->user()->oficina);
+            if($user->oficina){
+                $facturas->where('cs.oficina', $user->oficina);
             }
         }
 

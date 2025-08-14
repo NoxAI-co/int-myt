@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\User; use App\Roles;  use Carbon\Carbon;  use Mail;
-use Validator; use Illuminate\Validation\Rule;  use Auth; use DB;
+use Validator; use Illuminate\Validation\Rule;  use Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Radicado;
 use App\Oficina;
 use App\Campos;
+use App\Mikrotik;
+use Illuminate\Support\Facades\DB;
 
 class UsuariosController extends Controller
 {
@@ -43,8 +45,9 @@ class UsuariosController extends Controller
         $roles = Roles::where('id_empresa','=', Auth::user()->empresa)->where('id', '<>', 3)->get();
         $cuentas = DB::table('bancos')->where('empresa',Auth::user()->empresa)->get();
         $oficinas = Oficina::where('empresa', Auth::user()->empresa)->where('status', 1)->get();
+        $servidores = Mikrotik::whereIn('status', [0, 1])->get();
         view()->share(['title' => 'Nuevo Usuario']);
-        return view('configuracion.usuarios.create')->with(compact('roles','cuentas', 'oficinas'));
+        return view('configuracion.usuarios.create')->with(compact('roles','cuentas', 'oficinas','servidores'));
     }
     
     public function store(Request $request){
@@ -75,6 +78,15 @@ class UsuariosController extends Controller
         if(isset($request->cuenta[4])){ $usuario->cuenta_4 = $request->cuenta[4]; }else{ $usuario->cuenta_4 = null; }
         $usuario->oficina = ($request->oficina == 0) ? NULL : $request->oficina;
         $usuario->save();
+
+        //insercion de tabla detalle
+        $servidorUsuario = DB::table('usuario_servidor');
+        if (isset($request->servidor)) {
+            $servidorUsuario->where('usuario_id', $usuario->id)->delete();
+            foreach ($request->servidor as $key => $servidor) {
+                $servidorUsuario->insert(['usuario_id' => $usuario->id, 'servidor_id' => $servidor]);
+            }
+        }
 
         $campos = Campos::all();
         foreach ($campos as $campo) {
@@ -111,9 +123,11 @@ class UsuariosController extends Controller
         $usuario = User::where('empresa',Auth::user()->empresa)->where('id', $id)->first();
         $cuentas = DB::table('bancos')->where('empresa',Auth::user()->empresa)->get();
         $oficinas = Oficina::where('empresa', Auth::user()->empresa)->where('status', 1)->get();
+        $servidores = Mikrotik::whereIn('status', [0, 1])->get();
+        $user_server = $usuario->servidores;
         if ($usuario) {        
             view()->share(['title' => 'Modificar Usuario']);
-            return view('configuracion.usuarios.edit')->with(compact('usuario', 'roles','cuentas', 'oficinas'));
+            return view('configuracion.usuarios.edit')->with(compact('usuario', 'roles','cuentas', 'oficinas','servidores','user_server'));
         }
         return redirect('empresa/configuracion/usuarios')->with('success', 'No existe un registro con ese id');
     }
@@ -133,6 +147,15 @@ class UsuariosController extends Controller
                         'estado'     => $campo->estado
                     ]);
                 }
+            }
+        }
+
+        //insercion de tabla detalle
+        $servidorUsuario = DB::table('usuario_servidor');
+        $servidorUsuario->where('usuario_id', $usuario->id)->delete();
+        if (isset($request->servidor)) {
+            foreach ($request->servidor as $key => $servidor) {
+                $servidorUsuario->insert(['usuario_id' => $usuario->id, 'servidor_id' => $servidor]);
             }
         }
 

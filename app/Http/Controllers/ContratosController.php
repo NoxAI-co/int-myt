@@ -75,21 +75,23 @@ class ContratosController extends Controller
     public function index(Request $request){
 
         $this->getAllPermissions(Auth::user()->id);
-        $etiquetas = Etiqueta::where('empresa_id', auth()->user()->empresa)->get();
-        $clientes = (Auth::user()->oficina && Auth::user()->empresa()->oficina) ? Contacto::whereIn('tipo_contacto', [0,2])->where('status', 1)->where('empresa', Auth::user()->empresa)->where('oficina', Auth::user()->oficina)->orderBy('nombre', 'ASC')->get() : Contacto::whereIn('tipo_contacto', [0,2])->where('status', 1)->where('empresa', Auth::user()->empresa)->orderBy('nombre', 'ASC')->get();
-        $planes = PlanesVelocidad::where('status', 1)->where('empresa', Auth::user()->empresa)->get();
+        $user = auth()->user();
+        $userServer = $user->servidores->pluck('id')->toArray();
+        $clientes = (Auth::user()->oficina && $user->empresa()->oficina) ? Contacto::whereIn('tipo_contacto', [0, 2])->where('status', 1)->where('empresa', $user->empresa)->where('oficina', $user->oficina)->orderBy('nombre', 'ASC')->get() : Contacto::whereIn('tipo_contacto', [0, 2])->where('status', 1)->where('empresa', $user->empresa)->orderBy('nombre', 'ASC')->get();
+        $planes = PlanesVelocidad::where('status', 1)->where('empresa', $user->empresa)->get();
         $planestv = Inventario::where('type', 'like', '%TV%')->get();
-        $servidores = Mikrotik::where('status',1)->where('empresa', Auth::user()->empresa)->get();
-        $grupos = GrupoCorte::where('status',1)->where('empresa', Auth::user()->empresa)->get();
+        $servidores = Mikrotik::where('status', 1)->where('empresa', $user->empresa)->whereIn('id', $userServer)->get();
+        $grupos = GrupoCorte::where('status', 1)->where('empresa', $user->empresa)->get();
         view()->share(['title' => 'Contratos', 'invert' => true]);
         $tipo = false;
-        $tabla = Campos::join('campos_usuarios', 'campos_usuarios.id_campo', '=', 'campos.id')->where('campos_usuarios.id_modulo', 2)->where('campos_usuarios.id_usuario', Auth::user()->id)->where('campos_usuarios.estado', 1)->orderBy('campos_usuarios.orden', 'ASC')->get();
-        $nodos = Nodo::where('status',1)->where('empresa', Auth::user()->empresa)->get();
-        $aps = AP::where('status',1)->where('empresa', Auth::user()->empresa)->get();
-        $vendedores = Vendedor::where('empresa',Auth::user()->empresa)->where('estado',1)->get();
-        $canales = Canal::where('empresa',Auth::user()->empresa)->where('status', 1)->get();
-        $barrios = Barrios::where('status','1')->get();
-        return view('contratos.indexnew', compact('etiquetas','clientes','planes','planestv','servidores','grupos','tipo','tabla','nodos','aps', 'vendedores', 'canales','barrios'));
+        $tabla = Campos::join('campos_usuarios', 'campos_usuarios.id_campo', '=', 'campos.id')->where('campos_usuarios.id_modulo', 2)->where('campos_usuarios.id_usuario', $user->id)->where('campos_usuarios.estado', 1)->orderBy('campos_usuarios.orden', 'ASC')->get();
+        $nodos = Nodo::where('status', 1)->where('empresa', $user->empresa)->get();
+        $aps = AP::where('status', 1)->where('empresa', $user->empresa)->get();
+        $vendedores = Vendedor::where('empresa', $user->empresa)->where('estado', 1)->get();
+        $canales = Canal::where('empresa', $user->empresa)->where('status', 1)->get();
+        $etiquetas = Etiqueta::where('empresa_id', $user->empresa)->get();
+        $barrios = Barrios::where('status', '1')->get();
+        return view('contratos.indexnew', compact('clientes', 'planes', 'servidores', 'planestv', 'grupos', 'tipo', 'tabla', 'nodos', 'aps', 'vendedores', 'canales', 'etiquetas', 'barrios'));
     }
 
     public function disabled(Request $request){
@@ -130,20 +132,45 @@ class ContratosController extends Controller
         $this->getAllPermissions(Auth::user()->id);
         
         $etiquetas = Etiqueta::where('empresa_id', auth()->user()->empresa)->get();
+        $user = auth()->user();
         $modoLectura = auth()->user()->modo_lectura();
-        $contratosql = $contratos = Contrato::query()
-			->select('contracts.*', 'contactos.id as c_id', 'contactos.nombre as c_nombre',
-             'contactos.apellido1 as c_apellido1','municipios.nombre as nombre_municipio' ,
-             'contactos.apellido2 as c_apellido2', 'contactos.nit as c_nit', 'contactos.celular as c_telefono',
-             'contactos.email as c_email', 'contactos.barrio as c_barrio', 'contactos.direccion',
-              'contactos.celular as c_celular','contactos.fk_idmunicipio',
-               'contactos.email as c_email', 'contactos.id as c_id', 'contactos.firma_isp',
-               'contactos.estrato as c_estrato','barrio.nombre as barrio_nombre',
-               DB::raw('(select fecha from ingresos where ingresos.cliente = contracts.client_id and ingresos.tipo = 1 LIMIT 1) AS pago'))
-            ->selectRaw('INET_ATON(contracts.ip) as ipformat')
-            ->join('contactos', 'contracts.client_id', '=', 'contactos.id')
-            ->join('municipios', 'contactos.fk_idmunicipio', '=', 'municipios.id')
-            ->leftJoin('barrios as barrio','barrio.id','contactos.barrio_id');
+        $contratos = Contrato::query()
+        ->select(
+            'contracts.*',
+            'contactos.id as c_id',
+            'contactos.nombre as c_nombre',
+            'contactos.apellido1 as c_apellido1',
+            'municipios.nombre as nombre_municipio',
+            'contactos.apellido2 as c_apellido2',
+            'contactos.nit as c_nit',
+            'contactos.celular as c_telefono',
+            'contactos.email as c_email',
+            'contactos.barrio_id as c_barrio',
+            'contactos.direccion',
+            'contactos.celular as c_celular',
+            'contactos.fk_idmunicipio',
+            'contactos.firma_isp',
+            'contactos.estrato as c_estrato',
+            'barrio.nombre as barrio_nombre',
+            DB::raw('(select fecha from ingresos where ingresos.cliente = contracts.client_id and ingresos.tipo = 1 LIMIT 1) AS pago')
+        )
+        ->selectRaw('INET_ATON(contracts.ip) as ipformat')
+        ->join('contactos', 'contracts.client_id', '=', 'contactos.id')
+        ->leftJoin('municipios', 'contactos.fk_idmunicipio', '=', 'municipios.id')
+        ->leftJoin('barrios as barrio', 'barrio.id', 'contactos.barrio_id');
+
+        //Buscamos los contratos con server configuration + los que no tienen conf pero son de tv.
+        if ($user->servidores->count() > 0) {
+            $servers = $user->servidores->pluck('id')->toArray();
+
+            $contratos->where(function ($query) use ($servers) {
+                $query->whereIn('server_configuration_id', $servers)
+                    ->orWhere(function ($subQuery) use ($servers) {
+                        $subQuery->whereNotIn('server_configuration_id', $servers)
+                            ->whereNotNull('servicio_tv');
+                    });
+            });
+        }
 
         if ($request->filtro == true) {
 
@@ -614,7 +641,31 @@ class ContratosController extends Controller
 
                 $nro = Numeracion::where('empresa', 1)->first();
 
-                $nro_contrato = $nro->contrato;
+                if (isset($empresa->separar_numeracion) && $empresa->separar_numeracion == 1) {
+                    $contratoMk = Contrato::where('server_configuration_id', $request->server_configuration_id)
+                        ->orderBy('nro', 'desc')
+                        ->first();
+
+                    if ($contratoMk) {
+                        $nro_contrato = $contratoMk->nro + 1;
+                    }
+
+                    $existe = Contrato::where('nro', $nro_contrato)->count();
+                    while ($existe > 0) {
+                        $nro_contrato++;
+                        $existe = Contrato::where('nro', $nro_contrato)->count();
+                    }
+                } else {
+                    $nro_contrato = $nro->contrato;
+
+                    while (true) {
+                        $numero = Contrato::where('nro', $nro_contrato)->count();
+                        if ($numero == 0) {
+                            break;
+                        }
+                        $nro_contrato++;
+                    }
+                }
 
                 while (true) {
                     $numero = Contrato::where('nro', $nro_contrato)->count();

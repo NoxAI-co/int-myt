@@ -339,4 +339,9 @@ class User extends Authenticatable
     }
 
 
+    public function servidores(){
+        return $this->BelongsToMany('App\Mikrotik', 'usuario_servidor', 'usuario_id', 'servidor_id');
+    }
+
+
 }

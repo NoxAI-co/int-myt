@@ -45,6 +45,22 @@
       </span>
     </div>
 
+    <div class="col-md-4 form-group">
+      <label class="control-label">Servidor Asociado</label>
+      <select class="form-control selectpicker"  id="servidor" name="servidor[]" title="Seleccione" data-live-search="true" multiple>
+          @foreach($servidores as $servidor)
+            <option value="{{$servidor->id}}"
+              @foreach($user_server as $us)
+              {{ $us->id==$servidor->id?'selected':''}}
+              @endforeach
+              >{{ $servidor->nombre }}</option>
+          @endforeach
+      </select>
+      <span class="help-block error">
+        <strong>{{ $errors->first('servidor') }}</strong>
+      </span>
+    </div>
+
     @if(Auth::user()->empresa()->oficina)
     <div class="col-md-3 form-group">
       <label class="control-label">Oficina Asociada</label>
