@@ -360,7 +360,7 @@
 							<td>{{$contacto->plan_externa()}}</td>
 						</tr>
 						@endif
-						@if($contacto->costo_instalacion)
+						@if($contacto->costo_instalacion && is_number($contacto->costo_instalacion))
 						<tr>
 							<th width="20%">Costo de Instalación</th>
 							<td>${{number_format($contacto->costo_instalacion, 0, ',', '.')}}</td>
