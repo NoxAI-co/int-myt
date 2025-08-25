@@ -383,6 +383,7 @@ class FacturasController extends Controller{
             'c.email as emailcliente',
             'c.celular as celularcliente',
             'c.nombre as nombrecliente',
+            'c.nit as nitcliente',
             'c.apellido1 as ape1cliente',
             'c.apellido2 as ape2cliente',
             'factura.tipo',
