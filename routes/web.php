@@ -166,6 +166,7 @@ Route::post('configuracion_pagosiigo', 'ConfiguracionController@pagosSiigo');
 Route::post('configuracion_aplicacionsaldosfavor', 'ConfiguracionController@aplicacionSaldosFavor');
 Route::post('configuracion_facturacionSmsAutomatica', 'ConfiguracionController@facturacionSmsAutomatica');
 Route::post('configuracion_factcronabiertas', 'ConfiguracionController@factCronAbiertas');
+Route::post('configuracion_periodo_tirilla', 'ConfiguracionController@periodoTirilla');
 Route::post('configuracion_limpiarCache', 'ConfiguracionController@limpiarCache');
 Route::get('configuracion_olt', 'ConfiguracionController@configurarOLT');
 Route::post('prorrateo', 'ConfiguracionController@actDescProrrateo');

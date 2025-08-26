@@ -1959,6 +1959,20 @@ class ConfiguracionController extends Controller
     }
   }
 
+  public function periodoTirilla(Request $request){
+    $empresa = Empresa::find(auth()->user()->empresa);
+
+    if ($request->status == 0) {
+      $empresa->periodo_tirilla = 1;
+      $empresa->save();
+      return 1;
+    } else {
+      $empresa->periodo_tirilla = 0;
+      $empresa->save();
+      return 0;
+    }
+  }
+
   public function contratoNumeracion(Request $request){
     $empresa = Empresa::find(auth()->user()->empresa);
 
