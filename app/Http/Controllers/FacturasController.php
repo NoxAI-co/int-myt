@@ -748,7 +748,7 @@ class FacturasController extends Controller{
             }
             if($request->servidor){
                 $facturas->where(function ($query) use ($request) {
-                    $query->orWhere('cs.server_configuration_id', $request->servidor);
+                    $query->orWhere('cs1.server_configuration_id', $request->servidor);
             });
             }
             if($request->municipio){
