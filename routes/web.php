@@ -345,7 +345,7 @@ Route::group(['prefix' => 'tecnico', 'middleware' => ['auth']], function() {
     Route::post('save-location', [TecnicoController::class, 'saveLocation'])->name('tecnico.saveLocation');
     Route::get('get-location/{tecnico}', [TecnicoController::class, 'getLocation'])->name('tecnico.getLocation');
 	// Rutas para el panel del técnico
-	Route::get('/tecnico/dashboard', 'TecnicoController@dashboard')->name('tecnico.dashboard');
+	Route::get('/dashboard', 'TecnicoController@dashboard')->name('tecnico.dashboard');
 });
 
 Route::group(['prefix' => 'Olt'], function(){

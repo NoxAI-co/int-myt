@@ -28,6 +28,7 @@ use App\Suscripcion;
 use App\Radicado;
 use App\Solicitud;
 use App\Contrato;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 
 class HomeController extends Controller
 {
@@ -76,6 +77,10 @@ class HomeController extends Controller
     public function index()
     {
         $this->getAllPermissions(Auth::user()->id);
+
+        if(Auth::user()->rol == 4){
+            return redirect('/tecnico/dashboard');
+        }
 
         $empresa = Empresa::Find(1);
 
