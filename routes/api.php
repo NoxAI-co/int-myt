@@ -2,6 +2,7 @@
 
 use App\Contacto;
 use App\Contrato;
+use App\ContratoDigital;
 use App\Empresa;
 use App\Model\Ingresos\Factura;
 use App\Model\Ingresos\FacturaRetencion;
@@ -31,10 +32,10 @@ use Illuminate\Support\Facades\Log;
 */
 Route::post('contrato-digital/{key}', function (Request $request, $key) {
 
-    $contacto = Contacto::where('referencia_asignacion', $key)->first();
+    $contacto = ContratoDigital::where('referencia_asignacion', $key)->first();
     if($contacto){
-        $contacto->firma_isp = $request->firma_isp;
-        $contacto->fecha_isp = date('Y-m-d');
+        $contacto->firma = $request->firma_isp;
+        $contacto->fechafirma = date('Y-m-d');
         $contacto->referencia_asignacion = null;
         $contacto->save();
 
@@ -214,7 +215,7 @@ Route::get('NotaCreditoElectronica/{id}', function ($id) {
  * FIRMA DIGITAL
  */
  Route::get('contrato-digital/{key}', function ($key) {
-     $contacto = Contacto::where('referencia_asignacion', $key)->first();
+     $contacto = ContratoDigital::where('referencia_asignacion', $key)->first();
 
      if($contacto){
          $empresa = Empresa::find($contacto->empresa);
