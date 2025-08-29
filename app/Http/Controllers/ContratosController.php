@@ -204,7 +204,8 @@ class ContratosController extends Controller
                     $query->orWhere('contracts.state', $request->state);
                 });
             }
-            if($request->state_olt_catv){
+            
+            if(isset($request->state_olt_catv)){
                 if($request->state_olt_catv == 1){
                     $contratos->where(function ($query) use ($request) {
                         $query->orWhere('contracts.state_olt_catv', $request->state_olt_catv);
