@@ -205,9 +205,15 @@ class ContratosController extends Controller
                 });
             }
             if($request->state_olt_catv){
-                $contratos->where(function ($query) use ($request) {
-                    $query->orWhere('contracts.state_olt_catv', $request->state_olt_catv);
-                });
+                if($request->state_olt_catv == 1){
+                    $contratos->where(function ($query) use ($request) {
+                        $query->orWhere('contracts.state_olt_catv', $request->state_olt_catv);
+                    });
+                }else{
+                    $contratos->where(function ($query) use ($request) {
+                        $query->orWhere('contracts.state_olt_catv', $request->state_olt_catv)->where('contracts.olt_sn_mac', '!=', null);
+                    });
+                }
             }
             
             if($request->conexion){
