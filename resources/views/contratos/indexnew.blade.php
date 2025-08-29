@@ -213,6 +213,12 @@
                             </div>
                         @endif
                         <div class="col-md-3 pl-1 pt-1">
+                            <select title="Estado CATV" class="form-control selectpicker" id="state_olt_catv" name="state_olt_catv">
+                                <option value="1">CATV Habilitado</option>
+                                <option value="0">CATV Deshabilitado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 pl-1 pt-1">
                             <select title="Otras opciones" class="form-control selectpicker" id="otra_opcion" name="otra_opcion">
                                 <option value="opcion_1">Contratos deshabilitados con última factura pagada</option>
                             </select>
