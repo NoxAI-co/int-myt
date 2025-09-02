@@ -610,6 +610,7 @@ class ExportarReportesController extends Controller
 
             $comprobacionFacturas = Factura::where('factura.empresa',Auth::user()->empresa)
             ->leftjoin('contracts', 'contracts.id', '=', 'factura.contrato_id')
+            ->leftjoin('contracts as ctr', 'ctr.nro', '=', 'fc.contrato_nro')
             ->join('contactos as c', 'factura.cliente', '=', 'c.id')
             ->join('items_factura as if', 'factura.id', '=', 'if.factura')
             ->join('ingresos_factura as ig', 'factura.id', '=', 'ig.factura')
@@ -629,7 +630,7 @@ class ExportarReportesController extends Controller
             }
 
             if($request->grupo){
-                $comprobacionFacturas=$comprobacionFacturas->where('contracts.grupo_corte', $request->grupo);
+                $comprobacionFacturas=$comprobacionFacturas->where('contracts.ctr', $request->grupo);
             }
 
             if($comprobacionFacturas->count() >2100){
