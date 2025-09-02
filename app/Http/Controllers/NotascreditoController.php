@@ -1436,7 +1436,15 @@ public function facturas_retenciones($id){
             ->get();
 
         //-------------- Factura Relacionada -----------------------//
-        $nroFacturaRelacionada =  NotaCreditoFactura::where('nota', $id)->first()->factura;
+
+        $ncf = NotaCreditoFactura::where('nota', $id)->first();
+
+        if(!$ncf){
+            return redirect('empresa/notascredito')->with('message_denied', 'La nota credito no tiene una factura de venta relacionada. Edite el documento');
+        }
+
+
+        $nroFacturaRelacionada =  $ncf->factura;
         $FacturaRelacionada    = Factura::find($nroFacturaRelacionada) ?? null;
 
         $impTotal = 0;
