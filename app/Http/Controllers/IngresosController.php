@@ -1009,6 +1009,14 @@ class IngresosController extends Controller
                     $API->write('=.id='.$ARRAYS[0]['.id']);
                     $READ = $API->read();
 
+                    #AGREGAMOS A IP_AUTORIZADAS#
+                    $API->comm("/ip/firewall/address-list/add", array(
+                        "address" => $contrato->ip,
+                        "list" => 'ips_autorizadas'
+                        )
+                    );
+                    #AGREGAMOS A IP_AUTORIZADAS#
+
                     $mensaje = "- Se ha sacado la ip de morosos.";
 
                     $ingreso->revalidacion_enable_internet = 1;
@@ -1018,8 +1026,8 @@ class IngresosController extends Controller
                     $contrato->save();
 
                 }
-                $API->disconnect();
                 #ELIMINAMOS DE MOROSOS#
+                $API->disconnect();
             }
         }else{
             $ingreso->revalidacion_enable_internet = 1;
