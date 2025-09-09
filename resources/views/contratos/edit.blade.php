@@ -874,10 +874,10 @@
                                     <strong>{{ $errors->first('descuento') }}</strong>
                                 </span>
                             </div>
-                            
+
                             @php
                             $today = now()->format('Y-m-d');
-                            $fechaHastaDesc = old('fecha_hasta_desc', $contrato->fecha_hasta_desc ?? $today);
+                            $fechaHastaDesc = old('fecha_hasta_desc', $contrato->fecha_hasta_desc ?? "");
                             @endphp
 
                             <div class="col-md-4 form-group">

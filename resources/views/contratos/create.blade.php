@@ -743,7 +743,7 @@
 
                             @php
                             $today = now()->format('Y-m-d');
-                            $fechaHastaDesc = old('fecha_hasta_desc', $contrato->fecha_hasta_desc ?? $today);
+                            $fechaHastaDesc = old('fecha_hasta_desc', $contrato->fecha_hasta_desc ?? "");
                             @endphp
 
                             <div class="col-md-4 form-group">
@@ -758,7 +758,7 @@
                                     value="{{ $fechaHastaDesc }}"
                                     min="{{ $today }}">
                             </div>
-                            
+
                             <div class="col-md-4 form-group">
                                 <label class="control-label">Vendedor <a><i data-tippy-content="Seleccione el vendedor del contrato" class="icono far fa-question-circle"></i></a></label>
                                 <div class="input-group mb-2">
