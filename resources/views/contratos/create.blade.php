@@ -740,6 +740,25 @@
                                     <strong>{{ $errors->first('descuento') }}</strong>
                                 </span>
                             </div>
+
+                            @php
+                            $today = now()->format('Y-m-d');
+                            $fechaHastaDesc = old('fecha_hasta_desc', $contrato->fecha_hasta_desc ?? $today);
+                            @endphp
+
+                            <div class="col-md-4 form-group">
+                                <label class="control-label">
+                                    Fecha Hasta - Desc.
+                                    <a><i data-tippy-content="Ingresa hasta qué fecha el descuento aplicará." class="icono far fa-question-circle"></i></a>
+                                </label>
+                                <input type="date"
+                                    class="form-control"
+                                    id="fecha_hasta_desc"
+                                    name="fecha_hasta_desc"
+                                    value="{{ $fechaHastaDesc }}"
+                                    min="{{ $today }}">
+                            </div>
+                            
                             <div class="col-md-4 form-group">
                                 <label class="control-label">Vendedor <a><i data-tippy-content="Seleccione el vendedor del contrato" class="icono far fa-question-circle"></i></a></label>
                                 <div class="input-group mb-2">

@@ -943,6 +943,7 @@ class ContratosController extends Controller
             $contrato->contrasena_wifi         = $request->contrasena_wifi;
             $contrato->ip_receptora            = $request->ip_receptora;
             $contrato->puerto_receptor         = $request->puerto_receptor;
+            $contrato->fecha_hasta_desc        = $request->fecha_hasta_desc;
             
             if($request->olt_sn_mac && $empresa->adminOLT != null && isset($request->state_olt_catv)){
 
@@ -1664,6 +1665,7 @@ class ContratosController extends Controller
                     $contrato->contrasena_wifi         = $request->contrasena_wifi;
                     $contrato->ip_receptora            = $request->ip_receptora;
                     $contrato->puerto_receptor         = $request->puerto_receptor;
+                    $contrato->fecha_hasta_desc        = $request->fecha_hasta_desc;
                     $contrato->olt_sn_mac              = isset($request->olt_sn_mac) ? $request->olt_sn_mac : null;
                     $contrato->state_olt_catv          = isset($request->state_olt_catv) ? $request->state_olt_catv : 0;
 
@@ -1824,6 +1826,7 @@ class ContratosController extends Controller
                 $contrato->ip_receptora            = $request->ip_receptora;
                 $contrato->puerto_receptor         = $request->puerto_receptor;
                 $contrato->fecha_inicio_contrato = $request->fecha_inicio_contrato;
+                $contrato->fecha_hasta_desc        = $request->fecha_hasta_desc;
 
                 //campos al quitar una mikrotik
                 $contrato->server_configuration_id = isset($request->server_configuration_id) ? $request->server_configuration_id : null;
