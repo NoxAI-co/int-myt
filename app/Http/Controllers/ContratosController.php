@@ -73,14 +73,23 @@ class ContratosController extends Controller
     }
 
     public function index(Request $request){
-
         $this->getAllPermissions(Auth::user()->id);
         $user = auth()->user();
         $userServer = $user->servidores->pluck('id')->toArray();
+
         $clientes = (Auth::user()->oficina && $user->empresa()->oficina) ? Contacto::whereIn('tipo_contacto', [0, 2])->where('status', 1)->where('empresa', $user->empresa)->where('oficina', $user->oficina)->orderBy('nombre', 'ASC')->get() : Contacto::whereIn('tipo_contacto', [0, 2])->where('status', 1)->where('empresa', $user->empresa)->orderBy('nombre', 'ASC')->get();
+
         $planes = PlanesVelocidad::where('status', 1)->where('empresa', $user->empresa)->get();
         $planestv = Inventario::where('type', 'like', '%TV%')->get();
-        $servidores = Mikrotik::where('status', 1)->where('empresa', $user->empresa)->whereIn('id', $userServer)->get();
+
+        if (empty($userServer)) {
+            // Si no tiene servidores asociados, mostrar todos los de la empresa
+            $servidores = Mikrotik::where('status', 1)->where('empresa', $user->empresa)->get();
+        } else {
+            // Si tiene servidores asociados, filtrar por esos
+            $servidores = Mikrotik::where('status', 1)->where('empresa', $user->empresa)->whereIn('id', $userServer)->get();
+        }
+
         $grupos = GrupoCorte::where('status', 1)->where('empresa', $user->empresa)->get();
         view()->share(['title' => 'Contratos', 'invert' => true]);
         $tipo = false;
@@ -91,6 +100,7 @@ class ContratosController extends Controller
         $canales = Canal::where('empresa', $user->empresa)->where('status', 1)->get();
         $etiquetas = Etiqueta::where('empresa_id', $user->empresa)->get();
         $barrios = Barrios::where('status', '1')->get();
+
         return view('contratos.indexnew', compact('clientes', 'planes', 'servidores', 'planestv', 'grupos', 'tipo', 'tabla', 'nodos', 'aps', 'vendedores', 'canales', 'etiquetas', 'barrios'));
     }
 
