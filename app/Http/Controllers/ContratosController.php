@@ -1565,6 +1565,8 @@ class ContratosController extends Controller
                 }
 
                 $API->disconnect();
+            }else{
+                $registro = true;
             }
 
                 if($registro){
