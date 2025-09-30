@@ -993,6 +993,14 @@ class OltController extends Controller
         $onlySignal = $this->onu_signal($sn);
 
         $onuStatus = $this->onu_status($sn);
+
+
+        // Verificamos si la API respondió con error
+        if (isset($onuStatus['status']) && $onuStatus['status'] === false) {
+            // Guardamos el error en sesión
+            return redirect()->back()->with('danger', $onuStatus['error']);
+        }
+
         $diferenciaHoras = "-";
 
         if (isset($onuStatus['last_status_change'])) {
