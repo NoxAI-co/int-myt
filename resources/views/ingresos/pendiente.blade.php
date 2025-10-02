@@ -27,7 +27,7 @@
     @foreach($facturas as $factura)
 
         @php
-            $contratos = $factura->relationContracts;
+            $contratos = $factura->relationContracts();
             $direccion  = $contratos->first() ? $contratos->first()->address_street : null;
             if($direccion == null){
                 $direccion  = $factura->cliente()->direccion;

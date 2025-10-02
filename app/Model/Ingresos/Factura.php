@@ -121,8 +121,9 @@ class Factura extends Model
     }
 
     public function relationContracts(){
-        return $this->belongsToMany('App\Contrato','facturas_contratos','factura_id','contrato_nro');
+        return DB::table('facturas_contratos')->where('factura_id',$this->id)->get();
     }
+
 
     public function contratoAsociado(){
         $contrato = Contrato::find($this->contrato_id);

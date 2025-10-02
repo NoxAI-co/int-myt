@@ -2472,8 +2472,7 @@ class FacturasController extends Controller{
             8 => 'factura.estatus',
             9 => 'acciones'
         );
-        $facturas = Factura::with('relationContracts')
-            ->join('contactos as c', 'factura.cliente', '=', 'c.id')
+        $facturas = Factura::join('contactos as c', 'factura.cliente', '=', 'c.id')
             ->join('items_factura as if', 'factura.id', '=', 'if.factura')
             ->leftJoin('vendedores as v', 'factura.vendedor', '=', 'v.id')
             ->select('factura.*', DB::raw('c.nombre as nombrecliente'), DB::raw('c.apellido1 as ape1cliente'), DB::raw('c.apellido2 as ape2cliente'),
@@ -2507,10 +2506,10 @@ class FacturasController extends Controller{
             }
 
             // ** Obtencion de los contratos
-            if(isset($factura->relationContracts) && count($factura->relationContracts) > 0){
+            if(count($factura->relationContracts()) > 0){
                 $textContratos="";
                 $ti = 0;
-                foreach($factura->relationContracts as $contrato){
+                foreach($factura->relationContracts() as $contrato){
                     if($ti == 0){
                         $ti=1;
                         $textContratos.= $contrato->nro;

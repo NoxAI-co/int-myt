@@ -997,7 +997,6 @@ class OltController extends Controller
 
         // Verificamos si la API respondió con error
         if (isset($onuStatus['status']) && $onuStatus['status'] === false) {
-            // Guardamos el error en sesión
             return redirect()->back()->with('danger', $onuStatus['error']);
         }
 
