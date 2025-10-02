@@ -2506,15 +2506,15 @@ class FacturasController extends Controller{
             }
 
             // ** Obtencion de los contratos
-            if(count($factura->relationContracts()) > 0){
+            if(count($factura->contratos()) > 0){
                 $textContratos="";
                 $ti = 0;
-                foreach($factura->relationContracts() as $contrato){
+                foreach($factura->contratos() as $contrato){
                     if($ti == 0){
                         $ti=1;
-                        $textContratos.= $contrato->nro;
+                        $textContratos.= $contrato->contrato_nro;
                     }else{
-                        $textContratos.= "-" . $contrato->nro;
+                        $textContratos.= "-" . $contrato->contrato_nro;
                     }
                 }
             }else{

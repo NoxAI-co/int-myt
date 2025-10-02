@@ -27,10 +27,14 @@
     @foreach($facturas as $factura)
 
         @php
-            $contratos = $factura->relationContracts();
-            $direccion  = $contratos->first() ? $contratos->first()->address_street : null;
-            if($direccion == null){
-                $direccion  = $factura->cliente()->direccion;
+            $contratos = $factura->contratos();
+            if($contratos != null){
+              $contrato = $contratos->first();
+              $contrato = \App\Contrato::where('nro',$contrato->contrato_nro)->first();
+              $direccion  = $contrato ? $contrato->address_street : null;
+              if($direccion == null){
+                  $direccion  = $factura->cliente()->direccion;
+              }
             }
         @endphp
 
