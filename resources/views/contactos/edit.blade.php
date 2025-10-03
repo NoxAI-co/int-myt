@@ -365,7 +365,7 @@
                     <div class="row" >
                     <div class="col-sm-12" style="text-align: right;  padding-top: 1%;">
 
-                    <button type="button" id="btnGuardarBarrio" class="btn btn-success">Guardar</button>
+                    <button type="submit" id="submitcheck" onclick="nameBarrio()" value="barrio" class="btn btn-success">Guardar</button>
                     </div>
                     </div>
 
@@ -378,70 +378,67 @@
 @endsection
 
 @section('scripts')
-<script src="{{asset('lowerScripts/guiaenvio/guiaenvio.js')}}"></script>
+	<script src="{{asset('lowerScripts/guiaenvio/guiaenvio.js')}}"></script>
 
-<script type="text/javascript">
-    $(document).ready(function(){
-        $("#municipio").val({{$contacto->fk_idmunicipio}}).selectpicker('refresh');
-        var option = document.getElementById('tip_iden').value;
-        if (option == 6) {
-            searchDV($("#tip_iden").val());
+    <script type="text/javascript">
+        $(document).ready(function(){
+            //searchMunicipality($("#departamento").val() , {{$contacto->fk_idmunicipio}});
+
+            $("#municipio").val({{$contacto->fk_idmunicipio}}).selectpicker('refresh');
+            var option = document.getElementById('tip_iden').value;
+                if (option == 6) {
+                    searchDV($("#tip_iden").val());
+                }
+            });
+
+			function nameBarrio() {
+        let barrio = $("#nombre_barrio").val();
+
+        if (window.location.pathname.split("/")[1] === "software") {
+            var url = '/software/empresa/contactos/asociarbarrio'
+        } else {
+            var url = '/empresa/contactos/asociarbarrio'
         }
 
-        // Event listener para el botón de guardar barrio
-        $('#btnGuardarBarrio').on('click', function() {
-            let barrio = $("#nombre_barrio").val();
+        if (barrio != "") {
+        $.ajax({
+                url: url,
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                method: 'POST',
+                data: { nombre: barrio },
+                success: function(campo) {
 
-            if (window.location.pathname.split("/")[1] === "software") {
-                var url = '/software/empresa/contactos/asociarbarrio'
-            } else {
-                var url = '/empresa/contactos/asociarbarrio'
-            }
+                    $('#modalbarrio').modal('hide');
 
-            if (barrio != "") {
-                $.ajax({
-                    url: url,
-                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                    method: 'POST',
-                    data: { nombre: barrio },
-                    success: function(campo) {
-                        $('#modalbarrio').modal('hide');
+                    if (campo.id == "") {
 
-                        if (campo.id == "") {
-                            Swal.fire({
-                                position: 'top-center',
-                                icon: 'error',
-                                title: 'Campo ' + campo.nombre + ' ya ha sido creado',
-                                showConfirmButton: false,
-                                timer: 2500
-                            })
-                        } else {
-                            Swal.fire({
-                                position: 'top-center',
-                                icon: 'success',
-                                title: 'Campo ' + campo.nombre + ' guardado correctamente',
-                                showConfirmButton: false,
-                                timer: 2500
-                            })
-
-                            $("#barrio_id").append('<option value="' + campo.id + '" selected>' + campo.nombre + '</option>');
-                            $("#barrio_id").selectpicker('refresh');
-                            $("#nombre_barrio").val(''); // Limpiar el input
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error al guardar:', error);
                         Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'No se pudo guardar el barrio'
-                        });
+                            position: 'top-center',
+                            type: 'error',
+                            title: 'Campo ' + campo.nombre + ' ya ha sido creado',
+                            showConfirmButton: false,
+                            timer: 2500
+                        })
+                    } else {
+
+                        Swal.fire({
+                            position: 'top-center',
+                            type: 'success',
+                            title: 'Campo ' + campo.nombre + ' guardado correctamente',
+                            showConfirmButton: false,
+                            timer: 2500
+                        })
+
+                        $("#barrio_id").append('<option value=' + campo.id + ' selected>' + campo.nombre + '</option>');
+                        $("#barrio_id").selectpicker('refresh');
                     }
-                });
-            } else {
-                alert("Ingrese un nombre válido.")
-            }
-        });
-    });
-</script>
+                }
+            });
+        } else {
+            alert("ingrese un nombre válido.")
+        }
+    }
+	</script>
+
+	
 @endsection
