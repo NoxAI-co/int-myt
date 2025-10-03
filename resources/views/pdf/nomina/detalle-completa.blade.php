@@ -313,6 +313,13 @@
             </tr>
         </table>
     </div>
+
+        
+    @if($nomina->nota)
+    <div>
+        <span>Nota: {{$nomina->nota}}</span>
+    </div>
+    @endif
     
     <div>
         
