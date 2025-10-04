@@ -319,6 +319,53 @@
   <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 
   <script>
+	function nameBarrio() {
+		let barrio = $("#nombre_barrio").val();
+
+		if (window.location.pathname.split("/")[1] === "software") {
+			var url = '/software/empresa/contactos/asociarbarrio'
+		} else {
+			var url = '/empresa/contactos/asociarbarrio'
+		}
+
+		if (barrio != "") {
+		$.ajax({
+				url: url,
+				headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+				method: 'POST',
+				data: { nombre: barrio },
+				success: function(campo) {
+
+					$('#modalbarrio').modal('hide');
+
+					if (campo.id == "") {
+
+						Swal.fire({
+							position: 'top-center',
+							type: 'error',
+							title: 'Campo ' + campo.nombre + ' ya ha sido creado',
+							showConfirmButton: false,
+							timer: 2500
+						})
+					} else {
+
+						Swal.fire({
+							position: 'top-center',
+							type: 'success',
+							title: 'Campo ' + campo.nombre + ' guardado correctamente',
+							showConfirmButton: false,
+							timer: 2500
+						})
+
+						$("#barrio_id").append('<option value=' + campo.id + ' selected>' + campo.nombre + '</option>');
+						$("#barrio_id").selectpicker('refresh');
+					}
+				}
+			});
+		} else {
+			alert("ingrese un nombre válido.")
+		}
+	};
   	$(document).ready(function(){
   		let lastRegis = new URLSearchParams(window.location.search);
   		if(lastRegis.has('cnt')){
@@ -335,54 +382,6 @@
 
 @section('scripts')
 	<script type="text/javascript">
-		function nameBarrio() {
-			let barrio = $("#nombre_barrio").val();
-
-			if (window.location.pathname.split("/")[1] === "software") {
-				var url = '/software/empresa/contactos/asociarbarrio'
-			} else {
-				var url = '/empresa/contactos/asociarbarrio'
-			}
-
-			if (barrio != "") {
-			$.ajax({
-					url: url,
-					headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-					method: 'POST',
-					data: { nombre: barrio },
-					success: function(campo) {
-
-						$('#modalbarrio').modal('hide');
-
-						if (campo.id == "") {
-
-							Swal.fire({
-								position: 'top-center',
-								type: 'error',
-								title: 'Campo ' + campo.nombre + ' ya ha sido creado',
-								showConfirmButton: false,
-								timer: 2500
-							})
-						} else {
-
-							Swal.fire({
-								position: 'top-center',
-								type: 'success',
-								title: 'Campo ' + campo.nombre + ' guardado correctamente',
-								showConfirmButton: false,
-								timer: 2500
-							})
-
-							$("#barrio_id").append('<option value=' + campo.id + ' selected>' + campo.nombre + '</option>');
-							$("#barrio_id").selectpicker('refresh');
-						}
-					}
-				});
-			} else {
-				alert("ingrese un nombre válido.")
-			}
-		};
-
 		$(document).ready(function(){
 			$('#departamento').val({{ Auth::user()->empresa()->fk_iddepartamento }}).selectpicker('refresh');
 				var option = document.getElementById('tip_iden').value;
