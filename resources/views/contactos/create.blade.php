@@ -335,66 +335,66 @@
 @section('scripts')
 	<script type="text/javascript">
 		$(document).ready(function(){
-		  $('#departamento').val({{ Auth::user()->empresa()->fk_iddepartamento }}).selectpicker('refresh');
-			var option = document.getElementById('tip_iden').value;
+			$('#departamento').val({{ Auth::user()->empresa()->fk_iddepartamento }}).selectpicker('refresh');
+				var option = document.getElementById('tip_iden').value;
 
-			if (option == 6) {
-				searchDV($("#tip_iden").val());
+				if (option == 6) {
+					searchDV($("#tip_iden").val());
+				}
+				searchMunicipality({{ Auth::user()->empresa()->fk_iddepartamento }}, {{ Auth::user()->empresa()->fk_idmunicipio }});
+			});
+
+			setTimeout(function () {
+				$("#municipio").val({{ Auth::user()->empresa()->fk_idmunicipio }});
+				$("#municipio").selectpicker('refresh');
+		}, 500);
+
+		function nameBarrio() {
+			let barrio = $("#nombre_barrio").val();
+
+			if (window.location.pathname.split("/")[1] === "software") {
+				var url = '/software/empresa/contactos/asociarbarrio'
+			} else {
+				var url = '/empresa/contactos/asociarbarrio'
 			}
-			searchMunicipality({{ Auth::user()->empresa()->fk_iddepartamento }}, {{ Auth::user()->empresa()->fk_idmunicipio }});
-		});
 
-		setTimeout(function () {
-			$("#municipio").val({{ Auth::user()->empresa()->fk_idmunicipio }});
-			$("#municipio").selectpicker('refresh');
-    }, 500);
+			if (barrio != "") {
+			$.ajax({
+					url: url,
+					headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+					method: 'POST',
+					data: { nombre: barrio },
+					success: function(campo) {
 
-	function nameBarrio() {
-        let barrio = $("#nombre_barrio").val();
+						$('#modalbarrio').modal('hide');
 
-        if (window.location.pathname.split("/")[1] === "software") {
-            var url = '/software/empresa/contactos/asociarbarrio'
-        } else {
-            var url = '/empresa/contactos/asociarbarrio'
-        }
+						if (campo.id == "") {
 
-        if (barrio != "") {
-        $.ajax({
-                url: url,
-                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                method: 'POST',
-                data: { nombre: barrio },
-                success: function(campo) {
+							Swal.fire({
+								position: 'top-center',
+								type: 'error',
+								title: 'Campo ' + campo.nombre + ' ya ha sido creado',
+								showConfirmButton: false,
+								timer: 2500
+							})
+						} else {
 
-                    $('#modalbarrio').modal('hide');
+							Swal.fire({
+								position: 'top-center',
+								type: 'success',
+								title: 'Campo ' + campo.nombre + ' guardado correctamente',
+								showConfirmButton: false,
+								timer: 2500
+							})
 
-                    if (campo.id == "") {
-
-                        Swal.fire({
-                            position: 'top-center',
-                            type: 'error',
-                            title: 'Campo ' + campo.nombre + ' ya ha sido creado',
-                            showConfirmButton: false,
-                            timer: 2500
-                        })
-                    } else {
-
-                        Swal.fire({
-                            position: 'top-center',
-                            type: 'success',
-                            title: 'Campo ' + campo.nombre + ' guardado correctamente',
-                            showConfirmButton: false,
-                            timer: 2500
-                        })
-
-                        $("#barrio_id").append('<option value=' + campo.id + ' selected>' + campo.nombre + '</option>');
-                        $("#barrio_id").selectpicker('refresh');
-                    }
-                }
-            });
-        } else {
-            alert("ingrese un nombre válido.")
-        }
-    }
+							$("#barrio_id").append('<option value=' + campo.id + ' selected>' + campo.nombre + '</option>');
+							$("#barrio_id").selectpicker('refresh');
+						}
+					}
+				});
+			} else {
+				alert("ingrese un nombre válido.")
+			}
+		}
 	</script>
 @endsection
