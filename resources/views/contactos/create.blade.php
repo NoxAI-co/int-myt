@@ -330,25 +330,11 @@
   		}
   	});
   </script>
+  @yield('scripts')
 @endsection
 
 @section('scripts')
 	<script type="text/javascript">
-		$(document).ready(function(){
-			$('#departamento').val({{ Auth::user()->empresa()->fk_iddepartamento }}).selectpicker('refresh');
-				var option = document.getElementById('tip_iden').value;
-
-				if (option == 6) {
-					searchDV($("#tip_iden").val());
-				}
-				searchMunicipality({{ Auth::user()->empresa()->fk_iddepartamento }}, {{ Auth::user()->empresa()->fk_idmunicipio }});
-			});
-
-			setTimeout(function () {
-				$("#municipio").val({{ Auth::user()->empresa()->fk_idmunicipio }});
-				$("#municipio").selectpicker('refresh');
-		}, 500);
-
 		function nameBarrio() {
 			let barrio = $("#nombre_barrio").val();
 
@@ -395,6 +381,22 @@
 			} else {
 				alert("ingrese un nombre válido.")
 			}
-		}
+		};
+
+		$(document).ready(function(){
+			$('#departamento').val({{ Auth::user()->empresa()->fk_iddepartamento }}).selectpicker('refresh');
+				var option = document.getElementById('tip_iden').value;
+
+				if (option == 6) {
+					searchDV($("#tip_iden").val());
+				}
+				searchMunicipality({{ Auth::user()->empresa()->fk_iddepartamento }}, {{ Auth::user()->empresa()->fk_idmunicipio }});
+			});
+
+			setTimeout(function () {
+				$("#municipio").val({{ Auth::user()->empresa()->fk_idmunicipio }});
+				$("#municipio").selectpicker('refresh');
+		}, 500);
+
 	</script>
 @endsection
