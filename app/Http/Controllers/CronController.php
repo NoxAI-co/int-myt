@@ -3883,10 +3883,12 @@ class CronController extends Controller
         $fecha = Carbon::now()->format('Y-m-d');
 
         //ingresos asociados a facturas del dia de hoy.
-        $ingresos = Ingreso::where('fecha',$fecha)
-        ->where('tipo',1)
-        ->where('revalidacion_enable_internet',0)
-        ->where('revalidacion_enable_tv',0)
+        $ingresos = Ingreso::where('fecha', $fecha)
+        ->where('tipo', 1)
+        ->where(function ($q) {
+            $q->where('revalidacion_enable_internet', 1)
+              ->orWhere('revalidacion_enable_tv', 0);
+        })
         ->orderBy('updated_at', 'asc')
         ->get();
 
@@ -3949,29 +3951,54 @@ class CronController extends Controller
                         /* * * API CATV * * */
 
                         //Este es el de internet
+                        
                         /* * * API MIKROTIK * * */
                         if($contrato->server_configuration_id){
                             $mikrotik = Mikrotik::where('id', $contrato->server_configuration_id)->first();
-
                             $API = new RouterosAPI();
                             $API->port = $mikrotik->puerto_api;
 
                             if ($API->connect($mikrotik->ip,$mikrotik->usuario,$mikrotik->clave)) {
                                 $API->write('/ip/firewall/address-list/print', TRUE);
                                 $ARRAYS = $API->read();
-
-                                #ELIMINAMOS DE MOROSOS#
+                                
                                 $API->write('/ip/firewall/address-list/print', false);
-                                $API->write('?address='.$contrato->ip, false);
-                                $API->write("?list=morosos",false);
-                                $API->write('=.proplist=.id');
-                                $ARRAYS = $API->read();
-
-                                if(count($ARRAYS)>0){
-                                    $API->write('/ip/firewall/address-list/remove', false);
-                                    $API->write('=.id='.$ARRAYS[0]['.id']);
-                                    $READ = $API->read();
-
+                                $API->write('?address=' . $contrato->ip, false);
+                                $API->write('?list=morosos', true);
+                                $result = $API->read();
+                                
+                                if (!empty($result)) {
+                                    
+                                    #ELIMINAMOS DE MOROSOS#
+                                    $API->write('/ip/firewall/address-list/print', false);
+                                    $API->write('?address='.$contrato->ip, false);
+                                    $API->write("?list=morosos",false);
+                                    $API->write('=.proplist=.id');
+                                    $ARRAYS = $API->read();
+                                    #ELIMINAMOS DE MOROSOS#
+                                    
+                                    if(count($ARRAYS)>0){
+                                        $API->write('/ip/firewall/address-list/remove', false);
+                                        $API->write('=.id='.$ARRAYS[0]['.id']);
+                                        $READ = $API->read();
+                                        
+                                        #AGREGAMOS A IP_AUTORIZADAS#
+                                        $API->comm("/ip/firewall/address-list/add", array(
+                                            "address" => $contrato->ip,
+                                            "list" => 'ips_autorizadas'
+                                            )
+                                        );
+                                        #AGREGAMOS A IP_AUTORIZADAS#
+    
+                                        $ingreso->revalidacion_enable_internet = 1;
+                                        $ingreso->save();
+    
+                                        $contrato->state = 'enabled';
+                                        $contrato->save();
+                                    }
+                                    
+                                } else {
+                                    
                                     #AGREGAMOS A IP_AUTORIZADAS#
                                     $API->comm("/ip/firewall/address-list/add", array(
                                         "address" => $contrato->ip,
@@ -3979,15 +4006,14 @@ class CronController extends Controller
                                         )
                                     );
                                     #AGREGAMOS A IP_AUTORIZADAS#
-
+    
                                     $ingreso->revalidacion_enable_internet = 1;
                                     $ingreso->save();
-
-                                    $contrato->state = 'enabled';
-                                    $contrato->save();
                                 }
-                                #ELIMINAMOS DE MOROSOS#
+                                
                                 $API->disconnect();
+                            }else{
+                                echo "no se conecto a la mikrotik";
                             }
                         }else{
                             $ingreso->revalidacion_enable_internet = 1;

@@ -2506,19 +2506,31 @@ class FacturasController extends Controller{
             }
 
             // ** Obtencion de los contratos
-            if(count($factura->contratos()) > 0){
-                $textContratos="";
-                $ti = 0;
-                foreach($factura->contratos() as $contrato){
-                    if($ti == 0){
-                        $ti=1;
-                        $textContratos.= $contrato->contrato_nro;
-                    }else{
-                        $textContratos.= "-" . $contrato->contrato_nro;
+            $contratos = DB::table('facturas_contratos as fc')->where('fc.factura_id',$factura->id)->get();
+            $textContratos = "";
+            $textDireccion = "";
+
+            if(count($contratos) > 0){
+                foreach($contratos as $c){
+                    $textContratos.=  "|" .$c->contrato_nro . "|";
+                    $con = Contrato::where("nro",$c->contrato_nro)->first();
+
+                    if($con){
+                        $textDireccion .="|";
+                        $textDireccion .=$con->address_street?:$con->cliente()->direccion;
+                        $textDireccion .="|";
                     }
                 }
             }else{
-                $textContratos="No";
+                $con = Contrato::find($factura->contrato_id);
+
+                if ($con){
+                    $textContratos.=  "|" .$con->nro . "|";
+
+                    $textDireccion .="|";
+                    $textDireccion .=$con->address_street?:$con->cliente()->direccion;
+                    $textDireccion .="|";
+                }
             }
 
             $nestedData = array();
