@@ -1,0 +1,36 @@
+From 377cfdb8ff0ed7638543b8553e9dd19a258cbcdb Mon Sep 17 00:00:00 2001
+From: higuita1498 <higuitajokers@gmail.com>
+Date: Fri, 17 Oct 2025 16:04:54 -0500
+Subject: [PATCH 5021/5028] feat:agregamos nuevas validaciones de active
+ connection
+
+---
+ app/Http/Controllers/ContratosController.php | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/app/Http/Controllers/ContratosController.php b/app/Http/Controllers/ContratosController.php
+index 8b16c5d1..5759e80e 100644
+--- a/app/Http/Controllers/ContratosController.php
++++ b/app/Http/Controllers/ContratosController.php
+@@ -2601,6 +2601,18 @@ class ContratosController extends Controller
+                                                 $API->comm("/ppp/active/remove", [
+                                                     ".id" => $response['0']['.id']
+                                                 ]);
++                                            }else{ //NUEVO CODIGO
++
++                                                //HACEMOS EL MISMO PROCESO PERO ENTONCES POR EL NRO CONTRARTO.
++                                                $API->write('/ppp/active/print', false);
++                                                $API->write('?name=' . $contrato->nro);
++                                                $response = $API->read();
++
++                                                if(isset($response['0']['.id'])){
++                                                    $API->comm("/ppp/active/remove", [
++                                                        ".id" => $response['0']['.id']
++                                                    ]);
++                                                }
+                                             }
+ 
+                                         }
+-- 
+2.51.0.windows.1
+

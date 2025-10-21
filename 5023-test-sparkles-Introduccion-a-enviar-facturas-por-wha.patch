@@ -1,0 +1,193 @@
+From 1503bb96d22d8455f90076451ce0edab3e3100cb Mon Sep 17 00:00:00 2001
+From: Uriel Vargas <fabianvargas1099@gmail.com>
+Date: Mon, 20 Oct 2025 10:23:33 -0500
+Subject: [PATCH 5023/5028] test: :sparkles: Introduccion a enviar facturas por
+ whatsapp a travez de la plantilla (Vibio)
+
+---
+ app/Http/Controllers/FacturasController.php | 103 ++++++++++++++------
+ app/Services/WapiService.php                |  12 +++
+ routes/web.php                              |   2 +-
+ 3 files changed, 85 insertions(+), 32 deletions(-)
+
+diff --git a/app/Http/Controllers/FacturasController.php b/app/Http/Controllers/FacturasController.php
+index 4f684fd1..f9a4c8e5 100644
+--- a/app/Http/Controllers/FacturasController.php
++++ b/app/Http/Controllers/FacturasController.php
+@@ -4550,66 +4550,107 @@ class FacturasController extends Controller{
+         exit;
+     }
+ 
+-    public function whatsapp($id, Request $request, WapiService $wapiService)
++    public function getFacturaTemp($id, $token)
+     {
+-        $factura = Factura::find($id);
++        // Validar token de seguridad
++        if ($token !== config('app.key')) {
++            abort(403, 'Token inválido');
++        }
++
++        // Buscar la factura
++        $factura = Factura::findOrFail($id);
++
++        // Generar el PDF directamente (sin guardarlo en disco)
+         $facturaPDF = $this->getPdfFactura($id);
+-        $facturabase64 = base64_encode($facturaPDF);
++
++        // Retornar el PDF como descarga temporal
++        return response($facturaPDF)
++            ->header('Content-Type', 'application/pdf')
++            ->header('Content-Disposition', 'inline; filename="Factura_' . $factura->codigo . '.pdf"');
++    }
++
++    public function whatsapp($id, Request $request, WapiService $wapiService)
++    {
++        $factura = Factura::findOrFail($id);
+         $instance = Instance::where('company_id', auth()->user()->empresa)->first();
+         $contacto = $factura->cliente();
+ 
+-        if(is_null($instance) || empty($instance)){
+-            return back()->with('danger', 'Aún no ha creado una instancia, por favor pongase en contacto con el administrador.');
++        if (is_null($instance) || empty($instance)) {
++            return back()->with('danger', 'Aún no ha creado una instancia, por favor póngase en contacto con el administrador.');
+         }
+ 
+-        if($instance->status !== "PAIRED") {
+-            return back()->with('danger', 'La instancia de whatsapp no está conectada, por favor conectese a whatsapp y vuelva a intentarlo.');
++        if ($instance->status !== "PAIRED") {
++            return back()->with('danger', 'La instancia de WhatsApp no está conectada, por favor conéctese a WhatsApp y vuelva a intentarlo.');
+         }
+ 
+-        $file = [
+-            "mimeType" => "application/pdf",
+-            "file" => $facturabase64,
+-        ];
+-
+-        $contact = [
+-            "phone" => "57" . $contacto->celular,
+-            "name" => $contacto->nombre . " " . $contacto->apellido1
+-        ];
++        // Construir la URL temporal del PDF
++        $token = config('app.key');
++        $urlFactura = route('facturas.temp', ['id' => $id, 'token' => $token]);
+ 
+         $nameEmpresa = auth()->user()->empresa()->nombre;
+         $estadoCuenta = $factura->estadoCuenta();
+-
+-        $msg_deuda = "";
+         $total = $factura->total()->total;
+-        if($estadoCuenta->saldoMesAnterior > 0){
+-            $msg_deuda = "El total a deber es: " . Funcion::Parsear($estadoCuenta->saldoMesAnterior + $total);
+-        }
+-
+-        $message = "$nameEmpresa Le informa que su factura ha sido generada bajo el número $factura->codigo por un monto de $$total pesos. " . $msg_deuda;
++        $saldo = $estadoCuenta->saldoMesAnterior > 0
++            ? $estadoCuenta->saldoMesAnterior + $total
++            : $total;
+ 
++        // Armar cuerpo de mensaje según plantilla de VibioCRM
+         $body = [
+-            "contact" => $contact,
+-            "message" => $message,
+-            "media" => $file
++            "phone" => "+57" . $contacto->celular,
++            "templateName" => "factura", // nombre de tu plantilla en Vibio
++            "languageCode" => "es",
++            "components" => [
++                [
++                    "type" => "header",
++                    "parameters" => [
++                        [
++                            "type" => "document",
++                            "document" => [
++                                "link" => $urlFactura,
++                                "filename" => "Factura_{$factura->codigo}.pdf"
++                            ]
++                        ]
++                    ]
++                ],
++                [
++                    "type" => "body",
++                    "parameters" => [
++                        [
++                            "type" => "text",
++                            "text" => $contacto->nombre . " " . $contacto->apellido1
++                        ],
++                        [
++                            "type" => "text",
++                            "text" => $nameEmpresa
++                        ],
++                        [
++                            "type" => "text",
++                            "text" => number_format($saldo, 0, ',', '.')
++                        ]
++                    ]
++                ]
++            ]
+         ];
+ 
+-        $response = (object) $wapiService->sendMessageMedia($instance->uuid, $instance->api_key, $body);
++        // Enviar mensaje con plantilla
++        $response = (object) $wapiService->sendTemplate($instance->uuid, $body);
+ 
+-        if(isset($response->statusCode)) {
++        if (isset($response->statusCode) && $response->statusCode !== 200) {
+             return back()->with('danger', 'No se pudo enviar el mensaje, por favor intente nuevamente.');
+         }
+-        $response = json_decode($response->scalar);
+ 
+-        if($response->status != "success") {
++        $response = json_decode($response->scalar ?? '{}');
++        if (!isset($response->status) || $response->status !== "success") {
+             return back()->with('danger', 'No se pudo enviar el mensaje, por favor intente nuevamente.');
+         }
+ 
+         $factura->whatsapp = 1;
+         $factura->save();
+-        return back()->with('success', 'Mensaje enviado correctamente.');
+ 
++        return back()->with('success', 'Mensaje enviado correctamente.');
+     }
+ 
++
+     public function whatsapp2($id,Request $request )
+     {
+         $factura = Factura::find($id);
+diff --git a/app/Services/WapiService.php b/app/Services/WapiService.php
+index 688bb1d5..457ed920 100644
+--- a/app/Services/WapiService.php
++++ b/app/Services/WapiService.php
+@@ -76,4 +76,16 @@ class WapiService
+             true
+         );
+     }
++
++    public function sendTemplate(string $uuid, array $body)
++    {
++        return $this->makeRequest(
++            "POST",
++            $this->baseUri . "/api/v1/channels/waba/{$uuid}/send-template",
++            [],
++            $body,
++            $this->headers,
++            true
++        );
++    }
+ }
+\ No newline at end of file
+diff --git a/routes/web.php b/routes/web.php
+index 68b84634..604a1514 100644
+--- a/routes/web.php
++++ b/routes/web.php
+@@ -561,7 +561,7 @@ Route::group(['prefix' => 'empresa', 'middleware' => ['auth']], function () {
+ 		Route::post('{id}/cerrar', 'FacturasController@cerrar')->name('factura.cerrar');
+ 		Route::get('/{id}/mensaje', 'FacturasController@mensaje')->name('facturas.mensaje');
+ 		Route::get('/{id}/whatsapp', 'FacturasController@whatsapp')->name('facturas.whatsapp');
+-
++		Route::get('/temp/{id}/{token}', 'FacturaController@getFacturaTemp')->name('facturas.temp');
+ 		Route::get('/productos', 'FacturasController@getItemsSelect');
+ 
+ 		Route::get('{id}/aceptarFe', 'FacturasController@aceptarFe')->name('factura.aceptarfe');
+-- 
+2.51.0.windows.1
+

@@ -1,0 +1,35 @@
+From 8f6c12a220f581eb2c9bb88cfd3e495867772c2c Mon Sep 17 00:00:00 2001
+From: higuita1498 <higuitajokers@gmail.com>
+Date: Fri, 17 Oct 2025 16:10:45 -0500
+Subject: [PATCH 5022/5028] feat:active connection
+
+---
+ app/Http/Controllers/CronController.php | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/app/Http/Controllers/CronController.php b/app/Http/Controllers/CronController.php
+index d948031a..291b13f1 100644
+--- a/app/Http/Controllers/CronController.php
++++ b/app/Http/Controllers/CronController.php
+@@ -1099,6 +1099,18 @@ class CronController extends Controller
+                                                         $API->comm("/ppp/active/remove", [
+                                                             ".id" => $response['0']['.id']
+                                                         ]);
++                                                    }else{ //NUEVO CODIGO
++
++                                                        //HACEMOS EL MISMO PROCESO PERO ENTONCES POR EL NRO CONTRARTO.
++                                                        $API->write('/ppp/active/print', false);
++                                                        $API->write('?name=' . $contrato->nro);
++                                                        $response = $API->read();
++
++                                                        if(isset($response['0']['.id'])){
++                                                            $API->comm("/ppp/active/remove", [
++                                                                ".id" => $response['0']['.id']
++                                                            ]);
++                                                        }
+                                                     }
+ 
+                                                 }
+-- 
+2.51.0.windows.1
+

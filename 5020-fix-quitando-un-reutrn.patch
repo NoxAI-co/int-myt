@@ -1,0 +1,24 @@
+From 66c1df6615ec19aa5d895b790645778fdfd5f12f Mon Sep 17 00:00:00 2001
+From: higuita1498 <higuitajokers@gmail.com>
+Date: Fri, 17 Oct 2025 10:27:42 -0500
+Subject: [PATCH 5020/5028] fix:quitando un reutrn
+
+---
+ app/Http/Controllers/FacturasController.php | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/app/Http/Controllers/FacturasController.php b/app/Http/Controllers/FacturasController.php
+index 309fc88e..4f684fd1 100644
+--- a/app/Http/Controllers/FacturasController.php
++++ b/app/Http/Controllers/FacturasController.php
+@@ -2879,7 +2879,6 @@ class FacturasController extends Controller{
+             $tituloCorreo =  $data['Empresa']['nit'] . ";" . $data['Empresa']['nombre'] . ";" . $FacturaVenta->codigo . ";01;" . $data['Empresa']['nombre'];
+ 
+             $isImpuesto = 1;
+-            return $data;
+             //   if(auth()->user()->empresa == 1)
+             //   {
+             //       return $xml = response()->view('templates.xml.01',compact('CUFEvr','ResolucionNumeracion','FacturaVenta', 'data','items','retenciones','responsabilidades_empresa','emails','impTotal','isImpuesto'))->header('Cache-Control', 'public')
+-- 
+2.51.0.windows.1
+
