@@ -3365,184 +3365,283 @@ class CronController extends Controller
 
     public function deleteFactura(){
 
-         //Envio de facturas solo por correo por fecha unica.
-        //  $fechaInvoice = Carbon::now()->format('Y-m').'-'.substr(str_repeat(0, 2)."15", - 2);
-        //  $this->sendInvoices($fechaInvoice);
-        //  return "ok";
+        // return $contratos = Contrato::join('facturas_contratos as fc','fc.contrato_nro','contracts.nro')
+        //     ->join('factura as f','f.id','fc.factura_id')
+        //     ->where('f.fecha', '2025-02-01')
+        //     ->where('f.vencimiento', '>', date('Y-m-d'))
+        //     ->where('contracts.state', 'disabled')
+        //     ->select('contracts.*')
+        //     ->get();
 
+        $logs = MovimientoLOG::where('modulo',5)->where('descripcion','LIKE','%de habilitado a deshabilitado%')->where('created_at','>','2025-08-16')->pluck('contrato');
+        $contratos = Contrato::whereIn('id',$logs)->where('state','disabled')->get();
 
-        // SCRIPT PARA VER CONTRATOS DESHABILUTADOS CON SU ULTIMA FACTURA CERRADA //
-
-        $contratos = DB::table('contracts as cont')
-        ->where('state', 'disabled')
-        ->join('facturas_contratos', 'cont.nro', '=', 'facturas_contratos.contrato_nro')
-        ->leftJoin('factura as fac', function ($join) {
-            $join->on('fac.id', '=', DB::raw('(SELECT factura_id FROM facturas_contratos WHERE facturas_contratos.contrato_nro = cont.nro ORDER BY id DESC LIMIT 1)'));
-        })
-        ->where(function ($query) {
-            $query->whereNull('fac.estatus')->orWhere('fac.estatus', 0);
-        })
-        ->select('cont.*')
-        ->distinct()
-        ->get();
-
-        $contratos = Contrato::where('state','disabled')->get();
-        $i = 0;
+        //Habilitando contratos masivamente segun unas especificaciones
         foreach($contratos as $contrato){
+            if($contrato->state != 'enabled'){
 
-            $facturaContratos = DB::table('facturas_contratos')
-                ->where('contrato_nro',$contrato->nro)->orderBy('id','DESC')->first();
+            if(isset($contrato->server_configuration_id)){
 
-            if($facturaContratos){
-                $ultFactura = Factura::Find($facturaContratos->factura_id);
-                if($ultFactura->estatus == 0){
-                    $i = $i+1;
-                    echo $contrato->nro . "<br>";
-                    // return $contrato;
-                    // return $ultFactura;
+                $mikrotik = Mikrotik::where('id', $contrato->server_configuration_id)->first();
+                $API = new RouterosAPI();
+                $API->port = $mikrotik->puerto_api;
+
+                if ($API->connect($mikrotik->ip,$mikrotik->usuario,$mikrotik->clave)) {
+                    $API->write('/ip/firewall/address-list/print', TRUE);
+                    $ARRAYS = $API->read();
+
+
+                #ELIMINAMOS DE MOROSOS#
+                $API->write('/ip/firewall/address-list/print', false);
+                $API->write('?address='.$contrato->ip, false);
+                $API->write("?list=morosos",false);
+                $API->write('=.proplist=.id');
+                $ARRAYS = $API->read();
+
+                if(count($ARRAYS)>0){
+                    $API->write('/ip/firewall/address-list/remove', false);
+                    $API->write('=.id='.$ARRAYS[0]['.id']);
+                    $READ = $API->read();
+                }
+                #ELIMINAMOS DE MOROSOS#
+
+                #HABILITACION DEL PPOE#
+                if($contrato->conexion == 1 && $contrato->usuario != null){
+                    $API->write('/ppp/secret/enable', false);
+                    $API->write('=numbers=' . $contrato->usuario);
+                    $response = $API->read();
+                }
+                #HABILITACION DEL PPOE#
+
+                #AGREGAMOS A IP_AUTORIZADAS#
+                $API->comm("/ip/firewall/address-list/add", array(
+                    "address" => $contrato->ip,
+                    "list" => 'ips_autorizadas'
+                    )
+                );
+                #AGREGAMOS A IP_AUTORIZADAS#
+
+                $contrato->state = 'enabled';
+
+                $contrato->update();
+                $API->disconnect();
+                }
+            }
+        }
+        }
+
+        return "ok habilitacion de contratos";
+        //Script para habilitar contratos por mk tambien segun unas especificaciones
+
+
+            //Envio de facturas solo por correo por fecha unica.
+            //  $fechaInvoice = Carbon::now()->format('Y-m').'-'.substr(str_repeat(0, 2)."15", - 2);
+            //  $this->sendInvoices($fechaInvoice);
+            //  return "ok";
+
+
+            // SCRIPT PARA VER CONTRATOS DESHABILUTADOS CON SU ULTIMA FACTURA CERRADA //
+            // $contratos = DB::table('contracts as cont')
+            // ->where('state', 'disabled')
+            // ->join('facturas_contratos', 'cont.nro', '=', 'facturas_contratos.contrato_nro')
+            // ->leftJoin('factura as fac', function ($join) {
+            //     $join->on('fac.id', '=', DB::raw('(SELECT factura_id FROM facturas_contratos WHERE facturas_contratos.contrato_nro = cont.nro ORDER BY id DESC LIMIT 1)'));
+            // })
+            // ->where(function ($query) {
+            //     $query->whereNull('fac.estatus')->orWhere('fac.estatus', 0);
+            // })
+            // ->select('cont.*')
+            // ->distinct()
+            // ->get();
+
+            // $contratos = Contrato::where('state','disabled')->get();
+            // $i = 0;
+            // foreach($contratos as $contrato){
+
+            //     $facturaContratos = DB::table('facturas_contratos')
+            //         ->where('contrato_nro',$contrato->nro)->orderBy('id','DESC')->first();
+
+            //     if($facturaContratos){
+            //         $ultFactura = Factura::Find($facturaContratos->factura_id);
+            //         if($ultFactura->estatus == 0){
+            //             $i = $i+1;
+            //             echo $contrato->nro . "<br>";
+            //             // return $contrato;
+            //             // return $ultFactura;
+            //         }
+            //     }
+            // }
+            // return "Deshabilitaods mal hay: " . $i;
+            // SCRIPT PARA VER CONTRATOS DESHABILUTADOS CON SU ULTIMA FACTURA CERRADA //
+
+            //--------- Obtener facturas relacionadas con constratos de la manera nueva o antigua por varias validaciones ------- ///
+            return $facturas = Factura::leftJoin('facturas_contratos as fc','fc.factura_id','factura.id')
+            ->leftJoin('contracts as cs', function ($join) {
+                $join->on('cs.nro', '=', 'fc.contrato_nro')
+                        ->orOn('cs.id', '=', 'factura.contrato_id');
+            })
+            ->where('factura.estatus',2)
+            ->where('factura.observaciones','LIKE','%Facturación Automática -%')->where('factura.fecha',"2024-12-01")
+            //   ->where('cs.grupo_corte',2)
+            ->select('factura.id')
+            ->get();
+
+            $eliminadas = 0;
+            foreach($facturas as $f){
+
+                if($f->pagado() == 0){
+                    DB::table('facturas_contratos')->where('factura_id',$f->id)->delete();
+                    $itemsFactura = ItemsFactura::where('factura',$f->id)->delete();
+                    DB::table('crm')->where('factura',$f->id)->delete();
+
+                    //Si queremos eliminar ingresos tambien si no comentar linea:
+                    // $if = DB::table('ingresos_factura')->where('factura',$f->id)->first();
+                    // if($if){
+                    //     DB::table('ingresos')->where('id',$if->ingreso)->delete();
+                    //     DB::table('ingresos_factura')->where('factura',$f->id)->delete();
+                    // }
+
+                    $eliminadas++;
+                    $f->delete();
                 }
             }
 
 
-        }
+            return "Se eliminaron un total de:" . $eliminadas . " facturas correctamente";
 
-        return "Deshabilitaods mal hay: " . $i;
-        // SCRIPT PARA VER CONTRATOS DESHABILUTADOS CON SU ULTIMA FACTURA CERRADA //
+            //comprobar en bd
+            //SELECT factura.* FROM `factura` WHERE factura.observaciones LIKE "%Facturación Automática - Corte%" AND factura.fecha = "2022-08-25"
 
-        //--------- enviar facturas por wpp segun una fecha ------- ///
+            // SOPORTE AGREGAR ITEMS A FACTURAS SIN ITEMS MASIVAMENTE  POR UN GRUPO DE CORTE//
+            // $facturas = Factura::join('contracts as c','c.id','=','factura.contrato_id')
+            // ->select('factura.*','c.grupo_corte','c.plan_id','c.servicio_tv','c.descuento')
+            // ->where('factura.fecha','2022-12-20')
+            // ->get();
 
-            return $facturas = Factura::
-            join('contracts as c','c.id','=','factura.contrato_id')
-            ->where('factura.observaciones','LIKE','%Facturación Automática -%')->where('factura.fecha',"2023-12-30")
-            ->where('factura.created_at','lIKE',"%2024-01-02%")
-            ->where('c.grupo_corte',1)
-            // ->where('factura.whatsapp',0)
-            ->select('factura.*')
-            ->get();
-
-        // --------- fin enviar fcturas por wpp segun fecha ---------- //
+            // $cont = 0;
+            // foreach($facturas as $factura){
 
 
+                //#SOPORTE FECHA DE VENCIMIENTO MAL INGRESADA CAMBIO MASIVO //
+                // if(Carbon::parse($factura->vencimiento)->format('Y') == "2022"){
+                // $cont=$cont+1;
+                //  $dia = Carbon::parse($factura->vencimiento)->format('d');
+                //  $mes = Carbon::parse($factura->vencimiento)->format('m');
+                //  $year = "2023";
+                //  $fechaCompleta = $year . "-" . $mes . "-" . $dia;
+                //  $factura->vencimiento = $fechaCompleta;
+                //  $factura->suspension = $fechaCompleta;
+                //  $factura->save();
+                // }
+                //#SOPORTE FECHA DE VENCIMIENTO MAL INGRESADA CAMBIO MASIVO //
 
-        //facturas creadas automaticamente cancelamos sus contratos o eliminamos
-        // $facturas = Factura::
-        // join('contracts as c','c.id','=','factura.contrato_id')
-        // ->where('factura.observaciones','LIKE','%Facturación Automática -%')->where('factura.fecha',"2023-05-02")
-        // ->where('c.grupo_corte',2)
-        // ->select('factura.*')
-        // ->get();
+                // if($factura->total()->total == 0){
+                //     $cont=$cont+1;
+                //     if(!DB::table('items_factura')->where('factura',$factura->id)->first()){
+                //         $factura->estatus = 1;
+                //         $factura->save();
+                //         if($factura->plan_id){
+                //                     $plan = PlanesVelocidad::find($factura->plan_id);
+                //                     $item = Inventario::find($plan->item);
 
-        //HABILITAR CONTRATOS DESHABILITADOS ERRONEAMENTE//
-        // $contratos = Contrato::where('grupo_corte',1)->where('state','disabled')->where('updated_at','>=','2022-10-06 00:00:00')->where('updated_at','<=','2022-10-06 06:00:00')->get();
-        // $i = 0;
-        // foreach($contratos as $contrato){
-        //         $contrato->state = "enabled";
-        //         $contrato->status = 1;
-        //         $contrato->save();
-        //         $i++;
-        // }
-        // return "Se habilitaron " . $i . " contratos";
-        //HABILITAR CONTRATOS DESHABILITADOS ERRONEAMENTE//
+                //                     $item_reg = new ItemsFactura;
+                //                     $item_reg->factura     = $factura->id;
+                //                     $item_reg->producto    = $item->id;
+                //                     $item_reg->ref         = $item->ref;
+                //                     $item_reg->precio      = $item->precio;
+                //                     $item_reg->descripcion = $plan->name;
+                //                     $item_reg->id_impuesto = $item->id_impuesto;
+                //                     $item_reg->impuesto    = $item->impuesto;
+                //                     $item_reg->cant        = 1;
+                //                     $item_reg->desc        = $factura->descuento;
+                //                     $item_reg->save();
+                //                 }
 
-        // //habilitar contratos por factura
-        // foreach($facturas as $factura){
-        //     $contrato = Contrato::where('id',$factura->contrato_id)->first();
-        //     if($contrato){
-        //         $contrato->state = "enabled";
-        //         $contrato->status = 1;
-        //         $contrato->save();
-        //     }
+                //         //         ## Se carga el item a la factura (Plan de Televisión) ##
 
-        // }
-
-        // return "ok contratos habilitados";
-
-        $eliminadas = 0;
-        foreach($facturas as $f){
-
-            if($f->pagado() == 0){
-            DB::table('facturas_contratos')->where('factura_id',$f->id)->delete();
-            $itemsFactura = ItemsFactura::where('factura',$f->id)->delete();
-        DB::table('crm')->where('factura',$f->id)->delete();
-            $eliminadas++;
-            $f->delete();
-            }
-        }
-
-
-        return "Se eliminaron un total de:" . $eliminadas . " facturas correctamente";
-
-        //comprobar en bd
-        //SELECT factura.* FROM `factura` WHERE factura.observaciones LIKE "%Facturación Automática - Corte%" AND factura.fecha = "2022-08-25"
-
-        // SOPORTE AGREGAR ITEMS A FACTURAS SIN ITEMS MASIVAMENTE  POR UN GRUPO DE CORTE//
-        // $facturas = Factura::join('contracts as c','c.id','=','factura.contrato_id')
-        // ->select('factura.*','c.grupo_corte','c.plan_id','c.servicio_tv','c.descuento')
-        // ->where('factura.fecha','2022-12-20')
-        // ->get();
-
-        // $cont = 0;
-        // foreach($facturas as $factura){
-
-
-            //#SOPORTE FECHA DE VENCIMIENTO MAL INGRESADA CAMBIO MASIVO //
-            // if(Carbon::parse($factura->vencimiento)->format('Y') == "2022"){
-            // $cont=$cont+1;
-            //  $dia = Carbon::parse($factura->vencimiento)->format('d');
-            //  $mes = Carbon::parse($factura->vencimiento)->format('m');
-            //  $year = "2023";
-            //  $fechaCompleta = $year . "-" . $mes . "-" . $dia;
-            //  $factura->vencimiento = $fechaCompleta;
-            //  $factura->suspension = $fechaCompleta;
-            //  $factura->save();
+                //                 if($factura->servicio_tv){
+                //                     $item = Inventario::find($factura->servicio_tv);
+                //                     $item_reg = new ItemsFactura;
+                //                     $item_reg->factura     = $factura->id;
+                //                     $item_reg->producto    = $item->id;
+                //                     $item_reg->ref         = $item->ref;
+                //                     $item_reg->precio      = $item->precio;
+                //                     $item_reg->descripcion = $item->producto;
+                //                     $item_reg->id_impuesto = $item->id_impuesto;
+                //                     $item_reg->impuesto    = $item->impuesto;
+                //                     $item_reg->cant        = 1;
+                //                     $item_reg->desc        = $factura->descuento;
+                //                     $item_reg->save();
+                //                 }
+                //     }
+                // }
             // }
-            //#SOPORTE FECHA DE VENCIMIENTO MAL INGRESADA CAMBIO MASIVO //
+            // return "ok productos actualizados" . $cont;
+            //END SOPORTE AGREGAR ITEMS A FACTURAS SIN ITEMS MASIVAMENTE  POR UN GRUPO DE CORTE//
 
-            // if($factura->total()->total == 0){
-            //     $cont=$cont+1;
-            //     if(!DB::table('items_factura')->where('factura',$factura->id)->first()){
-            //         $factura->estatus = 1;
-            //         $factura->save();
-            //         if($factura->plan_id){
-            //                     $plan = PlanesVelocidad::find($factura->plan_id);
-            //                     $item = Inventario::find($plan->item);
+           /// ELIMINAR FACTURAS REPETIDAS EN UN MISMO MES PARA UN MISMO CONTRATO QUE NO ESTEN PAGAS ///
+           return;
+           $contratos = Contrato::where('status',1)->get();
+           $eli = 0;
+           foreach($contratos as $contrato){
 
-            //                     $item_reg = new ItemsFactura;
-            //                     $item_reg->factura     = $factura->id;
-            //                     $item_reg->producto    = $item->id;
-            //                     $item_reg->ref         = $item->ref;
-            //                     $item_reg->precio      = $item->precio;
-            //                     $item_reg->descripcion = $plan->name;
-            //                     $item_reg->id_impuesto = $item->id_impuesto;
-            //                     $item_reg->impuesto    = $item->impuesto;
-            //                     $item_reg->cant        = 1;
-            //                     $item_reg->desc        = $factura->descuento;
-            //                     $item_reg->save();
-            //                 }
+               $mes = 12;
+               $year = 2024;
+               $dia = 16;
 
-            //         //         ## Se carga el item a la factura (Plan de Televisión) ##
+               $query_facturas = Factura::leftJoin('facturas_contratos as fc','fc.factura_id','factura.id')
+                ->leftJoin('contracts as cs', function ($join) {
+                       $join->on('cs.nro', '=', 'fc.contrato_nro')
+                            ->orOn('cs.id', '=', 'factura.contrato_id');
+                   })
+               ->where('fc.contrato_nro',$contrato->nro)
+               ->whereYear('factura.fecha', $year)
+               ->whereMonth('factura.fecha', $mes)
+               ->whereDay('factura.fecha', $dia)
+               ->orWhere('factura.contrato_id',$contrato->id)
+               ->whereYear('factura.fecha', $year)
+               ->whereMonth('factura.fecha', $mes)
+               ->whereDay('factura.fecha', $dia)
+               ->select('factura.*')
+               ->groupBy('factura.codigo');
 
-            //                 if($factura->servicio_tv){
-            //                     $item = Inventario::find($factura->servicio_tv);
-            //                     $item_reg = new ItemsFactura;
-            //                     $item_reg->factura     = $factura->id;
-            //                     $item_reg->producto    = $item->id;
-            //                     $item_reg->ref         = $item->ref;
-            //                     $item_reg->precio      = $item->precio;
-            //                     $item_reg->descripcion = $item->producto;
-            //                     $item_reg->id_impuesto = $item->id_impuesto;
-            //                     $item_reg->impuesto    = $item->impuesto;
-            //                     $item_reg->cant        = 1;
-            //                     $item_reg->desc        = $factura->descuento;
-            //                     $item_reg->save();
-            //                 }
-            //     }
-            // }
-        // }
-        // return "ok productos actualizados" . $cont;
-        //END SOPORTE AGREGAR ITEMS A FACTURAS SIN ITEMS MASIVAMENTE  POR UN GRUPO DE CORTE//
+
+               $facturas = $query_facturas->get();
+
+                   if($facturas->count() > 1){
+
+                       foreach($facturas as $f){
+
+                           if($f->pagado() == 0){
+
+                           $itemsFactura = ItemsFactura::where('factura',$f->id)->delete();
+                           DB::table('facturas_contratos')->where('factura_id',$f->id)->delete();
+                               DB::table('crm')->where('factura',$f->id)->delete();
+                                   $eli++;
+                                   $f->delete();
+                           }else{
+                               $facturas = $query_facturas->get();
+
+                                   if($facturas->count() > 1){
+                                       DB::table('facturas_contratos')->where('factura_id',$f->id)->delete();
+                                        $itemsFactura = ItemsFactura::where('factura',$f->id)->delete();
+                                       DB::table('crm')->where('factura',$f->id)->delete();
+                                               $eli++;
+                                               $f->delete();
+                                   }
+                           }
+                       }
+                   }
+
+                   // return "ok";
+           }
+
+           return "se eliminaron " . $eli;
+
+           /// FIN ELIMINAR FACTURAS REPETIDAS EN UN MISMO MES PARA UN MISMO CONTRATO QUE NO ESTEN PAGAS ///
 
     }
+
 
     public function aplicateProrrateo(){
 
