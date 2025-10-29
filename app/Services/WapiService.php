@@ -1,8 +1,8 @@
 <?php
+
 namespace App\Services;
 
 use App\Traits\ConsumesExternalServices;
-use GuzzleHttp\Client;
 
 class WapiService
 {
@@ -46,7 +46,7 @@ class WapiService
     {
         return $this->makeRequest(
             "POST",
-            $this->baseUri . "/api/v1/start-session/" . $uuid,            
+            $this->baseUri . "/api/v1/start-session/" . $uuid,
             [],
             [],
             $this->headers,
@@ -65,4 +65,29 @@ class WapiService
             true
         );
     }
+
+    public function sendTemplate(string $uuid, array $body)
+    {
+        return $this->makeRequest(
+            "POST",
+            $this->baseUri . "/api/v1/channels/waba/{$uuid}/send-template",
+            [],
+            $body,
+            $this->headers,
+            true
+        );
+    }
+
+    public function getWabaChannel(string $uuid)
+    {
+        return $this->makeRequest(
+            "GET",
+            $this->baseUri . "/api/v1/channels/waba/{$uuid}",
+            [], 
+            [],  
+            $this->headers,
+            true    // Indica que esperas una respuesta tipo JSON
+        );
+    }
+
 }
