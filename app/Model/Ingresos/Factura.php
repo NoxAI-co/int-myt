@@ -1767,4 +1767,11 @@ public function forma_pago()
         return $this->belongsTo(Contacto::class, 'cliente');
     }
 
+    public function ingreso(){
+        return Ingreso::join('ingresos_factura as if','if.ingreso','=','ingresos.id')
+        ->where('if.factura',$this->id)
+        ->select('ingresos.fecha')
+        ->first();
+    }
+
 }

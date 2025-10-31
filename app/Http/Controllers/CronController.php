@@ -1202,6 +1202,16 @@ class CronController extends Controller
                                 if(isset($response->status) && $response->status == true){
                                     $contrato->state_olt_catv = false;
                                     $contrato->save();
+
+                                    $descripcion = '<i class="fas fa-check text-success"></i> <b>Cambio de Status</b> de habilitado a deshabilitado por cronjob de corte facturas (TV)<br>';
+                                    $movimiento = new MovimientoLOG();
+                                    $movimiento->contrato    = $contrato->id;
+                                    $movimiento->modulo      = 5;
+                                    $movimiento->descripcion = $descripcion;
+                                    $movimiento->created_by  = 1;
+                                    $movimiento->empresa     = $contrato->empresa;
+                                    $movimiento->save();
+                                    
                                 }
 
                             }
