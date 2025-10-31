@@ -2184,6 +2184,7 @@ class IngresosController extends Controller
         // ============================================================
         $instance = Instance::where('company_id', auth()->user()->empresa)
             ->where('activo', 1)
+            ->where('type', 1)
             ->first();
         
         if (is_null($instance) || empty($instance)) {
