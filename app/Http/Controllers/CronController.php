@@ -6,6 +6,7 @@ use StdClass;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Mail;
+use Illuminate\Support\Facades\Storage;
 use Config;
 use ZipArchive;
 use QrCode;
