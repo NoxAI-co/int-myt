@@ -791,10 +791,10 @@ class ContratosController extends Controller
                 /*IP ESTÁTICA*/
                 if($request->conexion == 3){
                     
-                    /*if($mikrotik->amarre_mac == 1){
+                    if($mikrotik->amarre_mac == 1){
                         $request->validate([
                             'mac_address' => 'required'
-                        ]);*/
+                        ]);
 
                          $API->comm("/ip/arp/add", array(
                             "comment"     => $this->normaliza($servicio).'-'.$nro_contrato,
@@ -803,7 +803,7 @@ class ContratosController extends Controller
                             )
                         );
                       
-                    //}
+                    }
 
                     if (!empty($plan->queue_type_subida) && !empty($plan->queue_type_bajada)) {
                         // Si tienen datos, asignar "queue" con los valores de subida y bajada
