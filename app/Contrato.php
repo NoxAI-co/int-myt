@@ -45,6 +45,16 @@ class Contrato extends Model
         return $this->status();
     }
 
+    public function fechaDesconexion(){
+        $registro = DB::table('log_movimientos')
+            ->where('contrato', $this->id)
+            ->whereRaw("LOWER(descripcion) LIKE '%de habilitado a deshabilitado%'")
+            ->orderBy('created_at', 'desc') // Asegúrate que 'fecha' sea la columna con la fecha de movimiento
+            ->first();
+
+        return $registro ? Carbon::parse($registro->created_at)->format('Y-m-d H:i:s') : null;
+    }
+
     public function status($class=false){
         if($class){
             return $this->state == 'enabled' ? 'success' : 'danger';
