@@ -20,6 +20,7 @@ use App\Vendedor;
 use App\Canal;
 use App\Oficina;
 use stdClass;
+use Illuminate\Support\Carbon;
 
 class Contrato extends Model
 {
@@ -43,6 +44,48 @@ class Contrato extends Model
     public function getStatusAttribute()
     {
         return $this->status();
+    }
+
+    public function fechaDesconexion(){
+        $registro = DB::table('log_movimientos')
+            ->where('contrato', $this->id)
+            ->whereRaw("LOWER(descripcion) LIKE '%de habilitado a deshabilitado%'")
+            ->orderBy('created_at', 'desc') // Asegúrate que 'fecha' sea la columna con la fecha de movimiento
+            ->first();
+
+        return $registro ? Carbon::parse($registro->created_at)->format('Y-m-d H:i:s') : null;
+    }
+
+    public function fechaUltimoPago(){
+
+        if(Contrato::where('client_id',$this->client_id)->count() <= 1){
+            $ingreso = Ingreso::where('cliente', $this->client_id)
+            ->where('tipo', 1)
+            ->where('estatus',1)
+            ->select('fecha')
+            ->get()->last();
+
+            if($ingreso){
+                return $ingreso->fecha;
+            }
+        }
+        else{
+
+            $factura = FacturaContratos::where('contrato_nro' , $this->nro)->get()->last();
+            if($factura){
+                $factura = Factura::where('id', $factura->factura_id)->first();
+                if($factura){
+                    $ingreso_factura = IngresosFactura::where('factura', $factura->id)->get()->last();
+                    if($ingreso_factura){
+                        $ingreso = Ingreso::where('id', $ingreso_factura->ingreso)->select('fecha')->first()->fecha;
+                    }
+                }
+            }
+
+
+
+        }
+
     }
 
     public function status($class=false){
@@ -251,6 +294,7 @@ class Contrato extends Model
         $coleccion = new stdClass;
         $coleccion->precio = 0;
         $coleccion->nombre = "";
+        $coleccion->conIva = 0;
 
         if($name == "plan_id" && $this->plan_id != null ){
             $plan = PlanesVelocidad::Find($this->plan_id);
@@ -259,6 +303,7 @@ class Contrato extends Model
                 $item = Inventario::Find($plan->item);
                 $coleccion->precio = $item->precio;
                 $coleccion->nombre =  $plan->name;
+                $coleccion->conIva =  round($item->precio + ($item->precio*($item->impuesto/100)));
             }
 
             // return $plan->name . " - $" . number_format($item->precio, 0, ',', '.');
@@ -266,18 +311,22 @@ class Contrato extends Model
         else if($name == "servicio_tv" && $this->servicio_tv != null){
             $item = Inventario::Find($this->servicio_tv);
 
-            $coleccion->nombre =  $item->producto;
-            $coleccion->precio = $item->precio;
-
+            if($item){
+                 $coleccion->nombre =  $item->producto;
+                $coleccion->precio =  $item->precio;
+                $coleccion->conIva =  round($item->precio + ($item->precio*($item->impuesto/100)));
+            }
             // return $item->producto . " - $" . number_format($item->precio, 0, ',', '.');
         }
 
         else if($name == "servicio_otro" && $this->servicio_otro != null){
             $item = Inventario::Find($this->servicio_otro);
 
-            $coleccion->nombre =  $item->producto;
-            $coleccion->precio = $item->precio;
-
+            if($item){
+                $coleccion->nombre =  $item->producto;
+                $coleccion->precio = $item->precio;
+                $coleccion->conIva =  round($item->precio + ($item->precio*($item->impuesto/100)));
+            }
             // return $item->producto . " - $" . number_format($item->precio, 0, ',', '.');
         }
 
