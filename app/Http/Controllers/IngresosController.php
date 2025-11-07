@@ -2107,7 +2107,8 @@ class IngresosController extends Controller
         return back()->with($style, $mensaje);
     }
 
-    public function tirillaWpp($nro, WapiService $wapiService){
+    public function tirillaWpp($id, WapiService $wapiService){
+        $nro = $id;
         $ingreso = Ingreso::where('empresa', Auth::user()->empresa)->where('nro', $nro)->first();
         
         if (!$ingreso) {
@@ -2394,7 +2395,6 @@ class IngresosController extends Controller
                 "media" => $file
             ];
             $response = (object) $wapiService->sendMessageMedia($instance->uuid, $instance->api_key, $body);
-            
             if (isset($response->statusCode)) {
                 return back()->with('danger', 'No se pudo enviar el mensaje, por favor intente nuevamente.');
             }
