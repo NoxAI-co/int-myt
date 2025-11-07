@@ -20,6 +20,7 @@ use App\Vendedor;
 use App\Canal;
 use App\Oficina;
 use stdClass;
+use Illuminate\Support\Carbon;
 
 class Contrato extends Model
 {
