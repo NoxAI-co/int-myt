@@ -2109,7 +2109,7 @@ class IngresosController extends Controller
 
     public function tirillaWpp($id, WapiService $wapiService){
         $nro = $id;
-        $ingreso = Ingreso::where('empresa', Auth::user()->empresa)->where('nro', $nro)->first();
+        $ingreso = Ingreso::where('empresa', Auth::user()->empresa)->where('id', $nro)->first();
         
         if (!$ingreso) {
             return back()->with('danger', 'No se encontró el ingreso especificado.');
